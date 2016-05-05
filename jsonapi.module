@@ -1,0 +1,11 @@
+<?php
+
+/**
+ * Implements hook_rest_resource_alter().
+ */
+function jsonapi_rest_resource_alter(&$definitions) {
+  $definitions = array_map(function ($definition) {
+    $definition['route_defaults']['_controller'] = 'Drupal\jsonapi\RequestHandler::handle';
+    return $definition;
+  }, $definitions);
+}

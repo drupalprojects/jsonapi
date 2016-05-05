@@ -1,0 +1,43 @@
+<?php
+
+namespace Drupal\jsonapi\Normalizer;
+
+/**
+ * Converts the Drupal field item object structure to HAL array structure.
+ */
+class FieldItemNormalizer extends NormalizerBase {
+
+  /**
+   * The interface or class that this Normalizer supports.
+   *
+   * @var string
+   */
+  protected $supportedInterfaceOrClass = 'Drupal\Core\Field\FieldItemInterface';
+
+  /**
+   * The formats that the Normalizer can handle.
+   *
+   * @var array
+   */
+  protected $formats = array('api_json');
+
+  /**
+   * {@inheritdoc}
+   */
+  public function normalize($field_item, $format = NULL, array $context = array()) {
+    $values = $field_item->toArray();
+    if (isset($context['langcode'])) {
+      $values['lang'] = $context['langcode'];
+    }
+    // If there is only one property, then output it directly.
+    return count($values) == 1 ? reset($values) : $values;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function denormalize($data, $class, $format = NULL, array $context = array()) {
+    throw new \Exception('Denormalization not implemented for JSON API');
+  }
+
+}
