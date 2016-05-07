@@ -31,8 +31,11 @@ class RequestHandler extends \Drupal\rest\RequestHandler {
     $context = new RenderContext();
     $output = $this->container->get('renderer')
       ->executeInRenderContext($context, function () use ($serializer, $data, $format, $request) {
-        $field_names = explode(',', $request->query->get('fields'));
-        return $serializer->serialize($data, $format, ['sparse_fieldset' => $field_names]);
+        $context = [];
+        if ($fields_param = $request->query->get('fields')) {
+          $context['sparse_fieldset'] = explode(',', $fields_param);
+        }
+        return $serializer->serialize($data, $format, $context);
       });
     $response->setContent($output);
     if (!$context->isEmpty()) {
