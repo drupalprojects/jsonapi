@@ -32,18 +32,17 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer {
    *   The array of normalized field items.
    */
   protected function normalizeFieldItems(FieldItemListInterface $field, $format, $context) {
-    $normalized_items = array();
+    $normalizer_items = array();
+    $includes = [];
     if (!$field->isEmpty()) {
       foreach ($field as $field_item) {
-        $normalized_items[] = $this
-          ->serializer
-          ->normalize($field_item, $format, $context);
+        $normalizer_items[] = $this->serializer->normalize($field_item, $format, $context);
       }
     }
-
-    return $field->getFieldDefinition()
+    $cardinality = $field->getFieldDefinition()
       ->getFieldStorageDefinition()
-      ->getCardinality() == 1 ? reset($normalized_items) : $normalized_items;
+      ->getCardinality();
+    return new Value\FieldNormalizerValue($normalizer_items, $cardinality);
   }
 
 

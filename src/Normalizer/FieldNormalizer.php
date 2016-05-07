@@ -56,22 +56,17 @@ class FieldNormalizer extends NormalizerBase {
    *   The array of normalized field items.
    */
   protected function normalizeFieldItems(FieldItemListInterface $field, $format, $context) {
-    $normalized_items = array();
+    $normalizer_items = array();
+    $includes = [];
     if (!$field->isEmpty()) {
       foreach ($field as $field_item) {
-        $normalized_items[] = $this
-          ->serializer
-          ->normalize($field_item, $format, $context);
+        $normalizer_items[] = $this->serializer->normalize($field_item, $format, $context);
       }
     }
     $cardinality = $field->getFieldDefinition()
       ->getFieldStorageDefinition()
       ->getCardinality();
-    // If cardinality is 1 then return the item directly.
-    return $cardinality == 1 ?
-      reset($normalized_items) :
-      $normalized_items;
-
+    return new Value\FieldNormalizerValue($normalizer_items, $cardinality);
   }
 
 }

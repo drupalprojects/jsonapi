@@ -29,8 +29,7 @@ class FieldItemNormalizer extends NormalizerBase {
     if (isset($context['langcode'])) {
       $values['lang'] = $context['langcode'];
     }
-    // If there is only one property, then output it directly.
-    return count($values) == 1 ? reset($values) : $values;
+    return new Value\FieldItemNormalizerValue($values);
   }
 
   /**

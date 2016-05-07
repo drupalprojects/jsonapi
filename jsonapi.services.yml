@@ -2,6 +2,8 @@ services:
   serializer.normalizer.entity_reference_item.jsonapi:
     class: Drupal\jsonapi\Normalizer\EntityReferenceItemNormalizer
     arguments: ['@rest.link_manager', '@serializer.entity_resolver']
+    calls:
+      - [setContainer, ['@service_container']]
     tags:
       - { name: normalizer, priority: 21 }
   serializer.normalizer.field_item.jsonapi:

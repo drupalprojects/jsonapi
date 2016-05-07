@@ -52,22 +52,41 @@ class ContentEntityNormalizer extends NormalizerBase {
    * {@inheritdoc}
    */
   public function normalize($entity, $format = NULL, array $context = array()) {
-    $context += array(
-      'account' => NULL,
-      'sparse_fieldset' => NULL,
-    );
+    $normalizer_entity = $this->buildNormalizerValue($entity, $format, $context);
 
     // Create the array of normalized fields, starting with the URI.
-    /* @var $entity \Drupal\Core\Entity\ContentEntityInterface */
     $normalized = [
+      'type' => $context['resource_path'],
+      'id' => $entity->id(),
       'data' => [
         'attributes' => [],
+        'relationships' => [],
       ],
       'links' => [
         'self' => $this->getEntityUri($entity),
         'type' => $this->linkManager->getTypeUri($entity->getEntityTypeId(), $entity->bundle(), $context),
       ],
     ];
+
+    foreach ($normalizer_entity->getValues() as $field_name => $normalizer_value) {
+      $normalized['data'][$normalizer_value->getPropertyType()][$field_name] = $normalizer_value->rasterizeValue();
+    }
+    $normalized['data'] = array_filter($normalized['data']);
+    $normalized['included'] = array_values($normalizer_entity->rasterizeIncludes());
+    $normalized['included'] = array_filter($normalized['included']);
+
+    return $normalized;
+  }
+
+  /**
+   * @todo Move to an interface.
+   */
+  public function buildNormalizerValue($entity, $format = NULL, array $context = array()) {
+    /* @var $entity \Drupal\Core\Entity\ContentEntityInterface */
+    $context += array(
+      'account' => NULL,
+      'sparse_fieldset' => NULL,
+    );
 
     // If the fields to use were specified, only output those field values.
     if (!empty($context['sparse_fieldset'][$context['resource_path']])) {
@@ -79,6 +98,9 @@ class ContentEntityNormalizer extends NormalizerBase {
         return $field->getName();
       }, $entity->getFields());
     }
+    $includes = [];
+    /* @var Value\FieldNormalizerValueInterface[] $normalizer_values */
+    $normalizer_values = [];
     foreach ($entity->getFields() as $field) {
       // Continue if the current user does not have access to view this field.
       if (!$field->access('view', $context['account'])) {
@@ -91,16 +113,15 @@ class ContentEntityNormalizer extends NormalizerBase {
       if (!$is_relationship && !in_array($field_name, $fields_names)) {
         continue;
       }
-      $normalized_property = $this
+      $normalizer_values[$field_name] = $this
         ->serializer
         ->normalize($field, $format, $context);
-      $bucket = $is_relationship ?
-        'relationships' :
-        'attributes';
-      $normalized['data'][$bucket][$field_name] = $normalized_property;
+
+      $property_type = $is_relationship ? 'relationships' : 'attributes';
+      $normalizer_values[$field_name]->setPropertyType($property_type);
     }
 
-    return $normalized;
+    return new Value\ContentEntityNormalizerValue($normalizer_values);
   }
 
   /**

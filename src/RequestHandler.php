@@ -37,6 +37,7 @@ class RequestHandler extends \Drupal\rest\RequestHandler {
         return explode(',', $item);
       }, $request->query->get('fields'));
     }
+    $normalizer_context['include'] = array_filter(explode(',', $fields_param = $request->query->get('include')));
     $output = $this->container->get('renderer')
       ->executeInRenderContext($context, function () use ($serializer, $data, $format, $normalizer_context) {
         return $serializer->serialize($data, $format, $normalizer_context);
