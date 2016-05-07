@@ -70,8 +70,8 @@ class ContentEntityNormalizer extends NormalizerBase {
     ];
 
     // If the fields to use were specified, only output those field values.
-    if (isset($context['sparse_fieldset'])) {
-      $fields_names = $context['sparse_fieldset'];
+    if (!empty($context['sparse_fieldset'][$context['resource_path']])) {
+      $fields_names = $context['sparse_fieldset'][$context['resource_path']];
     }
     else {
       $fields_names = array_map(function ($field) {

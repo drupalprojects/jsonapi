@@ -29,13 +29,17 @@ class RequestHandler extends \Drupal\rest\RequestHandler {
   protected function renderResponse(Request $request, ResourceResponse $response, SerializerInterface $serializer, $format) {
     $data = $response->getResponseData();
     $context = new RenderContext();
+    $normalizer_context = [
+      'resource_path' => $this->resourcePath($request),
+    ];
+    if ($fields_param = $request->query->get('fields')) {
+      $normalizer_context['sparse_fieldset'] = array_map(function ($item) {
+        return explode(',', $item);
+      }, $request->query->get('fields'));
+    }
     $output = $this->container->get('renderer')
-      ->executeInRenderContext($context, function () use ($serializer, $data, $format, $request) {
-        $context = [];
-        if ($fields_param = $request->query->get('fields')) {
-          $context['sparse_fieldset'] = explode(',', $fields_param);
-        }
-        return $serializer->serialize($data, $format, $context);
+      ->executeInRenderContext($context, function () use ($serializer, $data, $format, $normalizer_context) {
+        return $serializer->serialize($data, $format, $normalizer_context);
       });
     $response->setContent($output);
     if (!$context->isEmpty()) {
@@ -49,6 +53,20 @@ class RequestHandler extends \Drupal\rest\RequestHandler {
     $response->addCacheableDependency(new RequestCacheabilityDependency());
 
     return $response;
+  }
+
+  /**
+   * Get the resource path for the current request.
+   *
+   * @param Request $request
+   *   The request to examine.
+   *
+   * @returns string
+   *   The base resource path.
+   */
+  protected function resourcePath(Request $request) {
+    $templated_path = $request->get('_route_object')->getPath();
+    return trim(preg_replace('/\{.*}/', '', $templated_path), '/');
   }
 
 }
