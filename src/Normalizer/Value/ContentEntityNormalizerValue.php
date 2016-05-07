@@ -5,6 +5,9 @@
  * Contains \Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValue.
  */
 namespace Drupal\jsonapi\Normalizer\Value;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\rest\LinkManager\LinkManagerInterface;
 
 /**
  * Class ContentEntityNormalizerValue.
@@ -28,13 +31,45 @@ class ContentEntityNormalizerValue implements ContentEntityNormalizerValueInterf
   protected $includes;
 
   /**
+   * The resource path.
+   *
+   * @param array
+   */
+  protected $context;
+
+  /**
+   * The resource entity.
+   *
+   * @param EntityInterface
+   */
+  protected $entity;
+
+  /**
+   * The link manager.
+   *
+   * @var LinkManagerInterface
+   */
+  protected $linkManager;
+
+  /**
+   * The entity type manager.
+   *
+   * @var EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * Instantiate a ContentEntityNormalizerValue object.
    *
    * @param FieldNormalizerValueInterface[] $values
    *   The normalized result.
    */
-  public function __construct(array $values) {
+  public function __construct(array $values, array $context, EntityInterface $entity, LinkManagerInterface $link_manager, EntityTypeManagerInterface $entity_type_manager) {
     $this->values = $values;
+    $this->context = $context;
+    $this->entity = $entity;
+    $this->linkManager = $link_manager;
+    $this->entityTypeManager = $entity_type_manager;
     // Get an array of arrays of includes.
     $this->includes = array_map(function ($value) {
       return $value->getIncludes();
@@ -51,29 +86,85 @@ class ContentEntityNormalizerValue implements ContentEntityNormalizerValueInterf
    * {@inheritdoc}
    */
   public function rasterizeValue() {
-    return array_map(function ($value) {
-      return $value->rasterizeValue();
-    }, $this->values);
+    // Create the array of normalized fields, starting with the URI.
+    $rasterized = [
+      'type' => $this->context['resource_path'],
+      'id' => $this->entity->id(),
+      'data' => [
+        'attributes' => [],
+        'relationships' => [],
+      ],
+      'links' => [
+        'self' => $this->getEntityUri($this->entity),
+        'type' => $this->linkManager->getTypeUri(
+          $this->entity->getEntityTypeId(),
+          $this->entity->bundle(), $this->context
+        ),
+      ],
+    ];
 
+    foreach ($this->getValues() as $field_name => $normalizer_value) {
+      $rasterized['data'][$normalizer_value->getPropertyType()][$field_name] = $normalizer_value->rasterizeValue();
+    }
+    $rasterized['data'] = array_filter($rasterized['data']);
+    return $rasterized;
   }
 
   /**
    * {@inheritdoc}
    */
   public function rasterizeIncludes() {
+    // First gather all the includes in the chain.
     return array_map(function ($include) {
-      $include->rasterizeValue();
-    }, $this->includes);
+      return $include->rasterizeValue();
+    }, $this->getIncludes());
   }
-  
+
   /**
-   * Gets the values.
-   *
-   * @return mixed
-   *   The values.
+   * {@inheritdoc}
    */
   public function getValues() {
     return $this->values;
+  }
+
+  /**
+   * Gets a flattened list of includes in all the chain.
+   *
+   * @return ContentEntityNormalizerValueInterface
+   *   The array of included relationships.
+   */
+  public function getIncludes() {
+    $nested_includes = array_map(function ($include) {
+      return $include->getIncludes();
+    }, $this->includes);
+    $includes = array_reduce(array_filter($nested_includes), function ($carry, $item) {
+      return array_merge($carry, $item);
+    }, $this->includes);
+    // Make sure we don't output duplicate includes.
+    return array_values(array_reduce($includes, function ($unique_includes, $include) {
+      $rasterized_include = $include->rasterizeValue();
+      $unique_includes[$rasterized_include['type'] . ':' . $rasterized_include['id']] = $include;
+      return $unique_includes;
+    }, []));
+  }
+
+  /**
+   * Constructs the entity URI.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity.
+   *
+   * @return string
+   *   The entity URI.
+   */
+  protected function getEntityUri(EntityInterface $entity) {
+    // Some entity types don't provide a canonical link template, at least call
+    // out to ->url().
+    if ($entity->isNew() || !$entity->hasLinkTemplate('canonical')) {
+      return $entity->url('canonical', []);
+    }
+    $url = $entity->toUrl('canonical', ['absolute' => TRUE]);
+    return $url->setRouteParameter('_format', 'api_json')->toString();
   }
 
 }

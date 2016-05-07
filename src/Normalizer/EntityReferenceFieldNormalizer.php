@@ -42,7 +42,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer {
     $cardinality = $field->getFieldDefinition()
       ->getFieldStorageDefinition()
       ->getCardinality();
-    return new Value\FieldNormalizerValue($normalizer_items, $cardinality);
+    return new Value\EntityReferenceNormalizerValue($normalizer_items, $cardinality);
   }
 
 

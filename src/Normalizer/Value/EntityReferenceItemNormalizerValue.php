@@ -37,9 +37,12 @@ class EntityReferenceItemNormalizerValue extends FieldItemNormalizerValue implem
    * {@inheritdoc}
    */
   public function rasterizeValue() {
+    if (!$value = parent::rasterizeValue()) {
+      return $value;
+    }
     return [
       'type' => $this->resource,
-      'id' => parent::rasterizeValue(),
+      'id' => $value,
     ];
   }
 

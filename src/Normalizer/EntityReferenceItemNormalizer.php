@@ -90,7 +90,7 @@ class EntityReferenceItemNormalizer extends FieldItemNormalizer implements UuidR
     // Since we're going one level down the only includes we need are the ones
     // that apply to this level as well.
     $include_candidates = array_filter($context['include'], function ($include) use ($host_field_name) {
-      return strpos($include, $host_field_name) === 0;
+      return strpos($include, $host_field_name . '.') === 0;
     });
     $context['include'] = array_map(function ($include) use ($host_field_name) {
       return str_replace($host_field_name . '.', '', $include);

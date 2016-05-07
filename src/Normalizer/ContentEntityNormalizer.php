@@ -29,6 +29,13 @@ class ContentEntityNormalizer extends NormalizerBase {
   protected $formats = array('api_json');
 
   /**
+   * The link manager.
+   *
+   * @var LinkManagerInterface
+   */
+  protected $linkManager;
+
+  /**
    * The entity type manager.
    *
    * @var EntityTypeManagerInterface
@@ -53,28 +60,9 @@ class ContentEntityNormalizer extends NormalizerBase {
    */
   public function normalize($entity, $format = NULL, array $context = array()) {
     $normalizer_entity = $this->buildNormalizerValue($entity, $format, $context);
-
-    // Create the array of normalized fields, starting with the URI.
-    $normalized = [
-      'type' => $context['resource_path'],
-      'id' => $entity->id(),
-      'data' => [
-        'attributes' => [],
-        'relationships' => [],
-      ],
-      'links' => [
-        'self' => $this->getEntityUri($entity),
-        'type' => $this->linkManager->getTypeUri($entity->getEntityTypeId(), $entity->bundle(), $context),
-      ],
-    ];
-
-    foreach ($normalizer_entity->getValues() as $field_name => $normalizer_value) {
-      $normalized['data'][$normalizer_value->getPropertyType()][$field_name] = $normalizer_value->rasterizeValue();
-    }
-    $normalized['data'] = array_filter($normalized['data']);
+    $normalized = $normalizer_entity->rasterizeValue();
     $normalized['included'] = array_values($normalizer_entity->rasterizeIncludes());
     $normalized['included'] = array_filter($normalized['included']);
-
     return $normalized;
   }
 
@@ -98,7 +86,6 @@ class ContentEntityNormalizer extends NormalizerBase {
         return $field->getName();
       }, $entity->getFields());
     }
-    $includes = [];
     /* @var Value\FieldNormalizerValueInterface[] $normalizer_values */
     $normalizer_values = [];
     foreach ($entity->getFields() as $field) {
@@ -113,41 +100,13 @@ class ContentEntityNormalizer extends NormalizerBase {
       if (!$is_relationship && !in_array($field_name, $fields_names)) {
         continue;
       }
-      $normalizer_values[$field_name] = $this
-        ->serializer
-        ->normalize($field, $format, $context);
+      $normalizer_values[$field_name] = $this->serializer->normalize($field, $format, $context);
 
       $property_type = $is_relationship ? 'relationships' : 'attributes';
       $normalizer_values[$field_name]->setPropertyType($property_type);
     }
 
-    return new Value\ContentEntityNormalizerValue($normalizer_values);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function denormalize($data, $class, $format = NULL, array $context = array()) {
-    throw new \Exception('Denormalization not implemented for JSON API');
-  }
-
-  /**
-   * Constructs the entity URI.
-   *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The entity.
-   *
-   * @return string
-   *   The entity URI.
-   */
-  protected function getEntityUri(EntityInterface $entity) {
-    // Some entity types don't provide a canonical link template, at least call
-    // out to ->url().
-    if ($entity->isNew() || !$entity->hasLinkTemplate('canonical')) {
-      return $entity->url('canonical', []);
-    }
-    $url = $entity->toUrl('canonical', ['absolute' => TRUE]);
-    return $url->setRouteParameter('_format', 'api_json')->toString();
+    return new Value\ContentEntityNormalizerValue($normalizer_values, $context, $entity, $this->linkManager, $this->entityTypeManager);
   }
 
   /**
@@ -163,11 +122,16 @@ class ContentEntityNormalizer extends NormalizerBase {
     if (!$field instanceof EntityReferenceFieldItemList) {
       return FALSE;
     }
-    $target_type_id = $field
-      ->getItemDefinition()
-      ->getSetting('target_type');
+    $target_type_id = $field->getItemDefinition()->getSetting('target_type');
     $entity_type = $this->entityTypeManager->getDefinition($target_type_id);
     return $entity_type instanceof ContentEntityTypeInterface;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function denormalize($data, $class, $format = NULL, array $context = array()) {
+    throw new \Exception('Denormalization not implemented for JSON API');
   }
 
 }
