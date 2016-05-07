@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\jsonapi\Normalizer\FieldNormalizer.
- */
-
 namespace Drupal\jsonapi\Normalizer;
 use Drupal\Core\Field\FieldItemListInterface;
 

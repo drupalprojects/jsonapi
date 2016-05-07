@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\jsonapi\RequestCacheabilityDependency.
- */
-
 namespace Drupal\jsonapi;
 
 use Drupal\Core\Cache\CacheableDependencyInterface;

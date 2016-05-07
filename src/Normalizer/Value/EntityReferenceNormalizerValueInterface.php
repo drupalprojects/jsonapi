@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\jsonapi\Normalizer\Value\EntityReferenceListNormalizerValueInterface.
- */
 namespace Drupal\jsonapi\Normalizer\Value;
 
 /**

@@ -1,10 +1,7 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValue.
- */
 namespace Drupal\jsonapi\Normalizer\Value;
+
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\rest\LinkManager\LinkManagerInterface;

@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\jsonapi\Normalizer\Value\ValueExtractorInterface.
- */
 namespace Drupal\jsonapi\Normalizer\Value;
 
 /**

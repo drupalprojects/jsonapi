@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\jsonapi\RequestHandler.
- */
-
 namespace Drupal\jsonapi;
 
 use Drupal\Core\Render\RenderContext;

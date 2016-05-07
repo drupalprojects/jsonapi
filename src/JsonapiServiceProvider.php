@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\jsonapi\JsonapiServiceProvider.
- */
-
 namespace Drupal\jsonapi;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;

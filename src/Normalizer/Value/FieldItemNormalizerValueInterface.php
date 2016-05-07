@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValueInterface.
- */
 namespace Drupal\jsonapi\Normalizer\Value;
 
 /**

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\jsonapi\Normalizer\FileEntityNormalizer.
- */
-
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\hal\Normalizer\FileEntityNormalizer as HalFileEntityNormalizer;

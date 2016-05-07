@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\jsonapi\Normalizer\EntityReferenceItemNormalizer.
- */
-
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\EntityInterface;
