@@ -9,11 +9,19 @@ namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\hal\Normalizer\EntityReferenceItemNormalizer as HalEntityReferenceItemNormalizer;
+use Drupal\serialization\EntityResolver\UuidReferenceInterface;
 
 /**
  * Converts the Drupal entity reference item object to HAL array structure.
  */
-class EntityReferenceItemNormalizer extends HalEntityReferenceItemNormalizer {
+class EntityReferenceItemNormalizer extends FieldItemNormalizer implements UuidReferenceInterface {
+
+  /**
+   * The interface or class that this Normalizer supports.
+   *
+   * @var string
+   */
+  protected $supportedInterfaceOrClass = 'Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem';
 
   /**
    * {@inheritdoc}
@@ -31,6 +39,21 @@ class EntityReferenceItemNormalizer extends HalEntityReferenceItemNormalizer {
       'type' => $target_entity->getEntityTypeId(),
       'id' => $target_entity->id(),
     ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getUuid($data) {
+    if (isset($data['uuid'])) {
+      return NULL;
+    }
+    $uuid = $data['uuid'];
+    // The value may be a nested array like $uuid[0]['value'].
+    if (is_array($uuid) && isset($uuid[0]['value'])) {
+      $uuid = $uuid[0]['value'];
+    }
+    return $uuid;
   }
 
 }

@@ -2,8 +2,11 @@
 
 namespace Drupal\jsonapi\Normalizer;
 
+use Drupal\Core\Entity\ContentEntityTypeInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
+use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\rest\LinkManager\LinkManagerInterface;
 
 /**
@@ -26,13 +29,23 @@ class ContentEntityNormalizer extends NormalizerBase {
   protected $formats = array('api_json');
 
   /**
+   * The entity type manager.
+   *
+   * @var EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * Constructs an ContentEntityNormalizer object.
    *
    * @param \Drupal\rest\LinkManager\LinkManagerInterface $link_manager
    *   The hypermedia link manager.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    */
-  public function __construct(LinkManagerInterface $link_manager) {
+  public function __construct(LinkManagerInterface $link_manager, EntityTypeManagerInterface $entity_type_manager) {
     $this->linkManager = $link_manager;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -73,7 +86,7 @@ class ContentEntityNormalizer extends NormalizerBase {
       }
 
       // Relationships cannot be excluded by using sparse fieldsets.
-      $is_relationship = $field instanceof EntityReferenceFieldItemList;
+      $is_relationship = $this->isRelationship($field);
       $field_name = $field->getName();
       if (!$is_relationship && !in_array($field_name, $fields_names)) {
         continue;
@@ -114,6 +127,26 @@ class ContentEntityNormalizer extends NormalizerBase {
     }
     $url = $entity->toUrl('canonical', ['absolute' => TRUE]);
     return $url->setRouteParameter('_format', 'api_json')->toString();
+  }
+
+  /**
+   * Checks if the passed field is a relationship field.
+   *
+   * @param \Drupal\Core\Field\FieldItemListInterface $field
+   *   The field.
+   *
+   * @return bool
+   *   TRUE if it's a JSON API relationship.
+   */
+  protected function isRelationship(FieldItemListInterface $field) {
+    if (!$field instanceof EntityReferenceFieldItemList) {
+      return FALSE;
+    }
+    $target_type_id = $field
+      ->getItemDefinition()
+      ->getSetting('target_type');
+    $entity_type = $this->entityTypeManager->getDefinition($target_type_id);
+    return $entity_type instanceof ContentEntityTypeInterface;
   }
 
 }
