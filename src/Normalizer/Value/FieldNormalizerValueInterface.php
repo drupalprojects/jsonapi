@@ -16,21 +16,21 @@ interface FieldNormalizerValueInterface extends ValueExtractorInterface {
    *   The includes.
    */
   public function getIncludes();
-  
+
   /**
-   * Gets the propertyType
+   * Gets the propertyType.
    *
    * @return mixed
    *   The propertyType.
    */
   public function getPropertyType();
-  
+
   /**
-   * Sets the propertyType
+   * Sets the propertyType.
    *
-   * @param mixed $propertyType
+   * @param mixed $property_type
    *   The propertyType to set.
    */
-  public function setPropertyType($propertyType);
-  
+  public function setPropertyType($property_type);
+
 }

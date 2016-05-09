@@ -71,7 +71,7 @@ class FieldNormalizerValue implements FieldNormalizerValueInterface {
    */
   public function rasterizeIncludes() {
     return array_map(function ($include) {
-      $include->rasterizeValue();
+      return $include->rasterizeValue();
     }, $this->includes);
   }
 
@@ -92,8 +92,8 @@ class FieldNormalizerValue implements FieldNormalizerValueInterface {
   /**
    * {@inheritdoc}
    */
-  public function setPropertyType($propertyType) {
-    $this->propertyType = $propertyType;
+  public function setPropertyType($property_type) {
+    $this->propertyType = $property_type;
   }
 
 }
