@@ -24,9 +24,17 @@ use Prophecy\Argument;
 class ContentEntityNormalizerValueTest extends UnitTestCase{
 
   /**
-   * @covers ::rasterizeValue
+   * The ContentEntityNormalizerValue object.
+   *
+   * @var ContentEntityNormalizerValueInterface
    */
-  public function testRasterizeValue() {
+  protected $object;
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp() {
+    parent::setUp();
     $field1 = $this->prophesize(FieldNormalizerValueInterface::class);
     $field1->getIncludes()->willReturn([]);
     $field1->getPropertyType()->willReturn('attributes');
@@ -34,8 +42,25 @@ class ContentEntityNormalizerValueTest extends UnitTestCase{
     $field2 = $this->prophesize(EntityReferenceNormalizerValueInterface::class);
     $field2->getPropertyType()->willReturn('relationships');
     $field2->rasterizeValue()->willReturn(['data' => ['type' => 'node', 'id' => 2]]);
-    $included = $this->prophesize(ContentEntityNormalizerValueInterface::class);
-    $field2->getIncludes()->willReturn([$included]);
+    $included[] = $this->prophesize(ContentEntityNormalizerValue::class);
+    $included[0]->getIncludes()->willReturn([]);
+    $included[0]->rasterizeValue()->willReturn(['type' => 'node', 'id' => 3, 'data' => [
+      'attributes' => ['body' => 'dummy_body1'],
+    ]]);
+    // Type & id duplicated in purpose.
+    $included[] = $this->prophesize(ContentEntityNormalizerValue::class);
+    $included[1]->getIncludes()->willReturn([]);
+    $included[1]->rasterizeValue()->willReturn(['type' => 'node', 'id' => 3, 'data' => [
+      'attributes' => ['body' => 'dummy_body2'],
+    ]]);
+    $included[] = $this->prophesize(ContentEntityNormalizerValue::class);
+    $included[2]->getIncludes()->willReturn([]);
+    $included[2]->rasterizeValue()->willReturn(['type' => 'node', 'id' => 4, 'data' => [
+      'attributes' => ['body' => 'dummy_body3'],
+    ]]);
+    $field2->getIncludes()->willReturn(array_map(function ($included_item) {
+      return $included_item->reveal();
+    }, $included));
     $context = ['resource_path' => 'node'];
     $entity = $this->prophesize(EntityInterface::class);
     $entity->id()->willReturn(1);
@@ -50,13 +75,20 @@ class ContentEntityNormalizerValueTest extends UnitTestCase{
     $link_manager = $this->prophesize(LinkManagerInterface::class);
     $link_manager->getTypeUri(Argument::type('string'), Argument::type('string'), Argument::type('array'))->willReturn('dummy_type_link');
     $entity_type_manager = $this->prophesize(EntityTypeManagerInterface::class);
-    $object = new ContentEntityNormalizerValue(
+    $this->object = new ContentEntityNormalizerValue(
       ['title' => $field1->reveal(), 'field_related' => $field2->reveal()],
       $context,
       $entity->reveal(),
       $link_manager->reveal(),
       $entity_type_manager->reveal()
     );
+  }
+
+
+  /**
+   * @covers ::rasterizeValue
+   */
+  public function testRasterizeValue() {
     $this->assertEquals([
       'type' => 'node',
       'id' => 1,
@@ -70,7 +102,41 @@ class ContentEntityNormalizerValueTest extends UnitTestCase{
         'self' => 'dummy_entity_link',
         'type' => 'dummy_type_link',
       ],
-    ], $object->rasterizeValue());
+    ], $this->object->rasterizeValue());
+  }
+
+  /**
+   * @covers ::rasterizeIncludes
+   */
+  public function testRasterizeIncludes() {
+    $expected = [
+      [
+        'type' => 'node',
+        'id' => 3,
+        'data' => [
+          'attributes' => ['body' => 'dummy_body2'],
+        ],
+      ],
+      [
+        'type' => 'node',
+        'id' => 4,
+        'data' => [
+          'attributes' => ['body' => 'dummy_body3'],
+        ],
+      ],
+    ];
+    $this->assertEquals($expected, $this->object->rasterizeIncludes());
+  }
+
+  /**
+   * @covers ::getIncludes
+   */
+  public function testGetIncludes() {
+    $includes = $this->object->getIncludes();
+    $includes = array_filter($includes, function ($included) {
+      return $included instanceof ContentEntityNormalizerValueInterface;
+    });
+    $this->assertCount(2, $includes);
   }
 
 }
