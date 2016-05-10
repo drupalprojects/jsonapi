@@ -40,7 +40,7 @@ class EntityReferenceItemNormalizer extends FieldItemNormalizer implements UuidR
       return $normalizer_value;
     }
     // TODO Only include if the target entity type has the resource enabled.
-    if (in_array($field_item->getParent()->getName(), $context['include'])) {
+    if (!empty($context['include']) && in_array($field_item->getParent()->getName(), $context['include'])) {
       $context = $this->buildSubContext($context, $target_entity, $field_item->getParent()
         ->getName());
       $entity_normalizer = $this->container->get('serializer.normalizer.entity.jsonapi');

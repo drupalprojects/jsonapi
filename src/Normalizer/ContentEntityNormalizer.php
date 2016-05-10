@@ -74,6 +74,7 @@ class ContentEntityNormalizer extends NormalizerBase {
     $context += array(
       'account' => NULL,
       'sparse_fieldset' => NULL,
+      'resource_path' => NULL,
     );
 
     // If the fields to use were specified, only output those field values.
