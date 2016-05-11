@@ -4,15 +4,17 @@ namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\ContentEntityTypeInterface;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\rest\LinkManager\LinkManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Converts the Drupal entity object structure to a HAL array structure.
  */
-class ContentEntityNormalizer extends NormalizerBase {
+class ContentEntityNormalizer extends NormalizerBase implements ContentEntityNormalizerInterface {
 
   /**
    * The interface or class that this Normalizer supports.
@@ -67,16 +69,13 @@ class ContentEntityNormalizer extends NormalizerBase {
   }
 
   /**
-   * @todo Move to an interface.
+   * Build the normalizer value.
+   *
+   * @return \Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValueInterface
+   *   The normalizer value.
    */
-  public function buildNormalizerValue($entity, $format = NULL, array $context = array()) {
-    /* @var $entity \Drupal\Core\Entity\ContentEntityInterface */
-    $context += array(
-      'account' => NULL,
-      'sparse_fieldset' => NULL,
-      'resource_path' => NULL,
-    );
-
+  public function buildNormalizerValue(EntityInterface $entity, $format = NULL, array $context = array()) {
+    $context += $this->expandContext($context['request']);
     // If the fields to use were specified, only output those field values.
     if (!empty($context['sparse_fieldset'][$context['resource_path']])) {
       $fields_names = $context['sparse_fieldset'][$context['resource_path']];
@@ -133,6 +132,44 @@ class ContentEntityNormalizer extends NormalizerBase {
    */
   public function denormalize($data, $class, $format = NULL, array $context = array()) {
     throw new \Exception('Denormalization not implemented for JSON API');
+  }
+
+  /**
+   * Get the resource path for the current request.
+   *
+   * @param Request $request
+   *   The request to examine.
+   *
+   * @returns string
+   *   The base resource path.
+   */
+  protected function resourcePath(Request $request) {
+    $templated_path = $request->get('_route_object')->getPath();
+    return trim(preg_replace('/\{.*}/', '', $templated_path), '/');
+  }
+
+  /**
+   * Expand the context information based on the request.
+   *
+   * @param Request $request
+   *   The request.
+   *
+   * @return array
+   *   The expanded context.
+   */
+  protected function expandContext(Request $request) {
+    $context = array(
+      'account' => NULL,
+      'sparse_fieldset' => NULL,
+      'resource_path' => $this->resourcePath($request),
+      'include' => array_filter(explode(',', $request->query->get('include'))),
+    );
+    if ($fields_param = $request->query->get('fields')) {
+      $context['sparse_fieldset'] = array_map(function ($item) {
+        return explode(',', $item);
+      }, $request->query->get('fields'));
+    }
+    return $context;
   }
 
 }

@@ -8,6 +8,9 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\user\Entity\User;
+use Symfony\Component\HttpFoundation\ParameterBag;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Route;
 
 /**
  * Class ContentEntityNormalizer.
@@ -93,17 +96,21 @@ class ContentEntityNormalizerTest extends KernelTestBase {
    */
   public function testNormalize() {
     $this->container->get('serializer');
+    $request = $this->prophesize(Request::class);
+    $query = $this->prophesize(ParameterBag::class);
+    $query->get('fields')->willReturn([
+      'node' => 'title,type,uid',
+      'user' => 'name',
+    ]);
+    $query->get('include')->willReturn('uid');
+    $request->query = $query->reveal();
+    $route = $this->prophesize(Route::class);
+    $route->getPath()->willReturn('/node/{node}');
+    $request->get('_route_object')->willReturn($route->reveal());
     $normalized = $this
       ->container
       ->get('serializer.normalizer.entity.jsonapi')
-      ->normalize($this->node, 'api_json', [
-        'resource_path' => 'node',
-        'sparse_fieldset' => [
-          'node' => ['title', 'type', 'uid'],
-          'user' => ['name'],
-        ],
-        'include' => ['uid'],
-      ]);
+      ->normalize($this->node, 'api_json', ['request' => $request->reveal()]);
     $this->assertSame($normalized['data']['attributes']['title'], 'dummy_title');
     $this->assertEquals($normalized['id'], 1);
     $this->assertSame('article', $normalized['data']['attributes']['type']);
