@@ -19,7 +19,7 @@ class FieldNormalizerValueTest extends UnitTestCase {
    * @covers ::rasterizeValue
    * @dataProvider rasterizeValueProvider
    */
-  public function __testRasterizeValue($values, $cardinality, $expected) {
+  public function testRasterizeValue($values, $cardinality, $expected) {
     $object = new FieldNormalizerValue($values, $cardinality);
     $this->assertEquals($expected, $object->rasterizeValue());
   }

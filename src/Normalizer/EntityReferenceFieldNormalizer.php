@@ -2,6 +2,8 @@
 
 namespace Drupal\jsonapi\Normalizer;
 
+use Drupal\Core\Config\Entity\ConfigEntityTypeInterface;
+use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 
 /**
@@ -11,7 +13,21 @@ use Drupal\Core\Field\FieldItemListInterface;
  */
 class EntityReferenceFieldNormalizer extends FieldNormalizer {
 
-  protected $supportedInterfaceOrClass = 'Drupal\Core\Field\EntityReferenceFieldItemListInterface';
+  protected $supportedInterfaceOrClass = EntityReferenceFieldItemListInterface::class;
+
+  /**
+   * {@inheritdoc}
+   */
+  public function supportsNormalization($data, $format = NULL) {
+    if (!parent::supportsNormalization($data, $format)) {
+      return FALSE;
+    }
+    $target_type = $data->getSetting('target_type');
+    return !is_subclass_of(
+      \Drupal::entityTypeManager()->getDefinition($target_type),
+      'Drupal\Core\Config\Entity\ConfigEntityTypeInterface'
+    );
+  }
 
   /**
    * Helper function to normalize field items.
@@ -28,7 +44,6 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer {
    */
   protected function normalizeFieldItems(FieldItemListInterface $field, $format, $context) {
     $normalizer_items = array();
-    $includes = [];
     if (!$field->isEmpty()) {
       foreach ($field as $field_item) {
         $normalizer_items[] = $this->serializer->normalize($field_item, $format, $context);

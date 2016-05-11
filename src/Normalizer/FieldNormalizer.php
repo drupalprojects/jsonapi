@@ -13,7 +13,7 @@ class FieldNormalizer extends NormalizerBase {
    *
    * @var string
    */
-  protected $supportedInterfaceOrClass = 'Drupal\Core\Field\FieldItemListInterface';
+  protected $supportedInterfaceOrClass = FieldItemListInterface::class;
 
   /**
    * The formats that the Normalizer can handle.

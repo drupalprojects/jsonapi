@@ -1,6 +1,7 @@
 <?php
 
 namespace Drupal\jsonapi\Normalizer;
+use Drupal\Core\Field\FieldItemInterface;
 
 /**
  * Converts the Drupal field item object structure to HAL array structure.
@@ -12,7 +13,7 @@ class FieldItemNormalizer extends NormalizerBase {
    *
    * @var string
    */
-  protected $supportedInterfaceOrClass = 'Drupal\Core\Field\FieldItemInterface';
+  protected $supportedInterfaceOrClass = FieldItemInterface::class;
 
   /**
    * The formats that the Normalizer can handle.

@@ -7,7 +7,6 @@ use Drupal\jsonapi\Normalizer\ContentEntityNormalizer;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
-use Drupal\rest\LinkManager\LinkManagerInterface;
 use Drupal\user\Entity\User;
 
 /**
@@ -51,9 +50,13 @@ class ContentEntityNormalizerTest extends KernelTestBase {
    */
   protected function setUp() {
     parent::setUp();
+    // Add the entity schemas.
     $this->installEntitySchema('node');
     $this->installEntitySchema('user');
+    // Add the additional table schemas.
     $this->installSchema('system', ['sequences']);
+    $this->installSchema('node', ['node_access']);
+    $this->installSchema('user', ['users_data']);
     $type = NodeType::create([
       'type' => 'article',
     ]);
@@ -65,7 +68,6 @@ class ContentEntityNormalizerTest extends KernelTestBase {
     $this->user->save();
     $this->node = Node::create([
       'title' => 'dummy_title',
-      'body' => 'dummy_body',
       'type' => 'article',
       'uid' => 1,
     ]);
@@ -96,8 +98,27 @@ class ContentEntityNormalizerTest extends KernelTestBase {
       ->get('serializer.normalizer.entity.jsonapi')
       ->normalize($this->node, 'api_json', [
         'resource_path' => 'node',
+        'sparse_fieldset' => [
+          'node' => ['title', 'type', 'uid'],
+          'user' => ['name'],
+        ],
+        'include' => ['uid'],
       ]);
-    $this->assertEquals(NULL, $normalized);
+    $this->assertSame($normalized['data']['attributes']['title'], 'dummy_title');
+    $this->assertEquals($normalized['id'], 1);
+    $this->assertSame('article', $normalized['data']['attributes']['type']);
+    $this->assertTrue(!isset($normalized['data']['attributes']['created']));
+    $this->assertSame('node', $normalized['type']);
+    $this->assertEquals([
+      'data' => [
+        'type' => 'user',
+        'id' => $this->user->id(),
+      ],
+    ], $normalized['data']['relationships']['uid']);
+    $this->assertEquals($this->user->id(), $normalized['included'][0]['id']);
+    $this->assertEquals('user', $normalized['included'][0]['type']);
+    $this->assertEquals($this->user->label(), $normalized['included'][0]['data']['attributes']['name']);
+    $this->assertTrue(!isset($normalized['included'][0]['data']['attributes']['created']));
   }
 
 }

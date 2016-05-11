@@ -2,8 +2,8 @@
 
 namespace Drupal\jsonapi\Normalizer;
 
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\ContentEntityTypeInterface;
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
@@ -19,7 +19,7 @@ class ContentEntityNormalizer extends NormalizerBase {
    *
    * @var string
    */
-  protected $supportedInterfaceOrClass = 'Drupal\Core\Entity\ContentEntityInterface';
+  protected $supportedInterfaceOrClass = ContentEntityInterface::class;
 
   /**
    * The formats that the Normalizer can handle.
