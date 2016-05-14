@@ -1,0 +1,93 @@
+<?php
+
+namespace Drupal\jsonapi\Configuration;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+
+
+/**
+ * Class ResourceManager.
+ *
+ * @package Drupal\jsonapi
+ */
+class ResourceManager implements ResourceManagerInterface {
+
+  /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * The configuration factory.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
+
+  /**
+   * The bundle manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeBundleInfoInterface
+   */
+  protected $bundleManager;
+
+  /**
+   * The loaded resource config objects.
+   *
+   * @var \Drupal\jsonapi\Configuration\ResourceConfigInterface[]
+   */
+  protected $all = [];
+
+  /**
+   * Instantiates a ResourceManager object.
+   *
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $bundle_manager
+   *   The bundle manager.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The config factory interface.
+   */
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, EntityTypeBundleInfoInterface $bundle_manager, ConfigFactoryInterface $config_factory) {
+    $this->entityTypeManager = $entity_type_manager;
+    $this->bundleManager = $bundle_manager;
+    $this->configFactory = $config_factory;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function all() {
+    if ($this->all) {
+      return $this->all;
+    }
+    foreach ($this->entityTypeManager->getDefinitions() as $entity_type_id => $entity_definition) {
+      // Add a ResourceConfig per bundle.
+      $this->all = array_merge($this->all, array_map(function ($bundle) use ($entity_type_id) {
+        $resource_config = new ResourceConfig($this->configFactory, $this->entityTypeManager);
+        $resource_config->setEntityTypeId($entity_type_id);
+        $resource_config->setBundleId($bundle);
+        $resource_config->setPath('/' . $bundle);
+        $resource_config->setTypeName($bundle);
+        return $resource_config;
+      }, array_keys($this->bundleManager->getBundleInfo($entity_type_id))));
+    }
+    return $this->all;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function get($entity_type_id, $bundle_id) {
+    foreach ($this->all() as $resource) {
+      if ($resource->getEntityTypeId() == $entity_type_id && $resource->getBundleId() == $bundle_id) {
+        return $resource;
+      }
+    }
+    return NULL;
+  }
+
+}

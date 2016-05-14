@@ -85,7 +85,7 @@ class ContentEntityNormalizerValue implements ContentEntityNormalizerValueInterf
   public function rasterizeValue() {
     // Create the array of normalized fields, starting with the URI.
     $rasterized = [
-      'type' => $this->context['resource_path'],
+      'type' => $this->context['resource_config']->getTypeName(),
       'id' => $this->entity->id(),
       'data' => [
         'attributes' => [],

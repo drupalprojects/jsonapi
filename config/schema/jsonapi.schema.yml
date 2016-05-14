@@ -1,0 +1,6 @@
+jsonapi.resource_info:
+  type: mapping
+  mapping:
+    prefix:
+      type: string
+      label: 'Prefix'

@@ -4,6 +4,7 @@ namespace Drupal\Tests\jsonapi\Unit\Normalizer\Value;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Url;
+use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\EntityReferenceNormalizerValueInterface;
@@ -61,7 +62,9 @@ class ContentEntityNormalizerValueTest extends UnitTestCase{
     $field2->getIncludes()->willReturn(array_map(function ($included_item) {
       return $included_item->reveal();
     }, $included));
-    $context = ['resource_path' => 'node'];
+    $resource_config = $this->prophesize(ResourceConfigInterface::class);
+    $resource_config->getTypeName()->willReturn('node');
+    $context = ['resource_config' => $resource_config->reveal()];
     $entity = $this->prophesize(EntityInterface::class);
     $entity->id()->willReturn(1);
     $entity->isNew()->willReturn(FALSE);

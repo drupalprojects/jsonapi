@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\rest\LinkManager\LinkManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -45,16 +46,26 @@ class ContentEntityNormalizer extends NormalizerBase implements ContentEntityNor
   protected $entityTypeManager;
 
   /**
+   * The resource manager.
+   *
+   * @var \Drupal\jsonapi\Configuration\ResourceManagerInterface
+   */
+  protected $resourceManager;
+
+  /**
    * Constructs an ContentEntityNormalizer object.
    *
    * @param \Drupal\rest\LinkManager\LinkManagerInterface $link_manager
    *   The hypermedia link manager.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
+   * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
+   *   The config resource manager.
    */
-  public function __construct(LinkManagerInterface $link_manager, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(LinkManagerInterface $link_manager, EntityTypeManagerInterface $entity_type_manager, ResourceManagerInterface $resource_manager) {
     $this->linkManager = $link_manager;
     $this->entityTypeManager = $entity_type_manager;
+    $this->resourceManager = $resource_manager;
   }
 
   /**
@@ -75,10 +86,11 @@ class ContentEntityNormalizer extends NormalizerBase implements ContentEntityNor
    *   The normalizer value.
    */
   public function buildNormalizerValue(EntityInterface $entity, $format = NULL, array $context = array()) {
-    $context += $this->expandContext($context['request']);
+    $context += $this->expandContext($entity, $context['request']);
     // If the fields to use were specified, only output those field values.
-    if (!empty($context['sparse_fieldset'][$context['resource_path']])) {
-      $fields_names = $context['sparse_fieldset'][$context['resource_path']];
+    $resource_type = $context['resource_config']->getTypeName();
+    if (!empty($context['sparse_fieldset'][$resource_type])) {
+      $fields_names = $context['sparse_fieldset'][$resource_type];
     }
     else {
       $fields_names = array_map(function ($field) {
@@ -135,33 +147,22 @@ class ContentEntityNormalizer extends NormalizerBase implements ContentEntityNor
   }
 
   /**
-   * Get the resource path for the current request.
-   *
-   * @param Request $request
-   *   The request to examine.
-   *
-   * @returns string
-   *   The base resource path.
-   */
-  protected function resourcePath(Request $request) {
-    $templated_path = $request->get('_route_object')->getPath();
-    return trim(preg_replace('/\{.*}/', '', $templated_path), '/');
-  }
-
-  /**
    * Expand the context information based on the request.
    *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to normalize.
    * @param Request $request
    *   The request.
    *
    * @return array
    *   The expanded context.
    */
-  protected function expandContext(Request $request) {
+  protected function expandContext(EntityInterface $entity, Request $request) {
+    $resource_config = $this->resourceManager->get($entity->getEntityTypeId(), $entity->bundle());
     $context = array(
       'account' => NULL,
       'sparse_fieldset' => NULL,
-      'resource_path' => $this->resourcePath($request),
+      'resource_config' => $resource_config,
       'include' => array_filter(explode(',', $request->query->get('include'))),
     );
     if ($fields_param = $request->query->get('fields')) {
