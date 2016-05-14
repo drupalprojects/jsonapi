@@ -72,8 +72,11 @@ class Routes implements ContainerInjectionInterface {
       // Collection endpoint, like /api/photos.
       $collection->add($route_key . 'collection', (new Route($partial_path))
         ->addDefaults($defaults)
+        ->setRequirement('_entity_type', $entity_type)
+        ->setRequirement('_bundle', $bundle)
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
+        ->setOption('serialization_class', $resource->getDeserializationTargetClass())
         ->setMethods(['GET', 'POST']));
 
       // Individual endpoint, like /api/photos/123.

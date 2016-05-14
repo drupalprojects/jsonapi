@@ -57,12 +57,16 @@ class RequestHandler extends RestRequestHandler {
     $action = $this->action($route_match, $method);
     /** @var \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager */
     $resource_manager = $this->container->get('jsonapi.resource.manager');
+    /* @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager */
+    $entity_type_manager = $this->container->get('entity_type.manager');
     $resource = new EntityResource($resource_manager->get(
       $route->getRequirement('_entity_type'),
       $route->getRequirement('_bundle')
-    ));
+    ), $entity_type_manager);
+    // Only add the unserialized data if there is something there.
+    $additional_parameters = $unserialized ? [$unserialized, $request] : [$request];
     try {
-      $response = call_user_func_array(array($resource, $action), array_merge($parameters, array($unserialized, $request)));
+      $response = call_user_func_array([$resource, $action], array_merge($parameters, $additional_parameters));
     }
     catch (HttpException $e) {
       $error['error'] = $e->getMessage();
@@ -150,10 +154,10 @@ class RequestHandler extends RestRequestHandler {
   protected function action(RouteMatchInterface $route_match, $method) {
     $on_relationship = $route_match->getParameter('on_relationship');
     $related = (bool) $route_match->getParameter('related');
-    if ($related || $on_relationship || !$this->getEntity($route_match)) {
+    if ($related || $on_relationship) {
       throw new \Exception('Not yet implemented');
     }
-    return 'getIndividual';
+    return $this->getEntity($route_match) ? 'getIndividual' : 'getCollection';
   }
 
   /**

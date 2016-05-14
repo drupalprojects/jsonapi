@@ -3,9 +3,12 @@
 namespace Drupal\jsonapi\Resource;
 
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\RequestCacheabilityDependency;
 use Drupal\rest\ResourceResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -19,13 +22,30 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 class EntityResource implements EntityResourceInterface {
 
   /**
+   * The resource config.
+   *
+   * @var \Drupal\jsonapi\Configuration\ResourceConfigInterface
+   */
+  protected $resourceConfig;
+
+  /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * Instantiates a EntityResource object.
    *
    * @param \Drupal\jsonapi\Configuration\ResourceConfigInterface $resource_config
    *   The configuration for the resource.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    */
-  public function __construct(ResourceConfigInterface $resource_config) {
+  public function __construct(ResourceConfigInterface $resource_config, EntityTypeManagerInterface $entity_type_manager) {
     $this->resourceConfig = $resource_config;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -42,8 +62,48 @@ class EntityResource implements EntityResourceInterface {
     if (!$entity_access->isAllowed()) {
       throw new AccessDeniedHttpException();
     }
-
     $response = new ResourceResponse($entity, 200);
+    $this->addCacheabilityMetadata($response, $entity);
+    return $response;
+  }
+
+  /**
+   * Gets the collection of entities.
+   *
+   * @param Request $request
+   *   The request object.
+   *
+   * @return ResourceResponse
+   *   The response.
+   */
+  public function getCollection(Request $request) {
+    // Instantiate the query for the filtering.
+    $entity_type_id = $this->resourceConfig->getEntityTypeId();
+    $storage = $this->entityTypeManager->getStorage($entity_type_id);
+    $query = $storage->getQuery();
+    $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
+    $query->condition($entity_type->getKey('bundle'), $this->resourceConfig->getBundleId());
+    // TODO: Add filtering support.
+    $results = $query->execute();
+    // TODO: Make this method testable by removing the "new".
+    $entity_collection = new EntityCollection($storage->loadMultiple($results));
+    $response = new ResourceResponse($entity_collection, 200);
+    foreach ($entity_collection as $entity) {
+      $this->addCacheabilityMetadata($response, $entity);
+    }
+    return $response;
+  }
+
+  /**
+   * Adds cacheability metadata to an entity.
+   *
+   * @param ResourceResponse $response
+   *   The REST response.
+   * @param EntityInterface $entity
+   *   The entity.
+   */
+  protected function addCacheabilityMetadata(ResourceResponse $response, EntityInterface $entity) {
+    $entity_access = $entity->access('view', NULL, TRUE);
     $response->addCacheableDependency($entity);
     $response->addCacheableDependency($entity_access);
     // Make sure that different sparse fieldsets are cached differently.
@@ -57,7 +117,5 @@ class EntityResource implements EntityResourceInterface {
         $entity->set($field_name, NULL);
       }
     }
-
-    return $response;
   }
 }

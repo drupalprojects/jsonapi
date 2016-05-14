@@ -27,7 +27,11 @@ class RouteEnhancer implements RouteEnhancerInterface {
    */
   public function enhance(array $defaults, Request $request) {
     $route = $defaults[RouteObjectInterface::ROUTE_OBJECT];
-    $retrieved_bundle = $defaults[$route->getRequirement('_entity_type')]->bundle();
+    $entity = $defaults[$route->getRequirement('_entity_type')];
+    if (!$entity) {
+      return $defaults;
+    }
+    $retrieved_bundle = $entity->bundle();
     $configured_bundle = $route->getRequirement('_bundle');
     if ($retrieved_bundle != $configured_bundle) {
       // If the bundle in the loaded entity does not match the bundle in the
