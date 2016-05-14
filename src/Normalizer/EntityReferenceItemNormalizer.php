@@ -6,6 +6,7 @@ use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\Resource\DocumentWrapper;
 use Drupal\rest\LinkManager\LinkManagerInterface;
 use Drupal\serialization\EntityResolver\EntityResolverInterface;
 use Drupal\serialization\EntityResolver\UuidReferenceInterface;
@@ -83,7 +84,7 @@ class EntityReferenceItemNormalizer extends FieldItemNormalizer implements UuidR
     ) {
       $context = $this->buildSubContext($context, $target_entity, $field_item->getParent()
         ->getName());
-      $entity_normalizer = $this->container->get('serializer.normalizer.entity.jsonapi');
+      $entity_normalizer = $this->container->get('serializer.normalizer.document_root.jsonapi');
       $normalizer_value->setInclude($entity_normalizer->buildNormalizerValue($target_entity, $format, $context));
     }
     return $normalizer_value;

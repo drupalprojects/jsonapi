@@ -4,13 +4,11 @@ namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\ContentEntityTypeInterface;
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\rest\LinkManager\LinkManagerInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Converts the Drupal entity object structure to a HAL array structure.
@@ -72,21 +70,6 @@ class ContentEntityNormalizer extends NormalizerBase implements ContentEntityNor
    * {@inheritdoc}
    */
   public function normalize($entity, $format = NULL, array $context = array()) {
-    $normalizer_entity = $this->buildNormalizerValue($entity, $format, $context);
-    $normalized = $normalizer_entity->rasterizeValue();
-    $normalized['included'] = array_values($normalizer_entity->rasterizeIncludes());
-    $normalized['included'] = array_filter($normalized['included']);
-    return $normalized;
-  }
-
-  /**
-   * Build the normalizer value.
-   *
-   * @return \Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValueInterface
-   *   The normalizer value.
-   */
-  public function buildNormalizerValue(EntityInterface $entity, $format = NULL, array $context = array()) {
-    $context += $this->expandContext($entity, $context['request']);
     // If the fields to use were specified, only output those field values.
     $resource_type = $context['resource_config']->getTypeName();
     if (!empty($context['sparse_fieldset'][$resource_type])) {
@@ -144,33 +127,6 @@ class ContentEntityNormalizer extends NormalizerBase implements ContentEntityNor
    */
   public function denormalize($data, $class, $format = NULL, array $context = array()) {
     throw new \Exception('Denormalization not implemented for JSON API');
-  }
-
-  /**
-   * Expand the context information based on the request.
-   *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The entity to normalize.
-   * @param Request $request
-   *   The request.
-   *
-   * @return array
-   *   The expanded context.
-   */
-  protected function expandContext(EntityInterface $entity, Request $request) {
-    $resource_config = $this->resourceManager->get($entity->getEntityTypeId(), $entity->bundle());
-    $context = array(
-      'account' => NULL,
-      'sparse_fieldset' => NULL,
-      'resource_config' => $resource_config,
-      'include' => array_filter(explode(',', $request->query->get('include'))),
-    );
-    if ($fields_param = $request->query->get('fields')) {
-      $context['sparse_fieldset'] = array_map(function ($item) {
-        return explode(',', $item);
-      }, $request->query->get('fields'));
-    }
-    return $context;
   }
 
 }

@@ -49,32 +49,20 @@ class EntityResource implements EntityResourceInterface {
   }
 
   /**
-   * Gets the individual entity.
-   *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The loaded entity.
-   *
-   * @return ResourceResponse
-   *   The response.
+   * {@inheritdoc}
    */
   public function getIndividual(EntityInterface $entity) {
     $entity_access = $entity->access('view', NULL, TRUE);
     if (!$entity_access->isAllowed()) {
       throw new AccessDeniedHttpException();
     }
-    $response = new ResourceResponse($entity, 200);
+    $response = $this->buildWrappedResponse($entity);
     $this->addCacheabilityMetadata($response, $entity);
     return $response;
   }
 
   /**
-   * Gets the collection of entities.
-   *
-   * @param Request $request
-   *   The request object.
-   *
-   * @return ResourceResponse
-   *   The response.
+   * {@inheritdoc}
    */
   public function getCollection(Request $request) {
     // Instantiate the query for the filtering.
@@ -87,7 +75,7 @@ class EntityResource implements EntityResourceInterface {
     $results = $query->execute();
     // TODO: Make this method testable by removing the "new".
     $entity_collection = new EntityCollection($storage->loadMultiple($results));
-    $response = new ResourceResponse($entity_collection, 200);
+    $response = $this->buildWrappedResponse($entity_collection);
     foreach ($entity_collection as $entity) {
       $this->addCacheabilityMetadata($response, $entity);
     }
@@ -118,4 +106,18 @@ class EntityResource implements EntityResourceInterface {
       }
     }
   }
+
+  /**
+   * Builds a response with the appropriate wrapped document.
+   *
+   * @param mixed $data
+   *   The data to wrap.
+   *
+   * @return ResourceResponse
+   *   The response.
+   */
+  protected function buildWrappedResponse($data) {
+    return new ResourceResponse(new DocumentWrapper($data), 200);
+  }
+
 }

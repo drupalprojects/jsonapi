@@ -28,6 +28,11 @@ services:
     arguments: ['@rest.link_manager', '@entity_type.manager', '@jsonapi.resource.manager']
     tags:
       - { name: normalizer, priority: 21 }
+  serializer.normalizer.document_root.jsonapi:
+    class: Drupal\jsonapi\Normalizer\DocumentRootNormalizer
+    arguments: ['@rest.link_manager', '@entity_type.manager', '@jsonapi.resource.manager']
+    tags:
+      - { name: normalizer, priority: 22 }
   serializer.encoder.jsonapi:
     class: Drupal\jsonapi\Encoder\JsonEncoder
     tags:

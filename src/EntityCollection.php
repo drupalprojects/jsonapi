@@ -46,4 +46,14 @@ class EntityCollection implements \IteratorAggregate, \Countable {
     return count($this->entities);
   }
 
+  /**
+   * Returns the collection as an array.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface[]
+   *   The array of entities.
+   */
+  public function toArray() {
+    return $this->entities;
+  }
+
 }

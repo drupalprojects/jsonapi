@@ -12,7 +12,7 @@ interface ValueExtractorInterface {
   /**
    * Get the rasterized value.
    *
-   * @param mixed
+   * @return mixed
    *   The value.
    */
   public function rasterizeValue();
@@ -20,7 +20,7 @@ interface ValueExtractorInterface {
   /**
    * Get the includes.
    *
-   * @param array[]
+   * @return array[]
    *   An array of includes keyed by entity type and id pair.
    */
   public function rasterizeIncludes();

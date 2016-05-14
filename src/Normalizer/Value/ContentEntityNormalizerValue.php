@@ -87,10 +87,8 @@ class ContentEntityNormalizerValue implements ContentEntityNormalizerValueInterf
     $rasterized = [
       'type' => $this->context['resource_config']->getTypeName(),
       'id' => $this->entity->id(),
-      'data' => [
-        'attributes' => [],
-        'relationships' => [],
-      ],
+      'attributes' => [],
+      'relationships' => [],
       'links' => [
         'self' => $this->getEntityUri($this->entity),
         'type' => $this->linkManager->getTypeUri(
@@ -101,10 +99,9 @@ class ContentEntityNormalizerValue implements ContentEntityNormalizerValueInterf
     ];
 
     foreach ($this->getValues() as $field_name => $normalizer_value) {
-      $rasterized['data'][$normalizer_value->getPropertyType()][$field_name] = $normalizer_value->rasterizeValue();
+      $rasterized[$normalizer_value->getPropertyType()][$field_name] = $normalizer_value->rasterizeValue();
     }
-    $rasterized['data'] = array_filter($rasterized['data']);
-    return $rasterized;
+    return array_filter($rasterized);
   }
 
   /**
@@ -140,7 +137,7 @@ class ContentEntityNormalizerValue implements ContentEntityNormalizerValueInterf
     // Make sure we don't output duplicate includes.
     return array_values(array_reduce($includes, function ($unique_includes, $include) {
       $rasterized_include = $include->rasterizeValue();
-      $unique_includes[$rasterized_include['type'] . ':' . $rasterized_include['id']] = $include;
+      $unique_includes[$rasterized_include['data']['type'] . ':' . $rasterized_include['data']['id']] = $include;
       return $unique_includes;
     }, []));
   }

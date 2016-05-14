@@ -45,20 +45,32 @@ class ContentEntityNormalizerValueTest extends UnitTestCase{
     $field2->rasterizeValue()->willReturn(['data' => ['type' => 'node', 'id' => 2]]);
     $included[] = $this->prophesize(ContentEntityNormalizerValue::class);
     $included[0]->getIncludes()->willReturn([]);
-    $included[0]->rasterizeValue()->willReturn(['type' => 'node', 'id' => 3, 'data' => [
-      'attributes' => ['body' => 'dummy_body1'],
-    ]]);
+    $included[0]->rasterizeValue()->willReturn([
+      'data' => [
+        'type' => 'node',
+        'id' => 3,
+        'attributes' => ['body' => 'dummy_body1'],
+      ],
+    ]);
     // Type & id duplicated in purpose.
     $included[] = $this->prophesize(ContentEntityNormalizerValue::class);
     $included[1]->getIncludes()->willReturn([]);
-    $included[1]->rasterizeValue()->willReturn(['type' => 'node', 'id' => 3, 'data' => [
-      'attributes' => ['body' => 'dummy_body2'],
-    ]]);
+    $included[1]->rasterizeValue()->willReturn([
+      'data' => [
+        'type' => 'node',
+        'id' => 3,
+        'attributes' => ['body' => 'dummy_body2'],
+      ],
+    ]);
     $included[] = $this->prophesize(ContentEntityNormalizerValue::class);
     $included[2]->getIncludes()->willReturn([]);
-    $included[2]->rasterizeValue()->willReturn(['type' => 'node', 'id' => 4, 'data' => [
-      'attributes' => ['body' => 'dummy_body3'],
-    ]]);
+    $included[2]->rasterizeValue()->willReturn([
+      'data' => [
+        'type' => 'node',
+        'id' => 4,
+        'attributes' => ['body' => 'dummy_body3'],
+      ],
+    ]);
     $field2->getIncludes()->willReturn(array_map(function ($included_item) {
       return $included_item->reveal();
     }, $included));
@@ -95,11 +107,9 @@ class ContentEntityNormalizerValueTest extends UnitTestCase{
     $this->assertEquals([
       'type' => 'node',
       'id' => 1,
-      'data' => [
-        'attributes' => ['title' => 'dummy_title'],
-        'relationships' => [
-          'field_related' => ['data' => ['type' => 'node', 'id' => 2]],
-        ],
+      'attributes' => ['title' => 'dummy_title'],
+      'relationships' => [
+        'field_related' => ['data' => ['type' => 'node', 'id' => 2]],
       ],
       'links' => [
         'self' => 'dummy_entity_link',
@@ -114,16 +124,16 @@ class ContentEntityNormalizerValueTest extends UnitTestCase{
   public function testRasterizeIncludes() {
     $expected = [
       [
-        'type' => 'node',
-        'id' => 3,
         'data' => [
+          'type' => 'node',
+          'id' => 3,
           'attributes' => ['body' => 'dummy_body2'],
         ],
       ],
       [
-        'type' => 'node',
-        'id' => 4,
         'data' => [
+          'type' => 'node',
+          'id' => 4,
           'attributes' => ['body' => 'dummy_body3'],
         ],
       ],

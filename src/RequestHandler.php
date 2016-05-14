@@ -64,9 +64,9 @@ class RequestHandler extends RestRequestHandler {
       $route->getRequirement('_bundle')
     ), $entity_type_manager);
     // Only add the unserialized data if there is something there.
-    $additional_parameters = $unserialized ? [$unserialized, $request] : [$request];
+    $extra_parameters = $unserialized ? [$unserialized, $request] : [$request];
     try {
-      $response = call_user_func_array([$resource, $action], array_merge($parameters, $additional_parameters));
+      $response = call_user_func_array([$resource, $action], array_merge($parameters, $extra_parameters));
     }
     catch (HttpException $e) {
       $error['error'] = $e->getMessage();

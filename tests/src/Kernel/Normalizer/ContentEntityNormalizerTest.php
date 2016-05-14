@@ -4,6 +4,7 @@ namespace Drupal\jsonapi\Test\Kernel\Normalizer;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\jsonapi\Normalizer\ContentEntityNormalizer;
+use Drupal\jsonapi\Resource\DocumentWrapper;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
@@ -107,23 +108,25 @@ class ContentEntityNormalizerTest extends KernelTestBase {
     $route = $this->prophesize(Route::class);
     $route->getPath()->willReturn('/node/{node}');
     $request->get('_route_object')->willReturn($route->reveal());
+    $document_wrapper = $this->prophesize(DocumentWrapper::class);
+    $document_wrapper->getData()->willReturn($this->node);
     $normalized = $this
       ->container
-      ->get('serializer.normalizer.entity.jsonapi')
-      ->normalize($this->node, 'api_json', ['request' => $request->reveal()]);
+      ->get('serializer.normalizer.document_root.jsonapi')
+      ->normalize($document_wrapper->reveal(), 'api_json', ['request' => $request->reveal()]);
     $this->assertSame($normalized['data']['attributes']['title'], 'dummy_title');
-    $this->assertEquals($normalized['id'], 1);
+    $this->assertEquals($normalized['data']['id'], 1);
     $this->assertSame('article', $normalized['data']['attributes']['type']);
     $this->assertTrue(!isset($normalized['data']['attributes']['created']));
-    $this->assertSame('article', $normalized['type']);
+    $this->assertSame('article', $normalized['data']['type']);
     $this->assertEquals([
       'data' => [
         'type' => 'user',
         'id' => $this->user->id(),
       ],
     ], $normalized['data']['relationships']['uid']);
-    $this->assertEquals($this->user->id(), $normalized['included'][0]['id']);
-    $this->assertEquals('user', $normalized['included'][0]['type']);
+    $this->assertEquals($this->user->id(), $normalized['included'][0]['data']['id']);
+    $this->assertEquals('user', $normalized['included'][0]['data']['type']);
     $this->assertEquals($this->user->label(), $normalized['included'][0]['data']['attributes']['name']);
     $this->assertTrue(!isset($normalized['included'][0]['data']['attributes']['created']));
   }
