@@ -10,11 +10,11 @@ namespace Drupal\jsonapi\Normalizer\Value;
 interface DocumentRootNormalizerValueInterface extends ValueExtractorInterface {
 
   /**
-   * Get the rasterized value.
+   * Gets a flattened list of includes in all the chain.
    *
-   * @return mixed
-   *   The value.
+   * @return ContentEntityNormalizerValueInterface[]
+   *   The array of included relationships.
    */
-  public function rasterizeValue();
+  public function getIncludes();
 
 }

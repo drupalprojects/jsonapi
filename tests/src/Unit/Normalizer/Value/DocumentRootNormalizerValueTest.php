@@ -8,6 +8,7 @@ use Drupal\Core\Url;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValueInterface;
+use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\EntityReferenceNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValueInterface;
@@ -16,19 +17,19 @@ use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 
 /**
- * Class ContentEntityNormalizerValueTest.
+ * Class DocumentRootNormalizerValueTest.
  *
  * @package Drupal\Tests\jsonapi\Unit\Normalizer\Value
  *
- * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValue
+ * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue
  * @group jsonapi
  */
-class ContentEntityNormalizerValueTest extends UnitTestCase{
+class DocumentRootNormalizerValueTest extends UnitTestCase{
 
   /**
-   * The ContentEntityNormalizerValue object.
+   * The DocumentRootNormalizerValue object.
    *
-   * @var ContentEntityNormalizerValueInterface
+   * @var DocumentRootNormalizerValueInterface
    */
   protected $object;
 
@@ -44,7 +45,7 @@ class ContentEntityNormalizerValueTest extends UnitTestCase{
     $field2 = $this->prophesize(EntityReferenceNormalizerValueInterface::class);
     $field2->getPropertyType()->willReturn('relationships');
     $field2->rasterizeValue()->willReturn(['data' => ['type' => 'node', 'id' => 2]]);
-    $included[] = $this->prophesize(DocumentRootNormalizerValueInterface::class);
+    $included[] = $this->prophesize(DocumentRootNormalizerValue::class);
     $included[0]->getIncludes()->willReturn([]);
     $included[0]->rasterizeValue()->willReturn([
       'data' => [
@@ -54,7 +55,7 @@ class ContentEntityNormalizerValueTest extends UnitTestCase{
       ],
     ]);
     // Type & id duplicated in purpose.
-    $included[] = $this->prophesize(DocumentRootNormalizerValueInterface::class);
+    $included[] = $this->prophesize(DocumentRootNormalizerValue::class);
     $included[1]->getIncludes()->willReturn([]);
     $included[1]->rasterizeValue()->willReturn([
       'data' => [
@@ -63,7 +64,7 @@ class ContentEntityNormalizerValueTest extends UnitTestCase{
         'attributes' => ['body' => 'dummy_body2'],
       ],
     ]);
-    $included[] = $this->prophesize(DocumentRootNormalizerValueInterface::class);
+    $included[] = $this->prophesize(DocumentRootNormalizerValue::class);
     $included[2]->getIncludes()->willReturn([]);
     $included[2]->rasterizeValue()->willReturn([
       'data' => [
@@ -91,62 +92,13 @@ class ContentEntityNormalizerValueTest extends UnitTestCase{
     $link_manager = $this->prophesize(LinkManagerInterface::class);
     $link_manager->getTypeUri(Argument::type('string'), Argument::type('string'), Argument::type('array'))->willReturn('dummy_type_link');
     $entity_type_manager = $this->prophesize(EntityTypeManagerInterface::class);
-    $this->object = new ContentEntityNormalizerValue(
+    $this->object = new DocumentRootNormalizerValue(
       ['title' => $field1->reveal(), 'field_related' => $field2->reveal()],
       $context,
       $entity->reveal(),
       $link_manager->reveal(),
       $entity_type_manager->reveal()
     );
-  }
-
-
-  /**
-   * @covers ::rasterizeValue
-   */
-  public function testRasterizeValue() {
-    $this->assertEquals([
-      'type' => 'node',
-      'id' => 1,
-      'attributes' => ['title' => 'dummy_title'],
-      'relationships' => [
-        'field_related' => ['data' => ['type' => 'node', 'id' => 2]],
-      ],
-      'links' => [
-        'self' => 'dummy_entity_link',
-        'type' => 'dummy_type_link',
-      ],
-    ], $this->object->rasterizeValue());
-  }
-
-  /**
-   * @covers ::rasterizeIncludes
-   */
-  public function testRasterizeIncludes() {
-    $expected = [
-      [
-        'data' => [
-          'type' => 'node',
-          'id' => 3,
-          'attributes' => ['body' => 'dummy_body1'],
-        ],
-      ],
-      [
-        'data' => [
-          'type' => 'node',
-          'id' => 3,
-          'attributes' => ['body' => 'dummy_body2'],
-        ],
-      ],
-      [
-        'data' => [
-          'type' => 'node',
-          'id' => 4,
-          'attributes' => ['body' => 'dummy_body3'],
-        ],
-      ],
-    ];
-    $this->assertEquals($expected, $this->object->rasterizeIncludes());
   }
 
   /**
@@ -157,7 +109,7 @@ class ContentEntityNormalizerValueTest extends UnitTestCase{
     $includes = array_filter($includes, function ($included) {
       return $included instanceof DocumentRootNormalizerValueInterface;
     });
-    $this->assertCount(3, $includes);
+    $this->assertCount(2, $includes);
   }
 
 }

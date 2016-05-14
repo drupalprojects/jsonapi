@@ -2,8 +2,6 @@
 
 namespace Drupal\jsonapi\Test\Kernel\Normalizer;
 
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\jsonapi\Normalizer\ContentEntityNormalizer;
 use Drupal\jsonapi\Resource\DocumentWrapper;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\Node;
@@ -14,14 +12,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 
 /**
- * Class ContentEntityNormalizer.
+ * Class DocumentRootNormalizerTest.
  *
  * @package Drupal\jsonapi\Normalizer
  *
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\ContentEntityNormalizer
  * @group jsonapi
  */
-class ContentEntityNormalizerTest extends KernelTestBase {
+class DocumentRootNormalizerTest extends KernelTestBase {
 
   /**
    * {@inheritdoc}
