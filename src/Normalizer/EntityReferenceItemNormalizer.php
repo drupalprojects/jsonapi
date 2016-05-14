@@ -66,7 +66,12 @@ class EntityReferenceItemNormalizer extends FieldItemNormalizer implements UuidR
     if (isset($context['langcode'])) {
       $values['lang'] = $context['langcode'];
     }
-    $normalizer_value = new Value\EntityReferenceItemNormalizerValue($values, $context['resource_config']->getTypeName());
+    $normalizer_value = new Value\EntityReferenceItemNormalizerValue(
+      $values,
+      $this->resourceManager
+        ->get($target_entity->getEntityTypeId(), $target_entity->bundle())
+        ->getTypeName()
+    );
     // If this is not a content entity, let the parent implementation handle it,
     // only content entities are supported as embedded resources.
     if (!($target_entity instanceof ContentEntityInterface)) {

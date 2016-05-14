@@ -99,7 +99,7 @@ class ContentEntityNormalizerTest extends KernelTestBase {
     $request = $this->prophesize(Request::class);
     $query = $this->prophesize(ParameterBag::class);
     $query->get('fields')->willReturn([
-      'node' => 'title,type,uid',
+      'article' => 'title,type,uid',
       'user' => 'name',
     ]);
     $query->get('include')->willReturn('uid');
@@ -115,7 +115,7 @@ class ContentEntityNormalizerTest extends KernelTestBase {
     $this->assertEquals($normalized['id'], 1);
     $this->assertSame('article', $normalized['data']['attributes']['type']);
     $this->assertTrue(!isset($normalized['data']['attributes']['created']));
-    $this->assertSame('node', $normalized['type']);
+    $this->assertSame('article', $normalized['type']);
     $this->assertEquals([
       'data' => [
         'type' => 'user',
