@@ -15,6 +15,15 @@ use Symfony\Component\Routing\RouteCollection;
 class Routes implements ContainerInjectionInterface {
 
   /**
+   * The front controller for the JSON API routes.
+   *
+   * All routes will use this callback to bootstrap the JSON API process.
+   *
+   * @var string
+   */
+  const FRONT_CONTROLLER = '\Drupal\jsonapi\RequestHandler::handle';
+
+  /**
    * The entity type manager object.
    *
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
@@ -66,7 +75,7 @@ class Routes implements ContainerInjectionInterface {
       $route_key = sprintf('%s.dynamic.%s.', $prefix, $resource->getTypeName());
       // Add the collection route.
       $defaults = [
-        '_controller' => '\Drupal\jsonapi\RequestHandler::handle',
+        '_controller' => static::FRONT_CONTROLLER,
       ];
 
       // Collection endpoint, like /api/photos.
