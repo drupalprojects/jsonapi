@@ -4,15 +4,14 @@ namespace Drupal\jsonapi\Resource;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\RequestCacheabilityDependency;
+use Drupal\jsonapi\Routing\Param\JsonApiParamInterface;
 use Drupal\rest\ResourceResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
-
 
 /**
  * Class EntityResource.
@@ -71,7 +70,12 @@ class EntityResource implements EntityResourceInterface {
     $query = $storage->getQuery();
     $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
     $query->condition($entity_type->getKey('bundle'), $this->resourceConfig->getBundleId());
-    // TODO: Add filtering support.
+    $params = $request->attributes->get('_route_params');
+    $params = $params['_json_api_params'];
+    // Apply the filters.
+    if (!empty($params['filter'])) {
+      $this->applyFiltersForList($query, $params['filter']);
+    }
     $results = $query->execute();
     // TODO: Make this method testable by removing the "new".
     $entity_collection = new EntityCollection($storage->loadMultiple($results));
@@ -80,6 +84,30 @@ class EntityResource implements EntityResourceInterface {
       $this->addCacheabilityMetadata($response, $entity);
     }
     return $response;
+  }
+
+  /**
+   * Applies the filters to the query.
+   *
+   * @param \Drupal\Core\Entity\Query\QueryInterface $query
+   *   The entity query.
+   * @param \Drupal\jsonapi\Routing\Param\JsonApiParamInterface $filter
+   *   The filter parameter.
+   */
+  protected function applyFiltersForList(QueryInterface $query, JsonApiParamInterface $filter) {
+    foreach ($filter->get() as $field_name => $filter_info) {
+      // Deal with multivalue operators.
+      if ($filter_info['multivalue']) {
+        // Add a single condition using all the values and one operator.
+        $query->condition($field_name, $filter_info['value'], $filter_info['operator'][0]);
+      }
+      else {
+        // For every value in the filter, add a condition to the query.
+        foreach ($filter_info['value'] as $index => $item) {
+          $query->condition($field_name, $item, $filter_info['operator'][$index]);
+        }
+      }
+    }
   }
 
   /**
