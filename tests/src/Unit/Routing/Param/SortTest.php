@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\jsonapi\Test\Unit\Routing\Param;
+namespace Drupal\Tests\jsonapi\Unit\Routing\Param;
 
 use Drupal\jsonapi\Routing\Param\Sort;
 use Drupal\Tests\UnitTestCase;

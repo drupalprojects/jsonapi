@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\jsonapi\Test\Unit\Routing;
+namespace Drupal\Tests\jsonapi\Unit\Routing;
 
 use Drupal\jsonapi\Routing\JsonApiParamEnhancer;
 use Drupal\jsonapi\Routing\Param\CursorPage;

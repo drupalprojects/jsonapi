@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\jsonapi\Test\Kernel\Normalizer;
+namespace Drupal\Tests\jsonapi\Kernel\Normalizer;
 
 use Drupal\jsonapi\Resource\DocumentWrapper;
 use Drupal\KernelTests\KernelTestBase;
