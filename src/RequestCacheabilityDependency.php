@@ -13,7 +13,12 @@ class RequestCacheabilityDependency implements CacheableDependencyInterface {
    * {@inheritdoc}
    */
   public function getCacheContexts() {
-    return ['url.query_args:fields'];
+    return [
+      'url.query_args:filter',
+      'url.query_args:sort',
+      'url.query_args:page',
+      'url.query_args:fields',
+    ];
   }
 
   /**
