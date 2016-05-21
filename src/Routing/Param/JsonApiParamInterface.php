@@ -3,14 +3,19 @@
 
 namespace Drupal\jsonapi\Routing\Param;
 
-use Drupal\Core\Entity\Query\QueryInterface;
-
 /**
  * Class JsonApiParamInterface.
  *
  * @package Drupal\jsonapi\Routing\Param
  */
 interface JsonApiParamInterface {
+
+  /**
+   * The key name.
+   *
+   * @var string
+   */
+  const KEY_NAME = NULL;
 
   /**
    * Gets the original parsed query string param.

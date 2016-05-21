@@ -7,6 +7,7 @@
 namespace Drupal\jsonapi\Query;
 
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\JsonApiParamInterface;
 
 class QueryBuilder implements QueryBuilderInterface {
@@ -63,9 +64,9 @@ class QueryBuilder implements QueryBuilderInterface {
    */
   public function configureFromParameter(JsonApiParamInterface $param) {
     switch ($param::KEY_NAME) {
-    case 'filter':
-      $this->configureFilter($param);
-      break;
+      case Filter::KEY_NAME:
+        $this->configureFilter($param);
+        break;
     }
   }
 
@@ -84,9 +85,11 @@ class QueryBuilder implements QueryBuilderInterface {
           case 'condition':
             $extracted[] = $this->newCondtionOption($filter_index, $properties);
             break;
+
           case 'group':
             $extracted[] = $this->newGroupOption($filter_index, $properties);
             break;
+
           case 'exists':
             break;
         };
@@ -103,17 +106,19 @@ class QueryBuilder implements QueryBuilderInterface {
   /**
    * Returns a new ConditionOption.
    *
-   * @param string $id
+   * @param string $condition_id
    *   A unique id for the option.
    * @param array $properties
+   *   The condition properties.
    *
    * @return \Drupal\jsonapi\Query\ConditionOption
+   *   The condition object.
    */
-  protected function newCondtionOption($id, array $properties) {
+  protected function newCondtionOption($condition_id, array $properties) {
     $langcode = isset($properties['langcode']) ? $properties['langcode'] : NULL;
     $group = isset($properties['group']) ? $properties['group'] : NULL;
     return new ConditionOption(
-      $id,
+      $condition_id,
       $properties['field'],
       $properties['value'],
       $properties['operator'],
@@ -128,8 +133,10 @@ class QueryBuilder implements QueryBuilderInterface {
    * @param string $id
    *   A unique id for the option.
    * @param array $properties
+   *   The group properties.
    *
    * @return \Drupal\jsonapi\Query\GroupOption
+   *   The group object.
    */
   protected function newGroupOption($id, array $properties) {
     $parent_group = isset($properties['group']) ? $properties['group'] : NULL;
@@ -143,8 +150,10 @@ class QueryBuilder implements QueryBuilderInterface {
    * @param string $id
    *   A unique id for the option.
    * @param array $properties
+   *   The condition properties.
    *
    * @return \Drupal\jsonapi\Query\ExistsOption
+   *   The condition object.
    */
   protected function newExistsOptions($id, array $properties) {
     $langcode = isset($properties['langcode']) ? $properties['langcode'] : NULL;
@@ -162,7 +171,7 @@ class QueryBuilder implements QueryBuilderInterface {
    * Builds a tree of QueryOptions.
    *
    * @param \Drupal\jsonapi\Query\QueryOptionInterface[] $options
-   *  An array of QueryOptions.
+   *   An array of QueryOptions.
    */
   protected function buildTree(array $options) {
     $remaining = $options;
@@ -183,19 +192,23 @@ class QueryBuilder implements QueryBuilderInterface {
    * Inserts a QueryOption into the appropriate child QueryOption.
    *
    * @param string $target_id
-   *  Unique ID of the intended QueryOption parent.
+   *   Unique ID of the intended QueryOption parent.
    * @param \Drupal\jsonapi\Query\QueryOptionInterface $option
-   *  The QueryOption to insert.
+   *   The QueryOption to insert.
    *
    * @return bool
-   *  Whether the option could be inserted or not.
+   *   Whether the option could be inserted or not.
    */
   protected function insert($target_id, QueryOptionInterface $option) {
     if (!empty($this->options)) {
       $find_target_child = function ($child, $option) use ($target_id) {
-        if ($child) return $child;
-        if ($option->id() == $target_id) return $option->id();
-        if (method_exists($option, 'hasChild') && $option->hasChild($target_id)) {
+        if ($child) {
+          return $child;
+        }
+        if (
+          $option->id() == $target_id ||
+          (method_exists($option, 'hasChild') && $option->hasChild($target_id))
+        ) {
           return $option->id();
         }
         return FALSE;

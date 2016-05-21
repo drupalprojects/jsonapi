@@ -11,13 +11,6 @@ namespace Drupal\jsonapi\Routing\Param;
 class JsonApiParamBase implements JsonApiParamInterface {
 
   /**
-   * The key name.
-   *
-   * @var string
-   */
-  const KEY_NAME = NULL;
-
-  /**
    * The original data.
    *
    * @var string|string[]

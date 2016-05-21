@@ -13,7 +13,7 @@ interface QueryOptionTreeItemInterface {
    *   The QueryOption to insert.
    *
    * @return bool
-   *  Whether or not the QueryOption could be inserted.
+   *   Whether or not the QueryOption could be inserted.
    */
   public function insert($target_id, QueryOptionInterface $option);
 

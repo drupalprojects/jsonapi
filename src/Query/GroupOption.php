@@ -28,7 +28,7 @@ class GroupOption implements QueryOptionInterface, QueryOptionTreeItemInterface 
   /**
    * An array of QueryOptions.
    *
-   * @var \Drupal\jsonapi\Query\QueryOption[]
+   * @var \Drupal\jsonapi\Query\QueryOptionInterface[]
    */
   protected $childOptions;
 
@@ -51,8 +51,10 @@ class GroupOption implements QueryOptionInterface, QueryOptionTreeItemInterface 
    *
    * @param string $id
    *   A unique string identifier for the option.
-   * @param string $operator
-   *   Boolean operator.
+   * @param string $conjunction
+   *   Conjunction of the groups conditions.
+   * @param string $parent_group
+   *   A unique key representing a parent condition group.
    */
   public function __construct($id, $conjunction = 'AND', $parent_group = NULL) {
     $this->id = $id;
@@ -78,9 +80,13 @@ class GroupOption implements QueryOptionInterface, QueryOptionTreeItemInterface 
    * {@inheritdoc}
    */
   public function insert($target_id, QueryOptionInterface $option) {
-    $find_proper_id = function ($child_id, $groupOption) use ($target_id) {
-      if ($child_id) return $child_id;
-      return ($groupOption->hasChild($target_id)) ? $condition->id() : NULL;
+    $find_proper_id = function ($child_id, $group_option) use ($target_id) {
+      if ($child_id) {
+        return $child_id;
+      };
+      return $group_option->hasChild($target_id) ?
+        $group_option->id() :
+        NULL;
     };
 
     if ($this->id() == $target_id) {
@@ -103,6 +109,7 @@ class GroupOption implements QueryOptionInterface, QueryOptionTreeItemInterface 
       case 'OR':
         $group = $query->orConditionGroup();
         break;
+
       case 'AND':
       default:
         $group = $query->andConditionGroup();
@@ -134,16 +141,18 @@ class GroupOption implements QueryOptionInterface, QueryOptionTreeItemInterface 
     }
 
     // If any of the options have the specified id, return TRUE.
-    if (in_array($id, array_keys($this->childOptions))) return TRUE;
+    if (in_array($id, array_keys($this->childOptions))) {
+      return TRUE;
+    }
 
     // If any child GroupOptions or their children have the id return TRUE.
-    return array_reduce($this->groupOptions, function ($hasChild, $group) use ($id) {
+    return array_reduce($this->groupOptions, function ($has_child, $group) use ($id) {
       // If we already know that we have the child, skip evaluation and return.
-      if (!$hasChild) {
+      if (!$has_child) {
         // Determine if this group or any of its children match the $id.
-        $hasChild = ($group->id() == $id || $group->hasChild($id));
+        $has_child = ($group->id() == $id || $group->hasChild($id));
       }
-      return $hasChild;
+      return $has_child;
     }, FALSE);
   }
 

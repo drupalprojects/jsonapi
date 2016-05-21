@@ -21,7 +21,7 @@ class ExistsOption implements QueryOptionInterface {
   /**
    * A unique key representing the intended parent of this option.
    *
-   * @var string|NULL
+   * @var string
    */
   protected $parentId;
 
@@ -46,6 +46,20 @@ class ExistsOption implements QueryOptionInterface {
    */
   protected $langcode;
 
+  /**
+   * Instantiates a ExistsOption object.
+   *
+   * @param string $id
+   *   The query identifier.
+   * @param string $field
+   *   String representation of the entity field in to be checked.
+   * @param bool $exists
+   *   Boolean representing whether the field should or shouldn't exist.
+   * @param string $langcode
+   *   The langcode of the field to check.
+   * @param string $parent_id
+   *   A unique key representing the intended parent of this option.
+   */
   public function __construct($id, $field, $exists, $langcode = NULL, $parent_id = NULL) {
     $this->id = $id;
     $this->field = $field;
@@ -76,8 +90,8 @@ class ExistsOption implements QueryOptionInterface {
   /**
    * Returns the id of this option's parent.
    *
-   * @return string|NULL
-   *  Either the id of its parent or NULL.
+   * @return string
+   *   Either the id of its parent or NULL.
    */
   public function parentId() {
     return $this->parentId;
