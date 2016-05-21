@@ -9,6 +9,7 @@ use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\RequestCacheabilityDependency;
 use Drupal\jsonapi\Routing\Param\JsonApiParamInterface;
+use Drupal\jsonapi\Query\QueryBuilderInterface;
 use Drupal\rest\ResourceResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -35,16 +36,26 @@ class EntityResource implements EntityResourceInterface {
   protected $entityTypeManager;
 
   /**
+   * The query builder service.
+   *
+   * @var \Drupal\jsonapi\Query\QueryBuilderInterface
+   */
+  protected $queryBuilder;
+
+  /**
    * Instantiates a EntityResource object.
    *
    * @param \Drupal\jsonapi\Configuration\ResourceConfigInterface $resource_config
    *   The configuration for the resource.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
+   * @param \Drupal\jsonapi\Query\QueryBuilderInterface $query_builder
+   *   The query builder.
    */
-  public function __construct(ResourceConfigInterface $resource_config, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(ResourceConfigInterface $resource_config, EntityTypeManagerInterface $entity_type_manager, QueryBuilderInterface $query_builder) {
     $this->resourceConfig = $resource_config;
     $this->entityTypeManager = $entity_type_manager;
+    $this->queryBuilder = $query_builder;
   }
 
   /**
@@ -66,24 +77,50 @@ class EntityResource implements EntityResourceInterface {
   public function getCollection(Request $request) {
     // Instantiate the query for the filtering.
     $entity_type_id = $this->resourceConfig->getEntityTypeId();
-    $storage = $this->entityTypeManager->getStorage($entity_type_id);
-    $query = $storage->getQuery();
-    $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
-    $query->condition($entity_type->getKey('bundle'), $this->resourceConfig->getBundleId());
+
     $params = $request->attributes->get('_route_params');
-    $params = $params['_json_api_params'];
-    // Apply the filters.
-    if (!empty($params['filter'])) {
-      $this->applyFiltersForList($query, $params['filter']);
-    }
+    $query = $this->getCollectionQuery($entity_type_id, $params['_json_api_params']);
+
+    // TODO: Need to wrap in a try/catch and respond with useful error.
     $results = $query->execute();
+
     // TODO: Make this method testable by removing the "new".
+    $storage = $this->entityTypeManager->getStorage($entity_type_id);
     $entity_collection = new EntityCollection($storage->loadMultiple($results));
     $response = $this->buildWrappedResponse($entity_collection);
     foreach ($entity_collection as $entity) {
       $this->addCacheabilityMetadata($response, $entity);
     }
     return $response;
+  }
+
+  /**
+   * Gets a basic query for a collection.
+   *
+   * @param string $entity_type_id
+   *   The entity type for the entity query.
+   * @param \Drupal\jsonapi\Routing\Param\JsonApiParamInterface[] $params
+   *   The parameters for the query.
+   *
+   * @return \Drupal\Core\Entity\Query\QueryInterface
+   *   A new query.
+   */
+  protected function getCollectionQuery($entity_type_id, $params) {
+    $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
+
+    // Configure the queryBuilder from the parameters.
+    if (!empty($params['filter'])) {
+      $this->queryBuilder->configureFromParameter($params['filter']);
+    }
+
+    $query = $this->queryBuilder->newQuery($entity_type);
+
+    // Limit this query to the bundle type for this resource.
+    $query->condition(
+      $entity_type->getKey('bundle'), $this->resourceConfig->getBundleId()
+    );
+
+    return $query;
   }
 
   /**

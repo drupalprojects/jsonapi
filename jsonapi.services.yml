@@ -48,3 +48,6 @@ services:
     class: Drupal\jsonapi\Routing\JsonApiParamEnhancer
     tags:
       - { name: route_enhancer }
+  jsonapi.query_builder:
+    class: Drupal\jsonapi\Query\QueryBuilder
+    arguments: [ '@entity_type.manager' ]

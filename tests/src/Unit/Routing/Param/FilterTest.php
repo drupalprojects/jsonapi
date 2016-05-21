@@ -31,38 +31,26 @@ class FilterTest extends UnitTestCase {
   public function getProvider() {
     return [
       [
-        ['field1' => 'lorem'],
-        ['field1' => ['value' => ['lorem'], 'operator' => ['='], 'multivalue' => FALSE]],
+        [0 => ['field' => 'foo', 'value' => 'bar']],
+        [0 => ['condition' => [ 'field' => 'foo', 'value' => 'bar', 'operator' => '=']]],
       ],
       [
         [
-          'field1' => 'lorem',
-          'field2' => ['value' => ['lorem'], 'operator' => ['<>'], 'multivalue' => FALSE],
+          0 => ['field' => 'foo', 'value' => 'bar'],
+          1 => ['condition' => [ 'field' => 'baz', 'value' => 'zab', 'operator' => '<>']],
         ],
         [
-          'field1' => ['value' => ['lorem'], 'operator' => ['='], 'multivalue' => FALSE],
-          'field2' => ['value' => ['lorem'], 'operator' => ['<>'], 'multivalue' => FALSE],
+          0 => ['condition' => [ 'field' => 'foo', 'value' => 'bar', 'operator' => '=']],
+          1 => ['condition' => [ 'field' => 'baz', 'value' => 'zab', 'operator' => '<>']],
         ],
       ],
       [
-        ['field1' => ['value' => 'lorem']],
-        ['field1' => ['value' => ['lorem'], 'operator' => ['='], 'multivalue' => FALSE]],
-      ],
-      [
-        ['field1' => ['value' => 'lorem']],
-        ['field1' => ['value' => ['lorem'], 'operator' => ['='], 'multivalue' => FALSE]],
-      ],
-      [
-        ['field1' => ['value' => ['lorem', 'ipsum']]],
-        ['field1' => ['value' => ['lorem', 'ipsum'], 'operator' => ['=', '='], 'multivalue' => FALSE]],
-      ],
-      [
-        ['field1' => ['value' => ['lorem', 'ipsum'], 'operator' => 'IN']],
-        ['field1' => ['value' => ['lorem', 'ipsum'], 'operator' => ['IN'], 'multivalue' => TRUE]],
-      ],
-      [
-        ['field1' => ['value' => ['lorem', 'ipsum'], 'operator' => ['<>']]],
-        ['field1' => ['value' => ['lorem', 'ipsum'], 'operator' => ['<>', '='], 'multivalue' => FALSE]],
+        [
+          0 => ['field' => 'foo', 'value' => ['bar', 'baz']],
+        ],
+        [
+          0 => ['condition' => [ 'field' => 'foo', 'value' => ['bar', 'baz'], 'operator' => '=']],
+        ],
       ],
     ];
   }

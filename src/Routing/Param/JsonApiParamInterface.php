@@ -3,6 +3,8 @@
 
 namespace Drupal\jsonapi\Routing\Param;
 
+use Drupal\Core\Entity\Query\QueryInterface;
+
 /**
  * Class JsonApiParamInterface.
  *
