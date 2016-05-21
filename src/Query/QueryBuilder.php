@@ -20,7 +20,7 @@ class QueryBuilder implements QueryBuilderInterface {
   /**
    * The options to build with which to build a query.
    */
-  protected $options;
+  protected $options = [];
 
   /**
    * The entity type manager.

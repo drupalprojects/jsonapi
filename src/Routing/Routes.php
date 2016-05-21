@@ -24,13 +24,6 @@ class Routes implements ContainerInjectionInterface {
   const FRONT_CONTROLLER = '\Drupal\jsonapi\RequestHandler::handle';
 
   /**
-   * The entity type manager object.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected $entityTypeManager;
-
-  /**
    * The resource manager interface.
    *
    * @var \Drupal\jsonapi\Configuration\ResourceManagerInterface
@@ -45,8 +38,7 @@ class Routes implements ContainerInjectionInterface {
    * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
    *   The resource manager.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, ResourceManagerInterface $resource_manager) {
-    $this->entityTypeManager = $entity_type_manager;
+  public function __construct(ResourceManagerInterface $resource_manager) {
     $this->resourceManager = $resource_manager;
   }
 
@@ -54,11 +46,9 @@ class Routes implements ContainerInjectionInterface {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    /* @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager */
-    $entity_type_manager = $container->get('entity_type.manager');
     /* @var \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager */
     $resource_manager = $container->get('jsonapi.resource.manager');
-    return new static($entity_type_manager, $resource_manager);
+    return new static($resource_manager);
   }
 
   /**

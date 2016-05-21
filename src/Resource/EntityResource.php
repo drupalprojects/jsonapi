@@ -88,6 +88,12 @@ class EntityResource implements EntityResourceInterface {
     $storage = $this->entityTypeManager->getStorage($entity_type_id);
     $entity_collection = new EntityCollection($storage->loadMultiple($results));
     $response = $this->buildWrappedResponse($entity_collection);
+
+    // When a new change to any entity in the resource happens, we cannot ensure
+    // the validity of this cached list. Add the list tag to deal with that.
+    $list_tag = $this->entityTypeManager->getDefinition($entity_type_id)->getListCacheTags();
+    $response->getCacheableMetadata()->setCacheTags($list_tag);
+    // Add a cache tag for every entity in the list.
     foreach ($entity_collection as $entity) {
       $this->addCacheabilityMetadata($response, $entity);
     }
