@@ -25,24 +25,45 @@ class Filter extends JsonApiParamBase {
       throw new BadRequestHttpException('Incorrect value passed to the filter parameter.');
     }
 
-    $expanded = array_map(function ($filter_item) {
-      if (isset($filter_item['field']) && isset($filter_item['value'])) {
-        $expanded_filter = [
-          'condition' => $filter_item,
-        ];
-
-        if (!isset($expanded_filter['operator'])) {
-          $expanded_filter['condition']['operator'] = '=';
-        }
-
-        return $expanded_filter;
-      }
-      else {
-        return $filter_item;
-      }
-    }, $this->original);
-
+    $expanded = [];
+    foreach ($this->original as $filter_index => $filter_item) {
+      $expanded[$filter_index] = $this->expandItem($filter_index, $filter_item);
+    }
     return $expanded;
+  }
+
+  /**
+   * Expands a filter item in case a shortcut was used.
+   *
+   * Possible cases for the conditions:
+   *   1. filter[uuid][value]=1234.
+   *   2. filter[0][condition][field]=uuid&filter[0][condition][value]=1234.
+   *   3. filter[uuid][condition][value]=1234.
+   *   4. filter[uuid][value]=1234&filter[uuid][group]=my_group.
+   *
+   * @param string $filter_index
+   *   The index.
+   * @param array $filter_item
+   *   The raw filter item.
+   *
+   * @return array
+   *   The expanded filter item.
+   */
+  protected function expandItem($filter_index, array $filter_item) {
+    if (isset($filter_item['value'])) {
+      if (!isset($filter_item['field'])) {
+        $filter_item['field'] = $filter_index;
+      }
+      $filter_item = [
+        'condition' => $filter_item,
+      ];
+
+      if (!isset($filter_item['operator'])) {
+        $filter_item['condition']['operator'] = '=';
+      }
+    }
+
+    return $filter_item;
   }
 
 }

@@ -12,6 +12,7 @@ use Drupal\Tests\UnitTestCase;
  * @package Drupal\jsonapi\Test\Unit
  *
  * @coversDefaultClass \Drupal\jsonapi\Routing\Param\Filter
+ *
  * @group jsonapi
  */
 class FilterTest extends UnitTestCase {
@@ -33,6 +34,10 @@ class FilterTest extends UnitTestCase {
       [
         [0 => ['field' => 'foo', 'value' => 'bar']],
         [0 => ['condition' => [ 'field' => 'foo', 'value' => 'bar', 'operator' => '=']]],
+      ],
+      [
+        ['foo' => ['value' => 'bar']],
+        ['foo' => ['condition' => [ 'field' => 'foo', 'value' => 'bar', 'operator' => '=']]],
       ],
       [
         [
