@@ -62,6 +62,7 @@ class EntityResourceTest extends KernelTestBase {
     $this->user = User::create([
       'name' => 'user1',
       'mail' => 'user@localhost',
+      'status' => 1,
     ]);
     $this->user->save();
     $this->node = Node::create([
@@ -131,6 +132,26 @@ class EntityResourceTest extends KernelTestBase {
     $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
     $this->assertEquals(1, $response->getResponseData()->getData()->getIterator()->current()->id());
     $this->assertEquals(['node:1', 'node_list'], $response->getCacheableMetadata()->getCacheTags());
+  }
+
+  /**
+   * @covers ::getRelated
+   */
+  public function testGetRelated() {
+    // to-one relationship.
+    $response = $this->entityResource->getRelated($this->node, 'uid');
+    $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
+    $this->assertInstanceOf(User::class, $response->getResponseData()
+      ->getData());
+    $this->assertEquals(1, $response->getResponseData()->getData()->id());
+    $this->assertSame('user:1', $response->getCacheableMetadata()->getCacheTags()[0]);
+
+    // to-many relationship.
+    $response = $this->entityResource->getRelated($this->user, 'roles');
+    $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
+    $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()
+      ->getData());
+    $this->assertEquals(['config:user_role_list'], $response->getCacheableMetadata()->getCacheTags());
   }
 
 }

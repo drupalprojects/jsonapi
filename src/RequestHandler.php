@@ -155,7 +155,10 @@ class RequestHandler extends RestRequestHandler {
   protected function action(RouteMatchInterface $route_match, $method) {
     $on_relationship = $route_match->getParameter('on_relationship');
     $related = (bool) $route_match->getParameter('related');
-    if ($related || $on_relationship) {
+    if ($related) {
+      return 'getRelated';
+    }
+    elseif ($on_relationship) {
       throw new \Exception('Not yet implemented');
     }
     return $this->getEntity($route_match) ? 'getIndividual' : 'getCollection';

@@ -34,4 +34,17 @@ interface EntityResourceInterface {
    */
   public function getCollection(Request $request);
 
+  /**
+   * Gets the related resource.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The loaded entity.
+   * @param string $related_field
+   *   The related field name.
+   *
+   * @return \Drupal\rest\ResourceResponse
+   *   The response.
+   */
+  public function getRelated(EntityInterface $entity, $related_field);
+
 }

@@ -13,6 +13,7 @@ use Drupal\jsonapi\Query\QueryBuilderInterface;
 use Drupal\rest\ResourceResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Class EntityResource.
@@ -64,7 +65,7 @@ class EntityResource implements EntityResourceInterface {
   public function getIndividual(EntityInterface $entity) {
     $entity_access = $entity->access('view', NULL, TRUE);
     if (!$entity_access->isAllowed()) {
-      throw new AccessDeniedHttpException();
+      throw new AccessDeniedHttpException('The current user is not allowed to GET the selected resource.');
     }
     $response = $this->buildWrappedResponse($entity);
     $this->addCacheabilityMetadata($response, $entity);
@@ -87,17 +88,30 @@ class EntityResource implements EntityResourceInterface {
     // TODO: Make this method testable by removing the "new".
     $storage = $this->entityTypeManager->getStorage($entity_type_id);
     $entity_collection = new EntityCollection($storage->loadMultiple($results));
-    $response = $this->buildWrappedResponse($entity_collection);
+    return $this->respondWithCollection($entity_collection, $entity_type_id);
+  }
 
-    // When a new change to any entity in the resource happens, we cannot ensure
-    // the validity of this cached list. Add the list tag to deal with that.
-    $list_tag = $this->entityTypeManager->getDefinition($entity_type_id)->getListCacheTags();
-    $response->getCacheableMetadata()->setCacheTags($list_tag);
-    // Add a cache tag for every entity in the list.
-    foreach ($entity_collection as $entity) {
-      $this->addCacheabilityMetadata($response, $entity);
+  /**
+   * {@inheritdoc}
+   */
+  public function getRelated(EntityInterface $entity, $related_field) {
+    /* @var $field_list \Drupal\Core\Field\FieldItemListInterface */
+    if (!($field_list = $entity->get($related_field)) || $field_list->getDataDefinition()->getType() != 'entity_reference') {
+      throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
     }
-    return $response;
+    $data_definition = $field_list->getDataDefinition();
+    if (!$is_multiple = $data_definition->getFieldStorageDefinition()->isMultiple()) {
+      return $this->getIndividual($field_list->entity);
+    }
+    $entities = [];
+    foreach ($field_list as $field_item) {
+      /* @var \Drupal\Core\Entity\EntityInterface $entity_item */
+      $entity_item = $field_item->entity;
+      $entities[$entity_item->id()] = $entity_item;
+    }
+    $entity_collection = new EntityCollection($entities);
+    $entity_type_id = $field_list->getSetting('target_type');
+    return $this->respondWithCollection($entity_collection, $entity_type_id);
   }
 
   /**
@@ -156,7 +170,7 @@ class EntityResource implements EntityResourceInterface {
   /**
    * Adds cacheability metadata to an entity.
    *
-   * @param ResourceResponse $response
+   * @param \Drupal\rest\ResourceResponse $response
    *   The REST response.
    * @param EntityInterface $entity
    *   The entity.
@@ -184,11 +198,37 @@ class EntityResource implements EntityResourceInterface {
    * @param mixed $data
    *   The data to wrap.
    *
-   * @return ResourceResponse
+   * @return \Drupal\rest\ResourceResponse
    *   The response.
    */
   protected function buildWrappedResponse($data) {
     return new ResourceResponse(new DocumentWrapper($data), 200);
+  }
+
+  /**
+   * Respond with an entity collection.
+   *
+   * @param \Drupal\jsonapi\EntityCollection $entity_collection
+   *   The collection of entites.
+   * @param string $entity_type_id
+   *   The entity type.
+   *
+   * @return \Drupal\rest\ResourceResponse
+   *   The response.
+   */
+  protected function respondWithCollection(EntityCollection $entity_collection, $entity_type_id) {
+    $response = $this->buildWrappedResponse($entity_collection);
+
+    // When a new change to any entity in the resource happens, we cannot ensure
+    // the validity of this cached list. Add the list tag to deal with that.
+    $list_tag = $this->entityTypeManager->getDefinition($entity_type_id)
+      ->getListCacheTags();
+    $response->getCacheableMetadata()->setCacheTags($list_tag);
+    // Add a cache tag for every entity in the list.
+    foreach ($entity_collection as $entity) {
+      $this->addCacheabilityMetadata($response, $entity);
+    }
+    return $response;
   }
 
 }
