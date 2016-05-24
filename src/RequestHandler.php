@@ -156,13 +156,11 @@ class RequestHandler extends RestRequestHandler {
    * Gets the method to execute in the entity resource.
    */
   protected function action(RouteMatchInterface $route_match, $method) {
-    $on_relationship = $route_match->getParameter('on_relationship');
-    $related = (bool) $route_match->getParameter('related');
-    if ($related) {
-      return 'getRelated';
+    if ($route_match->getRouteObject()->getDefault('_on_relationship')) {
+      return 'getRelationship';
     }
-    elseif ($on_relationship) {
-      throw new \Exception('Not yet implemented');
+    elseif ($route_match->getParameter('related')) {
+      return 'getRelated';
     }
     return $this->getEntity($route_match) ? 'getIndividual' : 'getCollection';
   }

@@ -26,7 +26,7 @@ interface EntityResourceInterface {
   /**
    * Gets the collection of entities.
    *
-   * @param Request $request
+   * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
    *
    * @return \Drupal\rest\ResourceResponse
@@ -38,7 +38,7 @@ interface EntityResourceInterface {
    * Gets the related resource.
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The loaded entity.
+   *   The requested entity.
    * @param string $related_field
    *   The related field name.
    *
@@ -46,5 +46,18 @@ interface EntityResourceInterface {
    *   The response.
    */
   public function getRelated(EntityInterface $entity, $related_field);
+
+  /**
+   * Gets the relationship of an entity.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The requested entity.
+   * @param string $related_field
+   *   The related field name.
+   *
+   * @return \Drupal\rest\ResourceResponse
+   *   The response.
+   */
+  public function getRelationship(EntityInterface $entity, $related_field);
 
 }

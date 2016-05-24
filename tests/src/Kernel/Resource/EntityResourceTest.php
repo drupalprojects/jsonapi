@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\jsonapi\Kernel\Resource;
 
+use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\Resource\DocumentWrapper;
 use Drupal\jsonapi\Resource\EntityResource;
@@ -148,10 +149,40 @@ class EntityResourceTest extends KernelTestBase {
 
     // to-many relationship.
     $response = $this->entityResource->getRelated($this->user, 'roles');
-    $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
-    $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()
+    $this->assertInstanceOf(DocumentWrapper::class, $response
+      ->getResponseData());
+    $this->assertInstanceOf(EntityCollection::class, $response
+      ->getResponseData()
       ->getData());
-    $this->assertEquals(['config:user_role_list'], $response->getCacheableMetadata()->getCacheTags());
+    $this->assertEquals(['config:user_role_list'], $response
+      ->getCacheableMetadata()
+      ->getCacheTags());
+  }
+
+  /**
+   * @covers ::getRelationship
+   */
+  public function testGetRelationship() {
+    // to-one relationship.
+    $response = $this->entityResource->getRelationship($this->node, 'uid');
+    $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
+    $this->assertInstanceOf(
+      EntityReferenceFieldItemListInterface::class,
+      $response->getResponseData()->getData()
+    );
+    $this->assertEquals(1, $response
+      ->getResponseData()
+      ->getData()
+      ->getEntity()
+      ->id()
+    );
+    $this->assertEquals('node', $response
+      ->getResponseData()
+      ->getData()
+      ->getEntity()
+      ->getEntityTypeId()
+    );
+    $this->assertSame('node:1', $response->getCacheableMetadata()->getCacheTags()[0]);
   }
 
 }

@@ -4,7 +4,9 @@ namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\Resource\DocumentWrapperInterface;
 use Drupal\rest\LinkManager\LinkManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -73,7 +75,10 @@ class DocumentRootNormalizer extends NormalizerBase implements DocumentRootNorma
   public function normalize($object, $format = NULL, array $context = array()) {
     $value_extractor = $this->buildNormalizerValue($object->getData(), $format, $context);
     $normalized = $value_extractor->rasterizeValue();
-    $normalized['included'] = array_filter($value_extractor->rasterizeIncludes());
+    $included = array_filter($value_extractor->rasterizeIncludes());
+    if (!empty($included)) {
+      $normalized['included'] = $included;
+    }
     return $normalized;
   }
 
@@ -84,15 +89,20 @@ class DocumentRootNormalizer extends NormalizerBase implements DocumentRootNorma
    *   The normalizer value.
    */
   public function buildNormalizerValue($data, $format = NULL, array $context = array()) {
-    $is_collection = !$data instanceof EntityInterface;
-    // To improve the logical workflow deal with an array at all times.
-    $entities = $is_collection ? $data->toArray() : [$data];
-    // Use the first entity to extract the entity type and bundle from it.
-    $context += $this->expandContext($entities[0], $context['request']);
-    $serializer = $this->serializer;
-    $normalizer_values = array_map(function ($entity) use ($format, $context, $serializer) {
-      return $serializer->normalize($entity, $format, $context);
-    }, $entities);
+    if ($data instanceof EntityReferenceFieldItemListInterface) {
+      return $this->serializer->normalize($data, $format, $context);
+    }
+    else {
+      $is_collection = $data instanceof EntityCollection;
+      // To improve the logical workflow deal with an array at all times.
+      $entities = $is_collection ? $data->toArray() : [$data];
+      // Use the first entity to extract the entity type and bundle from it.
+      $context += $this->expandContext($entities[0], $context['request']);
+      $serializer = $this->serializer;
+      $normalizer_values = array_map(function ($entity) use ($format, $context, $serializer) {
+        return $serializer->normalize($entity, $format, $context);
+      }, $entities);
+    }
 
     return new Value\DocumentRootNormalizerValue($normalizer_values, $context, $is_collection, $entities, $this->linkManager, $this->entityTypeManager);
   }

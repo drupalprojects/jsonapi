@@ -102,7 +102,7 @@ class Routes implements ContainerInjectionInterface {
 
       // Related endpoint, like /api/photos/123/comments.
       $collection->add($route_key . 'relationship', (new Route(sprintf('%s/{%s}/relationships/{related}', $partial_path, $entity_type)))
-        ->addDefaults($defaults + ['on_relationship' => TRUE])
+        ->addDefaults($defaults + ['_on_relationship' => TRUE])
         ->setRequirement('_entity_type', $entity_type)
         ->setRequirement('_bundle', $bundle)
         ->setRequirement('_permission', 'access content')

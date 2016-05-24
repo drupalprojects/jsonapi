@@ -126,6 +126,19 @@ class EntityResource implements EntityResourceInterface {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function getRelationship(EntityInterface $entity, $related_field) {
+    /* @var $field_list \Drupal\Core\Field\FieldItemListInterface */
+    if (!($field_list = $entity->get($related_field)) || $field_list->getDataDefinition()->getType() != 'entity_reference') {
+      throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
+    }
+    $response = $this->buildWrappedResponse($field_list);
+    $this->addCacheabilityMetadata($response, $entity);
+    return $response;
+  }
+
+  /**
    * Gets a basic query for a collection.
    *
    * @param string $entity_type_id
