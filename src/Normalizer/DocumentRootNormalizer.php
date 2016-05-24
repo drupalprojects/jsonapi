@@ -7,7 +7,7 @@ use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\Resource\DocumentWrapperInterface;
-use Drupal\rest\LinkManager\LinkManagerInterface;
+use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
