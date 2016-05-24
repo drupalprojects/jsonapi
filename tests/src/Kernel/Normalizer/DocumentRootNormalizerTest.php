@@ -2,11 +2,13 @@
 
 namespace Drupal\Tests\jsonapi\Kernel\Normalizer;
 
+use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Resource\DocumentWrapper;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\user\Entity\User;
+use Prophecy\Argument;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
@@ -75,6 +77,15 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     ]);
 
     $this->node->save();
+
+    $link_manager = $this->prophesize(LinkManagerInterface::class);
+    $link_manager
+      ->getEntityLink(Argument::any(), Argument::any(), Argument::type('array'), Argument::type('string'))
+      ->willReturn('dummy_entity_link');
+    $link_manager
+      ->getRequestLink(Argument::any())
+      ->willReturn('dummy_document_link');
+    $this->container->set('jsonapi.link_manager', $link_manager->reveal());
   }
 
 
@@ -102,6 +113,7 @@ class DocumentRootNormalizerTest extends KernelTestBase {
       'user' => 'name',
     ]);
     $query->get('include')->willReturn('uid');
+    $query->getIterator()->willReturn(new \ArrayIterator());
     $request->query = $query->reveal();
     $route = $this->prophesize(Route::class);
     $route->getPath()->willReturn('/node/{node}');
@@ -121,6 +133,10 @@ class DocumentRootNormalizerTest extends KernelTestBase {
       'data' => [
         'type' => 'user',
         'id' => $this->user->id(),
+      ],
+      'links' => [
+        'self' => 'dummy_entity_link',
+        'related' => 'dummy_entity_link',
       ],
     ], $normalized['data']['relationships']['uid']);
     $this->assertEquals($this->user->id(), $normalized['included'][0]['data']['id']);

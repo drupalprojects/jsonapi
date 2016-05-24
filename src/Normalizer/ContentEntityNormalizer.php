@@ -8,7 +8,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
-use Drupal\rest\LinkManager\LinkManagerInterface;
+use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 
 /**
  * Converts the Drupal entity object structure to a HAL array structure.
@@ -32,7 +32,7 @@ class ContentEntityNormalizer extends NormalizerBase implements ContentEntityNor
   /**
    * The link manager.
    *
-   * @var LinkManagerInterface
+   * @var \Drupal\jsonapi\LinkManager\LinkManagerInterface
    */
   protected $linkManager;
 
@@ -53,17 +53,15 @@ class ContentEntityNormalizer extends NormalizerBase implements ContentEntityNor
   /**
    * Constructs an ContentEntityNormalizer object.
    *
-   * @param \Drupal\rest\LinkManager\LinkManagerInterface $link_manager
-   *   The hypermedia link manager.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
    *   The config resource manager.
    */
-  public function __construct(LinkManagerInterface $link_manager, EntityTypeManagerInterface $entity_type_manager, ResourceManagerInterface $resource_manager) {
-    $this->linkManager = $link_manager;
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, ResourceManagerInterface $resource_manager, LinkManagerInterface $link_manager) {
     $this->entityTypeManager = $entity_type_manager;
     $this->resourceManager = $resource_manager;
+    $this->linkManager = $link_manager;
   }
 
   /**
@@ -101,7 +99,8 @@ class ContentEntityNormalizer extends NormalizerBase implements ContentEntityNor
       $normalizer_values[$field_name]->setPropertyType($property_type);
     }
 
-    return new Value\ContentEntityNormalizerValue($normalizer_values, $context, $entity, $this->linkManager, $this->entityTypeManager);
+    $link_context = ['link_manager' => $this->linkManager];
+    return new Value\ContentEntityNormalizerValue($normalizer_values, $context, $entity, $link_context);
   }
 
   /**

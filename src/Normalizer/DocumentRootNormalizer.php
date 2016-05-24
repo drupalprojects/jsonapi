@@ -3,7 +3,6 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\EntityCollection;
@@ -26,20 +25,6 @@ class DocumentRootNormalizer extends NormalizerBase implements DocumentRootNorma
   protected $supportedInterfaceOrClass = DocumentWrapperInterface::class;
 
   /**
-   * The link manager.
-   *
-   * @var LinkManagerInterface
-   */
-  protected $linkManager;
-
-  /**
-   * The entity type manager.
-   *
-   * @var EntityTypeManagerInterface
-   */
-  protected $entityTypeManager;
-
-  /**
    * The resource manager.
    *
    * @var \Drupal\jsonapi\Configuration\ResourceManagerInterface
@@ -47,19 +32,23 @@ class DocumentRootNormalizer extends NormalizerBase implements DocumentRootNorma
   protected $resourceManager;
 
   /**
+   * The link manager to get the links.
+   *
+   * @var \Drupal\jsonapi\LinkManager\LinkManagerInterface
+   */
+  protected $linkManager;
+
+  /**
    * Constructs an ContentEntityNormalizer object.
    *
-   * @param \Drupal\rest\LinkManager\LinkManagerInterface $link_manager
-   *   The hypermedia link manager.
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
-   *   The entity type manager.
    * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
    *   The config resource manager.
+   * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface $link_manager
+   *   The link manager to get the links.
    */
-  public function __construct(LinkManagerInterface $link_manager, EntityTypeManagerInterface $entity_type_manager, ResourceManagerInterface $resource_manager) {
-    $this->linkManager = $link_manager;
-    $this->entityTypeManager = $entity_type_manager;
+  public function __construct(ResourceManagerInterface $resource_manager, LinkManagerInterface $link_manager) {
     $this->resourceManager = $resource_manager;
+    $this->linkManager = $link_manager;
   }
 
   /**
@@ -104,7 +93,9 @@ class DocumentRootNormalizer extends NormalizerBase implements DocumentRootNorma
       }, $entities);
     }
 
-    return new Value\DocumentRootNormalizerValue($normalizer_values, $context, $is_collection, $entities, $this->linkManager, $this->entityTypeManager);
+    return new Value\DocumentRootNormalizerValue($normalizer_values, $context, $is_collection, [
+      'link_manager' => $this->linkManager,
+    ]);
   }
 
   /**

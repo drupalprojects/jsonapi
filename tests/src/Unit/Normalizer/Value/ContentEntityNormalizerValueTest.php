@@ -6,12 +6,12 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Url;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\EntityReferenceNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValueInterface;
-use Drupal\rest\LinkManager\LinkManagerInterface;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 
@@ -83,20 +83,15 @@ class ContentEntityNormalizerValueTest extends UnitTestCase{
     $entity->isNew()->willReturn(FALSE);
     $entity->getEntityTypeId()->willReturn('node');
     $entity->bundle()->willReturn('article');
-    $entity->hasLinkTemplate(Argument::type('string'))->willReturn(TRUE);
-    $url = $this->prophesize(Url::class);
-    $url->toString()->willReturn('dummy_entity_link');
-    $url->setRouteParameter(Argument::any(), Argument::any())->willReturn($url->reveal());
-    $entity->toUrl(Argument::type('string'), Argument::type('array'))->willReturn($url->reveal());
     $link_manager = $this->prophesize(LinkManagerInterface::class);
-    $link_manager->getTypeUri(Argument::type('string'), Argument::type('string'), Argument::type('array'))->willReturn('dummy_type_link');
-    $entity_type_manager = $this->prophesize(EntityTypeManagerInterface::class);
+    $link_manager
+      ->getEntityLink(Argument::any(), Argument::any(), Argument::type('array'), Argument::type('string'))
+      ->willReturn('dummy_entity_link');
     $this->object = new ContentEntityNormalizerValue(
       ['title' => $field1->reveal(), 'field_related' => $field2->reveal()],
       $context,
       $entity->reveal(),
-      $link_manager->reveal(),
-      $entity_type_manager->reveal()
+      ['link_manager' => $link_manager->reveal()]
     );
   }
 
@@ -114,7 +109,6 @@ class ContentEntityNormalizerValueTest extends UnitTestCase{
       ],
       'links' => [
         'self' => 'dummy_entity_link',
-        'type' => 'dummy_type_link',
       ],
     ], $this->object->rasterizeValue());
   }

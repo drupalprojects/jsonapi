@@ -2,9 +2,9 @@
 
 namespace Drupal\jsonapi\Normalizer;
 
-use Drupal\Core\Config\Entity\ConfigEntityTypeInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 
 /**
  * Class EntityReferenceFieldNormalizer.
@@ -13,7 +13,27 @@ use Drupal\Core\Field\FieldItemListInterface;
  */
 class EntityReferenceFieldNormalizer extends FieldNormalizer {
 
+  /**
+   * {@inheritdoc}
+   */
   protected $supportedInterfaceOrClass = EntityReferenceFieldItemListInterface::class;
+
+  /**
+   * The link manager.
+   *
+   * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface
+   */
+  protected $linkManager;
+
+  /**
+   * Instantiates a EntityReferenceFieldNormalizer object.
+   *
+   * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface $link_manager
+   *   The link manager.
+   */
+  public function __construct(LinkManagerInterface $link_manager) {
+    $this->linkManager = $link_manager;
+  }
 
   /**
    * {@inheritdoc}
@@ -49,10 +69,17 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer {
         $normalizer_items[] = $this->serializer->normalize($field_item, $format, $context);
       }
     }
-    $cardinality = $field->getFieldDefinition()
+    $definition = $field->getFieldDefinition();
+    $cardinality = $definition
       ->getFieldStorageDefinition()
       ->getCardinality();
-    return new Value\EntityReferenceNormalizerValue($normalizer_items, $cardinality);
+    $link_context = [
+      'host_entity_id' => $field->getEntity()->id(),
+      'field_name' => $definition->getName(),
+      'link_manager' => $this->linkManager,
+      'resource_config' => $context['resource_config'],
+    ];
+    return new Value\EntityReferenceNormalizerValue($normalizer_items, $cardinality, $link_context);
   }
 
 

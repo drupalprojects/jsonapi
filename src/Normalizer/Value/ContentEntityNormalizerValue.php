@@ -3,8 +3,6 @@
 namespace Drupal\jsonapi\Normalizer\Value;
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\rest\LinkManager\LinkManagerInterface;
 
 /**
  * Class ContentEntityNormalizerValue.
@@ -37,36 +35,35 @@ class ContentEntityNormalizerValue implements ContentEntityNormalizerValueInterf
   /**
    * The resource entity.
    *
-   * @param EntityInterface
+   * @param \Drupal\Core\Entity\EntityInterface
    */
   protected $entity;
 
   /**
    * The link manager.
    *
-   * @var LinkManagerInterface
+   * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface
    */
   protected $linkManager;
-
-  /**
-   * The entity type manager.
-   *
-   * @var EntityTypeManagerInterface
-   */
-  protected $entityTypeManager;
 
   /**
    * Instantiate a ContentEntityNormalizerValue object.
    *
    * @param FieldNormalizerValueInterface[] $values
    *   The normalized result.
+   * @param array $context
+   *   The context for the normalizer.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity.
+   * @param array $link_context
+   *   All the objects and variables needed to generate the links for this
+   *   relationship.
    */
-  public function __construct(array $values, array $context, EntityInterface $entity, LinkManagerInterface $link_manager, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(array $values, array $context, EntityInterface $entity, array $link_context) {
     $this->values = $values;
     $this->context = $context;
     $this->entity = $entity;
-    $this->linkManager = $link_manager;
-    $this->entityTypeManager = $entity_type_manager;
+    $this->linkManager = $link_context['link_manager'];
     // Get an array of arrays of includes.
     $this->includes = array_map(function ($value) {
       return $value->getIncludes();
@@ -89,13 +86,14 @@ class ContentEntityNormalizerValue implements ContentEntityNormalizerValueInterf
       'id' => $this->entity->id(),
       'attributes' => [],
       'relationships' => [],
-      'links' => [
-        'self' => $this->getEntityUri($this->entity),
-        'type' => $this->linkManager->getTypeUri(
-          $this->entity->getEntityTypeId(),
-          $this->entity->bundle(), $this->context
-        ),
-      ],
+    ];
+    $rasterized['links'] = [
+      'self' => $this->linkManager->getEntityLink(
+        $rasterized['id'],
+        $this->context['resource_config'],
+        [],
+        'individual'
+      ),
     ];
 
     foreach ($this->getValues() as $field_name => $normalizer_value) {
@@ -134,25 +132,6 @@ class ContentEntityNormalizerValue implements ContentEntityNormalizerValueInterf
     return array_reduce(array_filter($nested_includes), function ($carry, $item) {
       return array_merge($carry, $item);
     }, $this->includes);
-  }
-
-  /**
-   * Constructs the entity URI.
-   *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The entity.
-   *
-   * @return string
-   *   The entity URI.
-   */
-  protected function getEntityUri(EntityInterface $entity) {
-    // Some entity types don't provide a canonical link template, at least call
-    // out to ->url().
-    if ($entity->isNew() || !$entity->hasLinkTemplate('canonical')) {
-      return $entity->url('canonical', []);
-    }
-    $url = $entity->toUrl('canonical', ['absolute' => TRUE]);
-    return $url->setRouteParameter('_format', 'api_json')->toString();
   }
 
 }

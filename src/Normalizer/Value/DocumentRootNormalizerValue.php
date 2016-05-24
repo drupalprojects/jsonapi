@@ -2,6 +2,9 @@
 
 namespace Drupal\jsonapi\Normalizer\Value;
 
+use Drupal\Core\Url;
+use Drupal\jsonapi\LinkManager\LinkManagerInterface;
+
 /**
  * Class DocumentRootNormalizerValue.
  *
@@ -38,6 +41,13 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
   protected $isCollection;
 
   /**
+   * The link manager.
+   *
+   * @var \Drupal\jsonapi\LinkManager\LinkManagerInterface
+   */
+  protected $linkManager;
+
+  /**
    * Instantiates a DocumentRootNormalizerValue object.
    *
    * @param \Drupal\Core\Entity\EntityInterface[] $values
@@ -45,13 +55,17 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
    *   collection of entities.
    * @param array $context
    *   The context.
-   * @param bool $is_list
+   * @param bool $is_collection
    *   TRUE if this is a serialization for a list.
+   * @param array $link_context
+   *   All the objects and variables needed to generate the links for this
+   *   relationship.
    */
-  public function __construct(array $values, array $context, $is_collection = FALSE) {
+  public function __construct(array $values, array $context, $is_collection = FALSE, array $link_context) {
     $this->values = $values;
     $this->context = $context;
     $this->isCollection = $is_collection;
+    $this->linkManager = $link_context['link_manager'];
     // Get an array of arrays of includes.
     $this->includes = array_map(function ($value) {
       return $value->getIncludes();
@@ -79,6 +93,15 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
     $rasterized['data'] = $this->isCollection ?
       $rasterized['data'] :
       reset($rasterized['data']);
+
+    // Add the self link.
+    if ($this->context['request']) {
+      /* @var \Symfony\Component\HttpFoundation\Request $request */
+      $request = $this->context['request'];
+      $rasterized['links'] = [
+        'self' => $this->linkManager->getRequestLink($request),
+      ];
+    }
     return $rasterized;
   }
 
