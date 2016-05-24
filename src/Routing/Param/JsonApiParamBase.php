@@ -2,7 +2,6 @@
 
 namespace Drupal\jsonapi\Routing\Param;
 
-
 /**
  * Class JsonApiParamBase.
  *

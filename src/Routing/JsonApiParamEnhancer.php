@@ -1,6 +1,7 @@
 <?php
 
 namespace Drupal\jsonapi\Routing;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Routing\Enhancer\RouteEnhancerInterface;
 use Drupal\jsonapi\Routing\Param\CursorPage;
 use Drupal\jsonapi\Routing\Param\Filter;
@@ -17,6 +18,23 @@ use Symfony\Component\Routing\Route;
 class JsonApiParamEnhancer implements RouteEnhancerInterface {
 
   /**
+   * The field manager.
+   *
+   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
+   */
+  protected $fieldManager;
+
+  /**
+   * Instantiates a JsonApiParamEnhancer object.
+   *
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager
+   *   The field manager.
+   */
+  public function __construct(EntityFieldManagerInterface $field_manager) {
+    $this->fieldManager = $field_manager;
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function applies(Route $route) {
@@ -30,7 +48,8 @@ class JsonApiParamEnhancer implements RouteEnhancerInterface {
   public function enhance(array $defaults, Request $request) {
     $options = [];
     if ($request->query->has('filter')) {
-      $options['filter'] = new Filter($request->query->get('filter'));
+      $entity_type_id = $defaults['_route_object']->getRequirement('_entity_type');
+      $options['filter'] = new Filter($request->query->get('filter'), $entity_type_id, $this->fieldManager);
     }
     if ($request->query->has('sort')) {
       $options['sort'] = new Sort($request->query->get('sort'));

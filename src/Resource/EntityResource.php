@@ -2,6 +2,7 @@
 
 namespace Drupal\jsonapi\Resource;
 
+use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
@@ -37,6 +38,13 @@ class EntityResource implements EntityResourceInterface {
   protected $entityTypeManager;
 
   /**
+   * The field manager.
+   *
+   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
+   */
+  protected $fieldManager;
+
+  /**
    * The query builder service.
    *
    * @var \Drupal\jsonapi\Query\QueryBuilderInterface
@@ -52,11 +60,14 @@ class EntityResource implements EntityResourceInterface {
    *   The entity type manager.
    * @param \Drupal\jsonapi\Query\QueryBuilderInterface $query_builder
    *   The query builder.
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager
+   *   The entity type field manager.
    */
-  public function __construct(ResourceConfigInterface $resource_config, EntityTypeManagerInterface $entity_type_manager, QueryBuilderInterface $query_builder) {
+  public function __construct(ResourceConfigInterface $resource_config, EntityTypeManagerInterface $entity_type_manager, QueryBuilderInterface $query_builder, EntityFieldManagerInterface $field_manager) {
     $this->resourceConfig = $resource_config;
     $this->entityTypeManager = $entity_type_manager;
     $this->queryBuilder = $query_builder;
+    $this->fieldManager = $field_manager;
   }
 
   /**
@@ -152,7 +163,8 @@ class EntityResource implements EntityResourceInterface {
    *   The filter parameter.
    */
   protected function applyFiltersForList(QueryInterface $query, JsonApiParamInterface $filter) {
-    foreach ($filter->get() as $field_name => $filter_info) {
+    foreach ($filter->get() as $public_name => $filter_info) {
+      $field_name = $this->queryFieldName($public_name);
       // Deal with multivalue operators.
       if ($filter_info['multivalue']) {
         // Add a single condition using all the values and one operator.

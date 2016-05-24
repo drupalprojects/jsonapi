@@ -46,6 +46,7 @@ services:
       - { name: route_enhancer }
   jsonapi.params.enhancer:
     class: Drupal\jsonapi\Routing\JsonApiParamEnhancer
+    arguments: ['@entity_field.manager']
     tags:
       - { name: route_enhancer }
   jsonapi.query_builder:

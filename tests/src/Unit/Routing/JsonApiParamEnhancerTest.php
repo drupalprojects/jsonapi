@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\jsonapi\Unit\Routing;
 
+use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\jsonapi\Routing\JsonApiParamEnhancer;
 use Drupal\jsonapi\Routing\Param\CursorPage;
 use Drupal\jsonapi\Routing\Param\Filter;
@@ -29,7 +30,7 @@ class JsonApiParamEnhancerTest extends UnitTestCase {
    * @covers ::applies
    */
   public function testApplies() {
-    $object = new JsonApiParamEnhancer();
+    $object = new JsonApiParamEnhancer($this->prophesize(EntityFieldManagerInterface::class)->reveal());
     $route = $this->prophesize(Route::class);
     $route->getDefault('_controller')->will(new ReturnPromise([Routes::FRONT_CONTROLLER, 'lorem']));
 
@@ -41,7 +42,7 @@ class JsonApiParamEnhancerTest extends UnitTestCase {
    * @covers ::enhance
    */
   public function testEnhanceFilter() {
-    $object = new JsonApiParamEnhancer();
+    $object = new JsonApiParamEnhancer($this->prophesize(EntityFieldManagerInterface::class)->reveal());
     $request = $this->prophesize(Request::class);
     $query = $this->prophesize(ParameterBag::class);
     $query->get('filter')->willReturn(['filed1' => 'lorem']);
@@ -49,7 +50,11 @@ class JsonApiParamEnhancerTest extends UnitTestCase {
     $query->has('filter')->willReturn(TRUE);
     $request->query = $query->reveal();
 
-    $defaults = $object->enhance([], $request->reveal());
+    $route = $this->prophesize(Route::class);
+    $route->getRequirement('_entity_type')->willReturn('dolor');
+    $defaults = $object->enhance([
+      '_route_object' => $route->reveal()
+    ], $request->reveal());
     $this->assertInstanceOf(Filter::class, $defaults['_json_api_params']['filter']);
     $this->assertTrue(empty($defaults['_json_api_params']['page']));
     $this->assertTrue(empty($defaults['_json_api_params']['sort']));
@@ -59,7 +64,7 @@ class JsonApiParamEnhancerTest extends UnitTestCase {
    * @covers ::enhance
    */
   public function testEnhancePage() {
-    $object = new JsonApiParamEnhancer();
+    $object = new JsonApiParamEnhancer($this->prophesize(EntityFieldManagerInterface::class)->reveal());
     $request = $this->prophesize(Request::class);
     $query = $this->prophesize(ParameterBag::class);
     $query->get('page')->willReturn(['cursor' => 'lorem']);
@@ -77,7 +82,7 @@ class JsonApiParamEnhancerTest extends UnitTestCase {
    * @covers ::enhance
    */
   public function testEnhanceSort() {
-    $object = new JsonApiParamEnhancer();
+    $object = new JsonApiParamEnhancer($this->prophesize(EntityFieldManagerInterface::class)->reveal());
     $request = $this->prophesize(Request::class);
     $query = $this->prophesize(ParameterBag::class);
     $query->get('sort')->willReturn('-lorem');

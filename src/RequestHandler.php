@@ -59,11 +59,14 @@ class RequestHandler extends RestRequestHandler {
     $resource_manager = $this->container->get('jsonapi.resource.manager');
     /* @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager */
     $entity_type_manager = $this->container->get('entity_type.manager');
+    /* @var \Drupal\jsonapi\Query\QueryBuilderInterface $query_builder */
     $query_builder = $this->container->get('jsonapi.query_builder');
+    /* @var \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager */
+    $field_manager = $this->container->get('entity_field.manager');
     $resource = new EntityResource($resource_manager->get(
       $route->getRequirement('_entity_type'),
       $route->getRequirement('_bundle')
-    ), $entity_type_manager, $query_builder);
+    ), $entity_type_manager, $query_builder, $field_manager);
     // Only add the unserialized data if there is something there.
     $extra_parameters = $unserialized ? [$unserialized, $request] : [$request];
     try {
