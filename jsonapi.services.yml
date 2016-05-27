@@ -23,11 +23,6 @@ services:
     tags:
       - { name: normalizer, priority: 31 }
     arguments: ['@jsonapi.link_manager']
-  serializer.normalizer.file_entity.jsonapi:
-    class: Drupal\jsonapi\Normalizer\FileEntityNormalizer
-    tags:
-      - { name: normalizer, priority: 31 }
-    arguments: ['@entity.manager', '@http_client', '@rest.link_manager', '@module_handler']
   serializer.normalizer.entity.jsonapi:
     class: Drupal\jsonapi\Normalizer\ContentEntityNormalizer
     arguments: ['@jsonapi.resource.manager', '@jsonapi.link_manager']

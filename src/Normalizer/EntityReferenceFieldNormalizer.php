@@ -36,20 +36,6 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer {
   }
 
   /**
-   * {@inheritdoc}
-   */
-  public function supportsNormalization($data, $format = NULL) {
-    if (!parent::supportsNormalization($data, $format)) {
-      return FALSE;
-    }
-    $target_type = $data->getSetting('target_type');
-    return !is_subclass_of(
-      \Drupal::entityTypeManager()->getDefinition($target_type),
-      'Drupal\Core\Config\Entity\ConfigEntityTypeInterface'
-    );
-  }
-
-  /**
    * Helper function to normalize field items.
    *
    * @param \Drupal\Core\Field\FieldItemListInterface $field

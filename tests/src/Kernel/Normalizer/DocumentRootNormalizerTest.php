@@ -129,8 +129,14 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $this->assertSame($normalized['data']['attributes']['title'], 'dummy_title');
     $this->assertEquals($normalized['data']['id'], 1);
     $this->assertSame([
-      'type' => 'node_type',
-      'id' => 'article',
+      'data' => [
+        'type' => 'node_type',
+        'id' => 'article',
+      ],
+      'links' => [
+        'self' => 'dummy_entity_link',
+        'related' => 'dummy_entity_link',
+      ],
     ], $normalized['data']['relationships']['type']);
     $this->assertTrue(!isset($normalized['data']['attributes']['created']));
     $this->assertSame('article', $normalized['data']['type']);
