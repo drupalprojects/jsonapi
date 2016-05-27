@@ -174,6 +174,33 @@ class EntityResourceTest extends KernelTestBase {
   }
 
   /**
+   * @covers ::getCollection
+   */
+  public function testGetEmptyCollection() {
+    // Fake the request.
+    $request = $this->prophesize(Request::class);
+    $params = $this->prophesize(ParameterBag::class);
+    $params->get('_route_params')->willReturn([
+      '_json_api_params' => [
+        'filter' => new Filter(
+          ['uuid' => ['value' => 'invalid']],
+          'node',
+          $this->container->get('entity_field.manager')),
+      ],
+    ]);
+    $request->attributes = $params->reveal();
+
+    // Get the response.
+    $response = $this->entityResource->getCollection($request->reveal());
+
+    // Assertions.
+    $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
+    $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
+    $this->assertEquals(0, $response->getResponseData()->getData()->count());
+    $this->assertEquals(['node_list'], $response->getCacheableMetadata()->getCacheTags());
+  }
+
+  /**
    * @covers ::getRelated
    */
   public function testGetRelated() {

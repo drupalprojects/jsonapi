@@ -85,8 +85,10 @@ class DocumentRootNormalizer extends NormalizerBase implements DocumentRootNorma
       $is_collection = $data instanceof EntityCollection;
       // To improve the logical workflow deal with an array at all times.
       $entities = $is_collection ? $data->toArray() : [$data];
-      // Use the first entity to extract the entity type and bundle from it.
-      $context += $this->expandContext($entities[0], $context['request']);
+      if ($entity = $entities[0]) {
+        // Use the first entity to extract the entity type and bundle from it.
+        $context += $this->expandContext($entity, $context['request']);
+      }
       $serializer = $this->serializer;
       $normalizer_values = array_map(function ($entity) use ($format, $context, $serializer) {
         return $serializer->normalize($entity, $format, $context);
