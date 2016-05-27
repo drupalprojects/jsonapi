@@ -157,7 +157,10 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $this->container->get('serializer');
     $request = $this->prophesize(Request::class);
     $query = $this->prophesize(ParameterBag::class);
-    $query->get(Argument::any())->willReturn(NULL);
+    $query->get('fields')->willReturn([
+      'node_type' => 'uuid,display_submitted',
+    ]);
+    $query->get('include')->willReturn(NULL);
     $query->getIterator()->willReturn(new \ArrayIterator());
     $request->query = $query->reveal();
     $route = $this->prophesize(Route::class);
@@ -169,8 +172,11 @@ class DocumentRootNormalizerTest extends KernelTestBase {
       ->container
       ->get('serializer.normalizer.document_root.jsonapi')
       ->normalize($document_wrapper->reveal(), 'api_json', ['request' => $request->reveal()]);
-    $this->assertSame($normalized['data']['attributes']['type'], 'article');
+    $this->assertTrue(empty($normalized['data']['attributes']['type']));
+    $this->assertTrue(!empty($normalized['data']['attributes']['uuid']));
     $this->assertSame($normalized['data']['attributes']['display_submitted'], TRUE);
+    $this->assertSame($normalized['data']['id'], 'article');
+    $this->assertSame($normalized['data']['type'], 'node_type');
   }
 
 }
