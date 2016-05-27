@@ -98,7 +98,8 @@ class QueryBuilder implements QueryBuilderInterface {
       array_walk($filter, $option_maker);
     };
 
-    array_walk($param->get(), $filter_collector);
+    $parameter = $param->get();
+    array_walk($parameter, $filter_collector);
 
     $this->buildTree($extracted);
   }

@@ -6,6 +6,7 @@ use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\Resource\DocumentWrapper;
 use Drupal\jsonapi\Resource\EntityResource;
+use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
@@ -56,6 +57,9 @@ class EntityResourceTest extends KernelTestBase {
     $this->installSchema('system', ['sequences']);
     $this->installSchema('node', ['node_access']);
     $this->installSchema('user', ['users_data']);
+    NodeType::create([
+      'type' => 'lorem',
+    ])->save();
     $type = NodeType::create([
       'type' => 'article',
     ]);
@@ -133,6 +137,40 @@ class EntityResourceTest extends KernelTestBase {
     $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
     $this->assertEquals(1, $response->getResponseData()->getData()->getIterator()->current()->id());
     $this->assertEquals(['node:1', 'node_list'], $response->getCacheableMetadata()->getCacheTags());
+  }
+
+  /**
+   * @covers ::getCollection
+   */
+  public function testGetFilteredCollection() {
+    // Fake the request.
+    $request = $this->prophesize(Request::class);
+    $params = $this->prophesize(ParameterBag::class);
+    $field_manager = $this->container->get('entity_field.manager');
+    $filter = new Filter(['type' => ['value' => 'article']], 'node_type', $field_manager);
+    $params->get('_route_params')->willReturn([
+      '_json_api_params' => [
+        'filter' => $filter,
+      ],
+    ]);
+    $request->attributes = $params->reveal();
+
+    // Get the entity resource.
+    $entity_resource = new EntityResource(
+      $this->container->get('jsonapi.resource.manager')->get('node_type', 'node_type'),
+      $this->container->get('entity_type.manager'),
+      $this->container->get('jsonapi.query_builder'),
+      $field_manager
+    );
+
+    // Get the response.
+    $response = $entity_resource->getCollection($request->reveal());
+
+    // Assertions.
+    $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
+    $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
+    $this->assertCount(1, $response->getResponseData()->getData());
+    $this->assertEquals(['config:node.type.article', 'config:node_type_list'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**

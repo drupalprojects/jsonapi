@@ -160,9 +160,11 @@ class EntityResource implements EntityResourceInterface {
     $query = $this->queryBuilder->newQuery($entity_type);
 
     // Limit this query to the bundle type for this resource.
-    $query->condition(
-      $entity_type->getKey('bundle'), $this->resourceConfig->getBundleId()
-    );
+    if ($bundle_key = $entity_type->getKey('bundle')) {
+      $query->condition(
+        $bundle_key, $this->resourceConfig->getBundleId()
+      );
+    }
 
     return $query;
   }
