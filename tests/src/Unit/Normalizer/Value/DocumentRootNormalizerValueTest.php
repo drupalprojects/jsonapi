@@ -19,6 +19,7 @@ use Prophecy\Argument;
  * @package Drupal\Tests\jsonapi\Unit\Normalizer\Value
  *
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue
+ *
  * @group jsonapi
  */
 class DocumentRootNormalizerValueTest extends UnitTestCase{

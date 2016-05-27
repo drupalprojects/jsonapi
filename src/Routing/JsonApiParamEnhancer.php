@@ -1,6 +1,7 @@
 <?php
 
 namespace Drupal\jsonapi\Routing;
+
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Routing\Enhancer\RouteEnhancerInterface;
 use Drupal\jsonapi\Routing\Param\CursorPage;
@@ -8,7 +9,6 @@ use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\Sort;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
-
 
 /**
  * Class JsonApiParamEnhancer.

@@ -1,11 +1,10 @@
 <?php
 
-
 namespace Drupal\jsonapi\Normalizer;
 
 /**
- * Class ContentEntityNormalizerInterface.
+ * Class ConfigEntityNormalizerInterface.
  *
  * @package Drupal\jsonapi\Normalizer
  */
-interface ContentEntityNormalizerInterface {}
+interface ConfigEntityNormalizerInterface {}

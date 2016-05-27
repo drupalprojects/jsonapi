@@ -10,6 +10,10 @@ services:
     class: Drupal\jsonapi\Normalizer\FieldItemNormalizer
     tags:
       - { name: normalizer, priority: 21 }
+  serializer.normalizer.scalar.jsonapi:
+    class: Drupal\jsonapi\Normalizer\ScalarNormalizer
+    tags:
+      - { name: normalizer, priority: 5 }
   serializer.normalizer.field.jsonapi:
     class: Drupal\jsonapi\Normalizer\FieldNormalizer
     tags:
@@ -26,7 +30,12 @@ services:
     arguments: ['@entity.manager', '@http_client', '@rest.link_manager', '@module_handler']
   serializer.normalizer.entity.jsonapi:
     class: Drupal\jsonapi\Normalizer\ContentEntityNormalizer
-    arguments: ['@entity_type.manager', '@jsonapi.resource.manager', '@jsonapi.link_manager']
+    arguments: ['@jsonapi.resource.manager', '@jsonapi.link_manager']
+    tags:
+      - { name: normalizer, priority: 21 }
+  serializer.normalizer.config_entity.jsonapi:
+    class: Drupal\jsonapi\Normalizer\ConfigEntityNormalizer
+    arguments: ['@jsonapi.resource.manager', '@jsonapi.link_manager']
     tags:
       - { name: normalizer, priority: 21 }
   serializer.normalizer.document_root.jsonapi:

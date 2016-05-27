@@ -86,6 +86,8 @@ class DocumentRootNormalizerTest extends KernelTestBase {
       ->getRequestLink(Argument::any())
       ->willReturn('dummy_document_link');
     $this->container->set('jsonapi.link_manager', $link_manager->reveal());
+
+    $this->nodeType = NodeType::load('article');
   }
 
 
@@ -126,7 +128,10 @@ class DocumentRootNormalizerTest extends KernelTestBase {
       ->normalize($document_wrapper->reveal(), 'api_json', ['request' => $request->reveal()]);
     $this->assertSame($normalized['data']['attributes']['title'], 'dummy_title');
     $this->assertEquals($normalized['data']['id'], 1);
-    $this->assertSame('article', $normalized['data']['attributes']['type']);
+    $this->assertSame([
+      'type' => 'node_type',
+      'id' => 'article',
+    ], $normalized['data']['relationships']['type']);
     $this->assertTrue(!isset($normalized['data']['attributes']['created']));
     $this->assertSame('article', $normalized['data']['type']);
     $this->assertEquals([
@@ -143,6 +148,29 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $this->assertEquals('user', $normalized['included'][0]['data']['type']);
     $this->assertEquals($this->user->label(), $normalized['included'][0]['data']['attributes']['name']);
     $this->assertTrue(!isset($normalized['included'][0]['data']['attributes']['created']));
+  }
+
+  /**
+   * @covers ::normalize
+   */
+  public function testNormalizeConfig() {
+    $this->container->get('serializer');
+    $request = $this->prophesize(Request::class);
+    $query = $this->prophesize(ParameterBag::class);
+    $query->get(Argument::any())->willReturn(NULL);
+    $query->getIterator()->willReturn(new \ArrayIterator());
+    $request->query = $query->reveal();
+    $route = $this->prophesize(Route::class);
+    $route->getPath()->willReturn('/node_type/{node_type}');
+    $request->get('_route_object')->willReturn($route->reveal());
+    $document_wrapper = $this->prophesize(DocumentWrapper::class);
+    $document_wrapper->getData()->willReturn($this->nodeType);
+    $normalized = $this
+      ->container
+      ->get('serializer.normalizer.document_root.jsonapi')
+      ->normalize($document_wrapper->reveal(), 'api_json', ['request' => $request->reveal()]);
+    $this->assertSame($normalized['data']['attributes']['type'], 'article');
+    $this->assertSame($normalized['data']['attributes']['display_submitted'], TRUE);
   }
 
 }

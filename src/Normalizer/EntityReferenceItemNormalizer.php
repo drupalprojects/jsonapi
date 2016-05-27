@@ -2,13 +2,9 @@
 
 namespace Drupal\jsonapi\Normalizer;
 
-use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
-use Drupal\jsonapi\Resource\DocumentWrapper;
-use Drupal\rest\LinkManager\LinkManagerInterface;
-use Drupal\serialization\EntityResolver\EntityResolverInterface;
 use Drupal\serialization\EntityResolver\UuidReferenceInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
@@ -46,18 +42,6 @@ class EntityReferenceItemNormalizer extends FieldItemNormalizer implements UuidR
   /**
    * {@inheritdoc}
    */
-  public function supportsNormalization($data, $format = NULL) {
-    if (!parent::supportsNormalization($data, $format)) {
-      return FALSE;
-    }
-    $target_type = $data->getFieldDefinition()->getSetting('target_type');
-    return !is_subclass_of(\Drupal::entityTypeManager()
-      ->getDefinition($target_type), 'Drupal\Core\Config\Entity\ConfigEntityTypeInterface');
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function normalize($field_item, $format = NULL, array $context = array()) {
     /* @var $field_item \Drupal\Core\Field\FieldItemInterface */
     $target_entity = $field_item->get('entity')->getValue();
@@ -73,11 +57,7 @@ class EntityReferenceItemNormalizer extends FieldItemNormalizer implements UuidR
         ->get($target_entity->getEntityTypeId(), $target_entity->bundle())
         ->getTypeName()
     );
-    // If this is not a content entity, let the parent implementation handle it,
-    // only content entities are supported as embedded resources.
-    if (!($target_entity instanceof ContentEntityInterface)) {
-      return $normalizer_value;
-    }
+
     // TODO Only include if the target entity type has the resource enabled.
     if (!empty($context['include']) && in_array($field_item->getParent()
         ->getName(), $context['include'])
