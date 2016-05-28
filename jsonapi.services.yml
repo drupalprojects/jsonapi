@@ -61,6 +61,6 @@ services:
     class: Drupal\jsonapi\LinkManager\LinkManager
   jsonapi.current_context:
     class: Drupal\jsonapi\Context\CurrentContext
-    arguments: ['@current_route_match', '@jsonapi.resource.manager']
+    arguments: ['@jsonapi.resource.manager']
     calls:
       - [fromRequestStack, ['@request_stack']]

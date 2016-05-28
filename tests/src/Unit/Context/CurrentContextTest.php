@@ -25,6 +25,7 @@ use Symfony\Component\Routing\Route;
  * @package \Drupal\jsonapi\Test\Unit
  *
  * @coversDefaultClass \Drupal\jsonapi\Context\CurrentContext
+ *
  * @group jsonapi
  */
 class CurrentContextTest extends UnitTestCase {
@@ -32,7 +33,7 @@ class CurrentContextTest extends UnitTestCase {
   /**
    * A mock for the current route.
    *
-   * @var \Drupal\Core\Routing\RouteMatchInterface
+   * @var \Symfony\Component\Routing\Route
    */
   protected $currentRoute;
 
@@ -65,11 +66,11 @@ class CurrentContextTest extends UnitTestCase {
     $this->fieldManager = $this->prophesize(EntityFieldManagerInterface::CLASS)->reveal();
 
     // Create a mock for the current route match.
-    $route_prophecy = $this->prophesize(RouteMatchInterface::CLASS);
-    $route_prophecy->getRouteObject()->willReturn(new Route(
-      '/api/articles', [], ['_entity_type' => 'node', '_bundle' => 'article']
-    ));
-    $this->currentRoute = $route_prophecy->reveal();
+    $this->currentRoute = new Route(
+      '/api/articles',
+      [],
+      ['_entity_type' => 'node', '_bundle' => 'article']
+    );
 
     // Create a mock for the ResourceManager service.
     $resource_prophecy = $this->prophesize(ResourceManagerInterface::CLASS);
@@ -77,28 +78,28 @@ class CurrentContextTest extends UnitTestCase {
       $this->prophesize(ConfigFactoryInterface::CLASS)->reveal(),
       $this->prophesize(EntityTypeManagerInterface::CLASS)->reveal()
     );
-    $resource_prophecy->get('node', 'article')->willReturn(
-      $resource_config
-    );
+    $resource_prophecy->get('node', 'article')->willReturn($resource_config);
     $this->resourceManager = $resource_prophecy->reveal();
 
     $this->requestStack = new RequestStack();
-    $this->requestStack->push(new Request([], [], ['_json_api_params' => [
-      'filter' => new Filter([], 'node', $this->fieldManager),
-      'sort' => new Sort([]),
-      'page' => new CursorPage([]),
-      //'include' => new IncludeParam([]),
-      //'fields' => new Fields([]),
-    ]]));
+    $this->requestStack->push(new Request([], [], [
+      '_json_api_params' => [
+        'filter' => new Filter([], 'node', $this->fieldManager),
+        'sort' => new Sort([]),
+        'page' => new CursorPage([]),
+        // 'include' => new IncludeParam([]),
+        // 'fields' => new Fields([]),.
+      ],
+      '_route_object' => $this->currentRoute,
+    ]));
   }
 
   /**
    * @covers ::getResourceConfig
    */
   public function testGetResourceConfig() {
-    $request_context = new CurrentContext(
-      $this->currentRoute, $this->resourceManager, $this->requestStack
-    );
+    $request_context = new CurrentContext($this->resourceManager);
+    $request_context->fromRequestStack($this->requestStack);
 
     $resource_config = $request_context->getResourceConfig();
 
@@ -109,16 +110,15 @@ class CurrentContextTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::getCurrentRouteMatch
+   * @covers ::getCurrentRoute
    */
   public function testGetCurrentRouteMatch() {
-    $request_context = new CurrentContext(
-      $this->currentRoute, $this->resourceManager, $this->requestStack
-    );
+    $request_context = new CurrentContext($this->resourceManager);
+    $request_context->fromRequestStack($this->requestStack);
 
     $this->assertEquals(
       $this->currentRoute,
-      $request_context->getCurrentRouteMatch()
+      $request_context->getCurrentRoute()
     );
   }
 
@@ -126,10 +126,7 @@ class CurrentContextTest extends UnitTestCase {
    * @covers ::getJsonApiParameter
    */
   public function testGetJsonApiParameter() {
-    $request_context = new CurrentContext(
-      $this->currentRoute, $this->resourceManager
-    );
-
+    $request_context = new CurrentContext($this->resourceManager);
     $request_context->fromRequestStack($this->requestStack);
 
     $expected = new Sort([]);

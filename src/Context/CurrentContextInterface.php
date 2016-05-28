@@ -25,10 +25,10 @@ interface CurrentContextInterface {
   /**
    * Returns the current route match.
    *
-   * @return \Drupal\Core\Routing\RouteMatchInterface
+   * @return \Symfony\Component\Routing\Route
    *   The currently matched route.
    */
-  public function getCurrentRouteMatch();
+  public function getCurrentRoute();
 
   /**
    * Get a value by key from the _json_api_params route parameter.

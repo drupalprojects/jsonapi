@@ -19,7 +19,7 @@ class CurrentContext implements CurrentContextInterface {
   /**
    * The current route.
    *
-   * @var \Drupal\Core\Routing\RouteMatchInterface
+   * @var \Symfony\Component\Routing\Route
    */
   protected $currentRoute;
 
@@ -47,13 +47,10 @@ class CurrentContext implements CurrentContextInterface {
   /**
    * Creates a CurrentContext object.
    *
-   * @param \Drupal\Core\Routing\RouteMatchInterface $current_route
-   *   The current route match.
    * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
    *   The resource manager service.
    */
-  public function __construct(RouteMatchInterface $current_route, ResourceManagerInterface $resource_manager) {
-    $this->currentRoute = $current_route;
+  public function __construct(ResourceManagerInterface $resource_manager) {
     $this->resourceManager = $resource_manager;
   }
 
@@ -69,6 +66,7 @@ class CurrentContext implements CurrentContextInterface {
    */
   public function fromRequestStack(RequestStack $request_stack) {
     $this->currentRequest = $request_stack->getCurrentRequest();
+    $this->currentRoute = $this->currentRequest->get('_route_object');
   }
 
   /**
@@ -76,11 +74,9 @@ class CurrentContext implements CurrentContextInterface {
    */
   public function getResourceConfig() {
     if (!isset($this->resourceConfig)) {
-      $route_object = $this->currentRoute->getRouteObject();
-
       $this->resourceConfig = $this->resourceManager->get(
-        $route_object->getRequirement('_entity_type'),
-        $route_object->getRequirement('_bundle')
+        $this->currentRoute->getRequirement('_entity_type'),
+        $this->currentRoute->getRequirement('_bundle')
       );
     }
 
@@ -90,7 +86,7 @@ class CurrentContext implements CurrentContextInterface {
   /**
    * {@inheritdoc}
    */
-  public function getCurrentRouteMatch() {
+  public function getCurrentRoute() {
     return $this->currentRoute;
   }
 
