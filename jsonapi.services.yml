@@ -35,7 +35,7 @@ services:
       - { name: normalizer, priority: 21 }
   serializer.normalizer.document_root.jsonapi:
     class: Drupal\jsonapi\Normalizer\DocumentRootNormalizer
-    arguments: ['@jsonapi.resource.manager', '@jsonapi.link_manager', '@jsonapi.current_context']
+    arguments: ['@jsonapi.link_manager', '@jsonapi.current_context']
     tags:
       - { name: normalizer, priority: 22 }
   serializer.encoder.jsonapi:

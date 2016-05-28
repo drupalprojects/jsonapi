@@ -31,6 +31,13 @@ interface CurrentContextInterface {
   public function getCurrentRoute();
 
   /**
+   * Returns the resource manager.
+   *
+   * @return \Drupal\jsonapi\Configuration\ResourceManagerInterface
+   */
+  public function getResourceManager();
+
+  /**
    * Get a value by key from the _json_api_params route parameter.
    *
    * @param string $parameter_key

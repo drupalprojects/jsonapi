@@ -123,6 +123,19 @@ class CurrentContextTest extends UnitTestCase {
   }
 
   /**
+   * @covers ::getResourceManager
+   */
+  public function testGetResourceManager() {
+    $request_context = new CurrentContext($this->resourceManager);
+    $request_context->fromRequestStack($this->requestStack);
+
+    $this->assertEquals(
+      $this->resourceManager,
+      $request_context->getResourceManager()
+    );
+  }
+
+  /**
    * @covers ::getJsonApiParameter
    */
   public function testGetJsonApiParameter() {

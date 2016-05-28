@@ -2,7 +2,6 @@
 
 namespace Drupal\jsonapi\Context;
 
-use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Request;
@@ -88,6 +87,13 @@ class CurrentContext implements CurrentContextInterface {
    */
   public function getCurrentRoute() {
     return $this->currentRoute;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getResourceManager() {
+    return $this->resourceManager;
   }
 
   /**

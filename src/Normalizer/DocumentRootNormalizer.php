@@ -42,17 +42,15 @@ class DocumentRootNormalizer extends NormalizerBase implements DocumentRootNorma
   /**
    * Constructs an ContentEntityNormalizer object.
    *
-   * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
-   *   The config resource manager.
    * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface $link_manager
    *   The link manager to get the links.
    * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
    *   The current context service.
    */
-  public function __construct(ResourceManagerInterface $resource_manager, LinkManagerInterface $link_manager, CurrentContextInterface $current_context) {
-    $this->resourceManager = $resource_manager;
+  public function __construct(LinkManagerInterface $link_manager, CurrentContextInterface $current_context) {
     $this->linkManager = $link_manager;
     $this->currentContext = $current_context;
+    $this->resourceManager = $current_context->getResourceManager();
   }
 
   /**
