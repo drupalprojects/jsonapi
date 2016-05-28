@@ -18,6 +18,55 @@ class Filter extends JsonApiParamBase {
   const KEY_NAME = 'filter';
 
   /**
+   * Key in the filter[<key>] parameter for conditions.
+   *
+   * @var string
+   */
+  const CONDITION_KEY = 'condition';
+
+  /**
+   * Key in the filter[<key>] parameter for groups.
+   *
+   * @var string
+   */
+  const GROUP_KEY = 'group';
+
+  /**
+   * Key in the filter[<key>] parameter for exists conditions.
+   *
+   * @var string
+   */
+  const EXISTS_KEY = 'exists';
+
+  /**
+   * The field key in the filter condition: filter[lorem][condition][<field>].
+   *
+   * @var string
+   */
+  const FIELD_KEY = 'field';
+
+  /**
+   * The value key in the filter condition: filter[lorem][condition][<value>].
+   *
+   * @var string
+   */
+  const VALUE_KEY = 'value';
+
+  /**
+   * The operator key in the condition: filter[lorem][condition][<operator>].
+   *
+   * @var string
+   */
+  const OPERATOR_KEY = 'operator';
+
+  /**
+   * The conjunction key in the condition: filter[lorem][group][<conjunction>].
+   *
+   * @var string
+   */
+  const CONJUNCTION_KEY = 'conjunction';
+
+  /**
    * The entity type id.
    *
    * @var string

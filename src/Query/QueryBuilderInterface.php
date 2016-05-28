@@ -3,8 +3,12 @@
 namespace Drupal\jsonapi\Query;
 
 use Drupal\Core\Entity\EntityTypeInterface;
-use Drupal\jsonapi\Routing\Param\JsonApiParamInterface;
 
+/**
+ * Interface QueryBuilderInterface.
+ *
+ * @package Drupal\jsonapi\Query
+ */
 interface QueryBuilderInterface {
 
   /**

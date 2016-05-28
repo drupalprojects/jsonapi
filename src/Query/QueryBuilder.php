@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @file Contains \Drupal\jsonapi\Query.
- */
-
 namespace Drupal\jsonapi\Query;
 
 use Drupal\Core\Entity\EntityTypeInterface;
@@ -11,7 +7,14 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\JsonApiParamInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
+use Drupal\jsonapi\Routing\Param\Sort;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
+/**
+ * Class QueryBuilder.
+ *
+ * @package Drupal\jsonapi\Query
+ */
 class QueryBuilder implements QueryBuilderInterface {
 
   /**
@@ -42,9 +45,9 @@ class QueryBuilder implements QueryBuilderInterface {
    * Contructs a new QueryBuilder object.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
-   *  An instance of a QueryFactory.
+   *   An instance of a QueryFactory.
    * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
-   *  An instance of the current context service.
+   *   An instance of the current context service.
    */
   public function __construct(EntityTypeManagerInterface $entity_type_manager, CurrentContextInterface $current_context) {
     $this->entityTypeManager = $entity_type_manager;
@@ -67,6 +70,7 @@ class QueryBuilder implements QueryBuilderInterface {
     // This applies each option from the option tree to the query before
     // returning it.
     $applied_query = array_reduce($this->options, function ($query, $option) {
+      /* @var \Drupal\jsonapi\Query\QueryOptionInterface $option */
       return $option->apply($query);
     }, $query);
 
@@ -77,10 +81,10 @@ class QueryBuilder implements QueryBuilderInterface {
    * {@inheritdoc}
    */
   protected function configureFromContext() {
-    if ($filter = $this->currentContext->getJsonApiParameter('filter')) {
+    if ($filter = $this->currentContext->getJsonApiParameter(Filter::KEY_NAME)) {
       $this->configureFilter($filter);
     }
-    if ($sort = $this->currentContext->getJsonApiParameter('sort')) {
+    if ($sort = $this->currentContext->getJsonApiParameter(Sort::KEY_NAME)) {
       $this->configureSort($sort);
     }
   }
@@ -97,16 +101,21 @@ class QueryBuilder implements QueryBuilderInterface {
     $filter_collector = function ($filter, $filter_index) use (&$extracted) {
       $option_maker = function ($properties, $filter_type) use (&$extracted, $filter_index) {
         switch ($filter_type) {
-          case 'condition':
+          case Filter::CONDITION_KEY:
             $extracted[] = $this->newCondtionOption($filter_index, $properties);
             break;
 
-          case 'group':
+          case Filter::GROUP_KEY:
             $extracted[] = $this->newGroupOption($filter_index, $properties);
             break;
 
-          case 'exists':
+          case Filter::EXISTS_KEY:
             break;
+
+          default:
+            throw new BadRequestHttpException(
+              sprintf('Invalid syntax in the filter parameter: %s.', $filter_index)
+            );
         };
       };
 
@@ -150,12 +159,12 @@ class QueryBuilder implements QueryBuilderInterface {
    */
   protected function newCondtionOption($condition_id, array $properties) {
     $langcode = isset($properties['langcode']) ? $properties['langcode'] : NULL;
-    $group = isset($properties['group']) ? $properties['group'] : NULL;
+    $group = isset($properties[Filter::GROUP_KEY]) ? $properties[Filter::GROUP_KEY] : NULL;
     return new ConditionOption(
       $condition_id,
-      $properties['field'],
-      $properties['value'],
-      $properties['operator'],
+      $properties[Filter::FIELD_KEY],
+      $properties[Filter::VALUE_KEY],
+      $properties[Filter::OPERATOR_KEY],
       $langcode,
       $group
     );
@@ -164,7 +173,7 @@ class QueryBuilder implements QueryBuilderInterface {
   /**
    * Returns a new GroupOption.
    *
-   * @param string $id
+   * @param string $identifier
    *   A unique id for the option.
    * @param array $properties
    *   The group properties.
@@ -172,15 +181,15 @@ class QueryBuilder implements QueryBuilderInterface {
    * @return \Drupal\jsonapi\Query\GroupOption
    *   The group object.
    */
-  protected function newGroupOption($id, array $properties) {
-    $parent_group = isset($properties['group']) ? $properties['group'] : NULL;
-    return new GroupOption( $id, $properties['conjunction'], $parent_group);
+  protected function newGroupOption($identifier, array $properties) {
+    $parent_group = isset($properties[Filter::GROUP_KEY]) ? $properties[Filter::GROUP_KEY] : NULL;
+    return new GroupOption($identifier, $properties[Filter::CONJUNCTION_KEY], $parent_group);
   }
 
   /**
    * Returns a new SortOption.
    *
-   * @param string $id
+   * @param string $identifier
    *   A unique id for the option.
    * @param array $properties
    *   The sort properties.
@@ -188,15 +197,15 @@ class QueryBuilder implements QueryBuilderInterface {
    * @return \Drupal\jsonapi\Query\SortOption
    *   The sort object.
    */
-  protected function newSortOption($id, array $properties) {
+  protected function newSortOption($identifier, array $properties) {
     // TODO: We need to figure out some way to support langcode on these sorts.
-    return new SortOption($id, $properties['value'], $properties['direction']);
+    return new SortOption($identifier, $properties['value'], $properties['direction']);
   }
 
   /**
    * Returns a new ExistsOption.
    *
-   * @param string $id
+   * @param string $identifier
    *   A unique id for the option.
    * @param array $properties
    *   The condition properties.
@@ -204,13 +213,13 @@ class QueryBuilder implements QueryBuilderInterface {
    * @return \Drupal\jsonapi\Query\ExistsOption
    *   The condition object.
    */
-  protected function newExistsOptions($id, array $properties) {
+  protected function newExistsOptions($identifier, array $properties) {
     $langcode = isset($properties['langcode']) ? $properties['langcode'] : NULL;
-    $group = isset($properties['group']) ? $properties['group'] : NULL;
+    $group = isset($properties[Filter::GROUP_KEY]) ? $properties[Filter::GROUP_KEY] : NULL;
     return new ExistsOption(
-      $id,
-      $properties['field'],
-      $properties['exists'],
+      $identifier,
+      $properties[Filter::FIELD_KEY],
+      $properties[Filter::EXISTS_KEY],
       $langcode,
       $group
     );
@@ -250,15 +259,15 @@ class QueryBuilder implements QueryBuilderInterface {
    */
   protected function insert($target_id, QueryOptionInterface $option) {
     if (!empty($this->options)) {
-      $find_target_child = function ($child, $option) use ($target_id) {
+      $find_target_child = function ($child, QueryOptionInterface $my_option) use ($target_id) {
         if ($child) {
           return $child;
         }
         if (
-          $option->id() == $target_id ||
-          (method_exists($option, 'hasChild') && $option->hasChild($target_id))
+          $my_option->id() == $target_id ||
+          (method_exists($my_option, 'hasChild') && $my_option->hasChild($target_id))
         ) {
-          return $option->id();
+          return $my_option->id();
         }
         return FALSE;
       };
