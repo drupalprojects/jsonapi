@@ -4,6 +4,7 @@ namespace Drupal\Tests\jsonapi\Kernel\Normalizer;
 
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Resource\DocumentWrapper;
+use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
@@ -122,10 +123,19 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $request->get('_route_object')->willReturn($route->reveal());
     $document_wrapper = $this->prophesize(DocumentWrapper::class);
     $document_wrapper->getData()->willReturn($this->node);
+    $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
+    $resource_config->getTypeName()->willReturn('article');
     $normalized = $this
       ->container
       ->get('serializer.normalizer.document_root.jsonapi')
-      ->normalize($document_wrapper->reveal(), 'api_json', ['request' => $request->reveal()]);
+      ->normalize(
+        $document_wrapper->reveal(),
+        'api_json',
+        [
+          'request' => $request->reveal(),
+          'resource_config' => $resource_config->reveal(),
+        ]
+      );
     $this->assertSame($normalized['data']['attributes']['title'], 'dummy_title');
     $this->assertEquals($normalized['data']['id'], 1);
     $this->assertSame([
@@ -174,10 +184,15 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $request->get('_route_object')->willReturn($route->reveal());
     $document_wrapper = $this->prophesize(DocumentWrapper::class);
     $document_wrapper->getData()->willReturn($this->nodeType);
+    $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
+    $resource_config->getTypeName()->willReturn('node_type');
     $normalized = $this
       ->container
       ->get('serializer.normalizer.document_root.jsonapi')
-      ->normalize($document_wrapper->reveal(), 'api_json', ['request' => $request->reveal()]);
+      ->normalize($document_wrapper->reveal(), 'api_json', [
+        'request' => $request->reveal(),
+        'resource_config' => $resource_config->reveal(),
+      ]);
     $this->assertTrue(empty($normalized['data']['attributes']['type']));
     $this->assertTrue(!empty($normalized['data']['attributes']['uuid']));
     $this->assertSame($normalized['data']['attributes']['display_submitted'], TRUE);

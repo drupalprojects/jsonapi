@@ -92,7 +92,8 @@ class EntityResourceTest extends KernelTestBase {
       $this->container->get('jsonapi.resource.manager')->get('node', 'article'),
       $this->container->get('entity_type.manager'),
       $this->container->get('jsonapi.query_builder'),
-      $this->container->get('entity_field.manager')
+      $this->container->get('entity_field.manager'),
+      $this->container->get('jsonapi.current_context')
     );
 
   }
@@ -128,6 +129,7 @@ class EntityResourceTest extends KernelTestBase {
     $params = $this->prophesize(ParameterBag::class);
     $params->get('_route_params')->willReturn(['_json_api_params' => []]);
     $request->attributes = $params->reveal();
+    $params->get('_json_api_params')->willReturn([]);
 
     // Get the response.
     $response = $this->entityResource->getCollection($request->reveal());
@@ -153,6 +155,9 @@ class EntityResourceTest extends KernelTestBase {
         'filter' => $filter,
       ],
     ]);
+    $params->get('_json_api_params')->willReturn([
+      'filter' => $filter,
+    ]);
     $request->attributes = $params->reveal();
 
     // Get the entity resource.
@@ -160,7 +165,8 @@ class EntityResourceTest extends KernelTestBase {
       $this->container->get('jsonapi.resource.manager')->get('node_type', 'node_type'),
       $this->container->get('entity_type.manager'),
       $this->container->get('jsonapi.query_builder'),
-      $field_manager
+      $field_manager,
+      $this->container->get('jsonapi.current_context')
     );
 
     // Get the response.
@@ -180,13 +186,18 @@ class EntityResourceTest extends KernelTestBase {
     // Fake the request.
     $request = $this->prophesize(Request::class);
     $params = $this->prophesize(ParameterBag::class);
+    $filter = new Filter(
+      ['uuid' => ['value' => 'invalid']],
+      'node',
+      $this->container->get('entity_field.manager')
+    );
     $params->get('_route_params')->willReturn([
       '_json_api_params' => [
-        'filter' => new Filter(
-          ['uuid' => ['value' => 'invalid']],
-          'node',
-          $this->container->get('entity_field.manager')),
+        'filter' => $filter,
       ],
+    ]);
+    $params->get('_json_api_params')->willReturn([
+      'filter' => $filter,
     ]);
     $request->attributes = $params->reveal();
 

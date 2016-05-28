@@ -35,7 +35,7 @@ services:
       - { name: normalizer, priority: 21 }
   serializer.normalizer.document_root.jsonapi:
     class: Drupal\jsonapi\Normalizer\DocumentRootNormalizer
-    arguments: ['@jsonapi.resource.manager', '@jsonapi.link_manager']
+    arguments: ['@jsonapi.resource.manager', '@jsonapi.link_manager', '@jsonapi.current_context']
     tags:
       - { name: normalizer, priority: 22 }
   serializer.encoder.jsonapi:
@@ -56,6 +56,11 @@ services:
       - { name: route_enhancer }
   jsonapi.query_builder:
     class: Drupal\jsonapi\Query\QueryBuilder
-    arguments: ['@entity_type.manager']
+    arguments: ['@entity_type.manager', '@jsonapi.current_context']
   jsonapi.link_manager:
     class: Drupal\jsonapi\LinkManager\LinkManager
+  jsonapi.current_context:
+    class: Drupal\jsonapi\Context\CurrentContext
+    arguments: ['@current_route_match', '@jsonapi.resource.manager']
+    calls:
+      - [fromRequestStack, ['@request_stack']]

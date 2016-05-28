@@ -8,6 +8,7 @@ use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\Resource\DocumentWrapperInterface;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
+use Drupal\jsonapi\Context\CurrentContextInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -45,10 +46,13 @@ class DocumentRootNormalizer extends NormalizerBase implements DocumentRootNorma
    *   The config resource manager.
    * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface $link_manager
    *   The link manager to get the links.
+   * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
+   *   The current context service.
    */
-  public function __construct(ResourceManagerInterface $resource_manager, LinkManagerInterface $link_manager) {
+  public function __construct(ResourceManagerInterface $resource_manager, LinkManagerInterface $link_manager, CurrentContextInterface $current_context) {
     $this->resourceManager = $resource_manager;
     $this->linkManager = $link_manager;
+    $this->currentContext = $current_context;
   }
 
   /**
@@ -85,10 +89,7 @@ class DocumentRootNormalizer extends NormalizerBase implements DocumentRootNorma
       $is_collection = $data instanceof EntityCollection;
       // To improve the logical workflow deal with an array at all times.
       $entities = $is_collection ? $data->toArray() : [$data];
-      if ($entity = $entities[0]) {
-        // Use the first entity to extract the entity type and bundle from it.
-        $context += $this->expandContext($entity, $context['request']);
-      }
+      $context += $this->expandContext($context['request']);
       $serializer = $this->serializer;
       $normalizer_values = array_map(function ($entity) use ($format, $context, $serializer) {
         return $serializer->normalize($entity, $format, $context);
@@ -101,22 +102,16 @@ class DocumentRootNormalizer extends NormalizerBase implements DocumentRootNorma
   }
 
   /**
-   * Expand the context information based on the request.
-   *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The entity to normalize.
-   * @param Request $request
-   *   The request.
+   * Expand the context information based on the current request context.
    *
    * @return array
    *   The expanded context.
    */
-  protected function expandContext(EntityInterface $entity, Request $request) {
-    $resource_config = $this->resourceManager->get($entity->getEntityTypeId(), $entity->bundle());
+  protected function expandContext(Request $request) {
     $context = array(
       'account' => NULL,
       'sparse_fieldset' => NULL,
-      'resource_config' => $resource_config,
+      'resource_config' => $this->currentContext->getResourceConfig(),
       'include' => array_filter(explode(',', $request->query->get('include'))),
     );
     if ($fields_param = $request->query->get('fields')) {

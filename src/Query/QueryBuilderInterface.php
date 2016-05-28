@@ -18,12 +18,4 @@ interface QueryBuilderInterface {
    */
   public function newQuery(EntityTypeInterface $entity_type);
 
-  /**
-   * Configures a new parameter on the query builder.
-   *
-   * @param \Drupal\jsonapi\Routing\Param\JsonApiParamInterface $param
-   *   The entity type for which to create a query.
-   */
-  public function configureFromParameter(JsonApiParamInterface $param);
-
 }

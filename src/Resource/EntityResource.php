@@ -11,6 +11,7 @@ use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\RequestCacheabilityDependency;
 use Drupal\jsonapi\Routing\Param\JsonApiParamInterface;
 use Drupal\jsonapi\Query\QueryBuilderInterface;
+use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\rest\ResourceResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -52,6 +53,13 @@ class EntityResource implements EntityResourceInterface {
   protected $queryBuilder;
 
   /**
+   * The current context service.
+   *
+   * @var \Drupal\jsonapi\Context\CurrentContextInterface
+   */
+  protected $currentContext;
+
+  /**
    * Instantiates a EntityResource object.
    *
    * @param \Drupal\jsonapi\Configuration\ResourceConfigInterface $resource_config
@@ -62,12 +70,15 @@ class EntityResource implements EntityResourceInterface {
    *   The query builder.
    * @param \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager
    *   The entity type field manager.
+   * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
+   *   The current context.
    */
-  public function __construct(ResourceConfigInterface $resource_config, EntityTypeManagerInterface $entity_type_manager, QueryBuilderInterface $query_builder, EntityFieldManagerInterface $field_manager) {
+  public function __construct(ResourceConfigInterface $resource_config, EntityTypeManagerInterface $entity_type_manager, QueryBuilderInterface $query_builder, EntityFieldManagerInterface $field_manager, CurrentContextInterface $current_context) {
     $this->resourceConfig = $resource_config;
     $this->entityTypeManager = $entity_type_manager;
     $this->queryBuilder = $query_builder;
     $this->fieldManager = $field_manager;
+    $this->currentContext = $current_context;
   }
 
   /**
@@ -89,6 +100,9 @@ class EntityResource implements EntityResourceInterface {
   public function getCollection(Request $request) {
     // Instantiate the query for the filtering.
     $entity_type_id = $this->resourceConfig->getEntityTypeId();
+
+    // Set the current context from the request.
+    $this->currentContext->fromRequest($request);
 
     $params = $request->attributes->get('_route_params');
     $query = $this->getCollectionQuery($entity_type_id, $params['_json_api_params']);
@@ -152,11 +166,6 @@ class EntityResource implements EntityResourceInterface {
   protected function getCollectionQuery($entity_type_id, $params) {
     $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
 
-    // Configure the queryBuilder from the parameters.
-    if (!empty($params['filter'])) {
-      $this->queryBuilder->configureFromParameter($params['filter']);
-    }
-
     $query = $this->queryBuilder->newQuery($entity_type);
 
     // Limit this query to the bundle type for this resource.
@@ -167,31 +176,6 @@ class EntityResource implements EntityResourceInterface {
     }
 
     return $query;
-  }
-
-  /**
-   * Applies the filters to the query.
-   *
-   * @param \Drupal\Core\Entity\Query\QueryInterface $query
-   *   The entity query.
-   * @param \Drupal\jsonapi\Routing\Param\JsonApiParamInterface $filter
-   *   The filter parameter.
-   */
-  protected function applyFiltersForList(QueryInterface $query, JsonApiParamInterface $filter) {
-    foreach ($filter->get() as $public_name => $filter_info) {
-      $field_name = $this->queryFieldName($public_name);
-      // Deal with multivalue operators.
-      if ($filter_info['multivalue']) {
-        // Add a single condition using all the values and one operator.
-        $query->condition($field_name, $filter_info['value'], $filter_info['operator'][0]);
-      }
-      else {
-        // For every value in the filter, add a condition to the query.
-        foreach ($filter_info['value'] as $index => $item) {
-          $query->condition($field_name, $item, $filter_info['operator'][$index]);
-        }
-      }
-    }
   }
 
   /**

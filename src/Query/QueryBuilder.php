@@ -7,8 +7,10 @@
 namespace Drupal\jsonapi\Query;
 
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\JsonApiParamInterface;
+use Drupal\jsonapi\Context\CurrentContextInterface;
 
 class QueryBuilder implements QueryBuilderInterface {
 
@@ -30,13 +32,23 @@ class QueryBuilder implements QueryBuilderInterface {
   protected $entityTypeManager;
 
   /**
+   * The JSON API current context service.
+   *
+   * @var \Drupal\jsonapi\Context\CurrentContextInterface
+   */
+  protected $currentContext;
+
+  /**
    * Contructs a new QueryBuilder object.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *  An instance of a QueryFactory.
+   * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
+   *  An instance of the current context service.
    */
-  public function __construct($entity_type_manager) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, CurrentContextInterface $current_context) {
     $this->entityTypeManager = $entity_type_manager;
+    $this->currentContext = $current_context;
   }
 
   /**
@@ -44,6 +56,8 @@ class QueryBuilder implements QueryBuilderInterface {
    */
   public function newQuery(EntityTypeInterface $entity_type) {
     $this->entityType = $entity_type;
+
+    $this->configureFromContext();
 
     $query = $this->entityTypeManager
       ->getStorage($this->entityType->id())
@@ -62,11 +76,12 @@ class QueryBuilder implements QueryBuilderInterface {
   /**
    * {@inheritdoc}
    */
-  public function configureFromParameter(JsonApiParamInterface $param) {
-    switch ($param::KEY_NAME) {
-      case Filter::KEY_NAME:
-        $this->configureFilter($param);
-        break;
+  protected function configureFromContext() {
+    if ($filter = $this->currentContext->getJsonApiParameter('filter')) {
+      $this->configureFilter($filter);
+    }
+    if ($sort = $this->currentContext->getJsonApiParameter('sort')) {
+      $this->configureSort($sort);
     }
   }
 
@@ -100,6 +115,24 @@ class QueryBuilder implements QueryBuilderInterface {
 
     $parameter = $param->get();
     array_walk($parameter, $filter_collector);
+
+    $this->buildTree($extracted);
+  }
+
+  /**
+   * Configures the query builder from a Sort parameter.
+   *
+   * @param \Drupal\jsonapi\Routing\Param\JsonApiParamInterface $param
+   *   A Sort parameter from which to configure this query builder.
+   */
+  protected function configureSort(JsonApiParamInterface $param) {
+    $extracted = [];
+
+    $sort_collector = function ($sort, $sort_index) use (&$extracted) {
+      $extracted[] = $this->newSortOption($sort_index, $sort);
+    };
+
+    array_walk($param->get(), $sort_collector);
 
     $this->buildTree($extracted);
   }
@@ -144,6 +177,21 @@ class QueryBuilder implements QueryBuilderInterface {
     return new GroupOption( $id, $properties['conjunction'], $parent_group);
   }
 
+  /**
+   * Returns a new SortOption.
+   *
+   * @param string $id
+   *   A unique id for the option.
+   * @param array $properties
+   *   The sort properties.
+   *
+   * @return \Drupal\jsonapi\Query\SortOption
+   *   The sort object.
+   */
+  protected function newSortOption($id, array $properties) {
+    // TODO: We need to figure out some way to support langcode on these sorts.
+    return new SortOption($id, $properties['value'], $properties['direction']);
+  }
 
   /**
    * Returns a new ExistsOption.
