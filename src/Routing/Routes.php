@@ -2,8 +2,8 @@
 
 namespace Drupal\jsonapi\Routing;
 
+use Drupal\Core\Authentication\AuthenticationCollectorInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Routing\Route;
@@ -31,15 +31,30 @@ class Routes implements ContainerInjectionInterface {
   protected $resourceManager;
 
   /**
+   * The authentication collector.
+   *
+   * @var \Drupal\Core\Authentication\AuthenticationCollectorInterface
+   */
+  protected $authCollector;
+
+  /**
+   * List of providers.
+   *
+   * @var string[]
+   */
+  protected $providerIds;
+
+  /**
    * Instantiates a Routes object.
    *
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
-   *   The entity type manager.
    * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
    *   The resource manager.
+   * @param \Drupal\Core\Authentication\AuthenticationCollectorInterface $auth_collector
+   *   The resource manager.
    */
-  public function __construct(ResourceManagerInterface $resource_manager) {
+  public function __construct(ResourceManagerInterface $resource_manager, AuthenticationCollectorInterface $auth_collector) {
     $this->resourceManager = $resource_manager;
+    $this->authCollector = $auth_collector;
   }
 
   /**
@@ -48,7 +63,9 @@ class Routes implements ContainerInjectionInterface {
   public static function create(ContainerInterface $container) {
     /* @var \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager */
     $resource_manager = $container->get('jsonapi.resource.manager');
-    return new static($resource_manager);
+    /* @var \Drupal\Core\Authentication\AuthenticationCollectorInterface $auth_collector */
+    $auth_collector = $container->get('authentication_collector');
+    return new static($resource_manager, $auth_collector);
   }
 
   /**
@@ -76,6 +93,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setOption('serialization_class', $resource->getDeserializationTargetClass())
+        ->setOption('_auth', $this->authProviderList())
         ->setMethods(['GET', 'POST']));
 
       // Individual endpoint, like /api/photos/123.
@@ -88,6 +106,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_format', 'api_json')
         ->setOption('parameters', $parameters)
         ->setOption('serialization_class', $resource->getDeserializationTargetClass())
+        ->setOption('_auth', $this->authProviderList())
         ->setMethods(['GET', 'PATCH', 'DELETE']));
 
       // Related endpoint, like /api/photos/123/comments.
@@ -98,6 +117,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setOption('parameters', $parameters)
+        ->setOption('_auth', $this->authProviderList())
         ->setMethods(['GET']));
 
       // Related endpoint, like /api/photos/123/comments.
@@ -108,10 +128,25 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setOption('parameters', $parameters)
+        ->setOption('_auth', $this->authProviderList())
         ->setMethods(['GET', 'POST', 'DELETE']));
     }
 
     return $collection;
+  }
+
+  /**
+   * Build a list of authentication provider ids.
+   *
+   * @return string[]
+   *   The list of IDs.
+   */
+  protected function authProviderList() {
+    if (isset($this->providerIds)) {
+      return $this->providerIds;
+    }
+    $this->providerIds = array_keys($this->authCollector->getSortedProviders());
+    return $this->providerIds;
   }
 
 }
