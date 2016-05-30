@@ -56,16 +56,19 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
    */
   public function denormalize($data, $class, $format = NULL, array $context = array()) {
     $context['resource_config'] = $this->currentContext->getResourceConfig();
-    $normalized = $data['data']['attributes'];
-    $normalized = array_merge($normalized, array_map(function ($relationship) {
-      return $relationship['data']['id'];
-    }, $data['data']['relationships']));
-    return $this->serializer->denormalize(
-      $normalized,
-      $context['resource_config']->getDeserializationTargetClass(),
-      'api_json',
-      $context
-    );
+    $normalized = [];
+    if (!empty($data['data']['attributes'])) {
+      $normalized = $data['data']['attributes'];
+    }
+    if (!empty($data['data']['relationships'])) {
+      // Add the relationship ids.
+      $normalized = array_merge($normalized, array_map(function ($relationship) {
+        return $relationship['data']['id'];
+      }, $data['data']['relationships']));
+    }
+    $class = $context['resource_config']->getDeserializationTargetClass();
+    return $this->serializer
+      ->denormalize($normalized, $class, $format, $context);
   }
 
   /**
@@ -109,6 +112,9 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
 
   /**
    * Expand the context information based on the current request context.
+   *
+   * @param Request $request
+   *   The request to get the URL params from to expand the context.
    *
    * @return array
    *   The expanded context.

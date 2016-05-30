@@ -23,6 +23,7 @@ use Symfony\Component\Routing\Route;
  * @package Drupal\Tests\jsonapi\Kernel\Resource
  *
  * @coversDefaultClass \Drupal\jsonapi\Resource\EntityResource
+ *
  * @group jsonapi
  */
 class EntityResourceTest extends KernelTestBase {
@@ -270,6 +271,27 @@ class EntityResourceTest extends KernelTestBase {
       ->getEntityTypeId()
     );
     $this->assertSame('node:1', $response->getCacheableMetadata()->getCacheTags()[0]);
+  }
+
+  /**
+   * @covers ::createIndividual
+   */
+  public function testCreateIndividual() {
+    $node = Node::create([
+      'type' => 'article',
+      'title' => 'Lorem ipsum',
+    ]);
+    Role::load(Role::ANONYMOUS_ID)
+      ->grantPermission('create article content')
+      ->save();
+    $response = $this->entityResource->createIndividual($node);
+    // As a side effect, the node will also be saved.
+    $this->assertNotEmpty($node->id());
+    $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
+    $this->assertEquals(2, $response->getResponseData()->getData()->id());
+    $this->assertEquals(201, $response->getStatusCode());
+    // Make sure the POST request is not caching.
+    $this->assertEmpty($response->getCacheableMetadata()->getCacheTags());
   }
 
 }

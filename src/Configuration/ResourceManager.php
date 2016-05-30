@@ -4,6 +4,7 @@ namespace Drupal\jsonapi\Configuration;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Symfony\Component\HttpKernel\Exception\PreconditionFailedHttpException;
 
 
 /**
@@ -83,6 +84,9 @@ class ResourceManager implements ResourceManagerInterface {
    * {@inheritdoc}
    */
   public function get($entity_type_id, $bundle_id) {
+    if (!$entity_type_id || !$bundle_id) {
+      throw new PreconditionFailedHttpException('Server error. The current route is malformed.');
+    }
     foreach ($this->all() as $resource) {
       if ($resource->getEntityTypeId() == $entity_type_id && $resource->getBundleId() == $bundle_id) {
         return $resource;

@@ -2,7 +2,9 @@
 
 namespace Drupal\Tests\jsonapi\Kernel\Normalizer;
 
+use Drupal\Component\Serialization\Json;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
+use Drupal\jsonapi\Normalizer\DocumentRootNormalizerInterface;
 use Drupal\jsonapi\Resource\DocumentWrapper;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\KernelTests\KernelTestBase;
@@ -109,7 +111,6 @@ class DocumentRootNormalizerTest extends KernelTestBase {
    * @covers ::normalize
    */
   public function testNormalize() {
-    $this->container->get('serializer');
     $request = $this->prophesize(Request::class);
     $query = $this->prophesize(ParameterBag::class);
     $query->get('fields')->willReturn([
@@ -121,6 +122,8 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $request->query = $query->reveal();
     $route = $this->prophesize(Route::class);
     $route->getPath()->willReturn('/node/{node}');
+    $route->getRequirement('_entity_type')->willReturn('node');
+    $route->getRequirement('_bundle')->willReturn('article');
     $request->get('_route_object')->willReturn($route->reveal());
     $document_wrapper = $this->prophesize(DocumentWrapper::class);
     $document_wrapper->getData()->willReturn($this->node);
@@ -129,12 +132,10 @@ class DocumentRootNormalizerTest extends KernelTestBase {
 
     // Make sure the route contains the entity type and bundle.
     $current_context = $this->container->get('jsonapi.current_context');
-    $route = $this->prophesize(Route::class);
-    $route->getRequirement('_entity_type')->willReturn('node_type');
-    $route->getRequirement('_bundle')->willReturn('node_type');
     $current_context->setCurrentRoute($route->reveal());
 
     $this->container->set('jsonapi.current_context', $current_context);
+    $this->container->get('serializer');
     $normalized = $this
       ->container
       ->get('serializer.normalizer.document_root.jsonapi')
@@ -180,7 +181,6 @@ class DocumentRootNormalizerTest extends KernelTestBase {
    * @covers ::normalize
    */
   public function testNormalizeConfig() {
-    $this->container->get('serializer');
     $request = $this->prophesize(Request::class);
     $query = $this->prophesize(ParameterBag::class);
     $query->get('fields')->willReturn([
@@ -191,6 +191,8 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $request->query = $query->reveal();
     $route = $this->prophesize(Route::class);
     $route->getPath()->willReturn('/node_type/{node_type}');
+    $route->getRequirement('_entity_type')->willReturn('node');
+    $route->getRequirement('_bundle')->willReturn('article');
     $request->get('_route_object')->willReturn($route->reveal());
     $document_wrapper = $this->prophesize(DocumentWrapper::class);
     $document_wrapper->getData()->willReturn($this->nodeType);
@@ -199,12 +201,10 @@ class DocumentRootNormalizerTest extends KernelTestBase {
 
     // Make sure the route contains the entity type and bundle.
     $current_context = $this->container->get('jsonapi.current_context');
-    $route = $this->prophesize(Route::class);
-    $route->getRequirement('_entity_type')->willReturn('node_type');
-    $route->getRequirement('_bundle')->willReturn('node_type');
     $current_context->setCurrentRoute($route->reveal());
 
     $this->container->set('jsonapi.current_context', $current_context);
+    $this->container->get('serializer');
     $normalized = $this
       ->container
       ->get('serializer.normalizer.document_root.jsonapi')
@@ -217,6 +217,37 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $this->assertSame($normalized['data']['attributes']['display_submitted'], TRUE);
     $this->assertSame($normalized['data']['id'], 'article');
     $this->assertSame($normalized['data']['type'], 'node_type');
+  }
+
+  /**
+   * Try to POST a node and check if it exists afterwards.
+   *
+   * @covers ::denormalize
+   */
+  public function testDenormalize() {
+    $payload = '{"type":"article", "data":{"attributes":{"title":"Testing article"}}}';
+    $request = $this->prophesize(Request::class);
+    $route = $this->prophesize(Route::class);
+    $route->getPath()->willReturn('/article');
+    $route->getRequirement('_entity_type')->willReturn('node');
+    $route->getRequirement('_bundle')->willReturn('article');
+    $request->get('_route_object')->willReturn($route->reveal());
+    $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
+    $resource_config->getTypeName()->willReturn('node_type');
+    /* @var \Symfony\Component\HttpFoundation\RequestStack $request_stack */
+    $request_stack = $this->container->get('request_stack');
+    $request_stack->push($request->reveal());
+    $this->container->set('request_stack', $request_stack);
+    $this->container->get('serializer');
+    $node = $this
+      ->container
+      ->get('serializer.normalizer.document_root.jsonapi')
+      ->denormalize(Json::decode($payload), DocumentRootNormalizerInterface::class, 'api_json', [
+        'request' => $request->reveal(),
+        'resource_config' => $resource_config->reveal(),
+      ]);
+    $this->assertInstanceOf('\Drupal\node\Entity\Node', $node);
+    $this->assertSame('Testing article', $node->getTitle());
   }
 
 }
