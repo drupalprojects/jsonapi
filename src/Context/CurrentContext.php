@@ -5,6 +5,8 @@ namespace Drupal\jsonapi\Context;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\PreconditionRequiredHttpException;
+use Symfony\Component\Routing\Route;
 
 /**
  * Class CurrentContext.
@@ -65,7 +67,7 @@ class CurrentContext implements CurrentContextInterface {
    */
   public function fromRequestStack(RequestStack $request_stack) {
     $this->currentRequest = $request_stack->getCurrentRequest();
-    $this->currentRoute = $this->currentRequest->get('_route_object');
+    $this->setCurrentRoute($this->currentRequest->get('_route_object'));
   }
 
   /**
@@ -73,10 +75,13 @@ class CurrentContext implements CurrentContextInterface {
    */
   public function getResourceConfig() {
     if (!isset($this->resourceConfig)) {
-      $this->resourceConfig = $this->resourceManager->get(
-        $this->currentRoute->getRequirement('_entity_type'),
-        $this->currentRoute->getRequirement('_bundle')
-      );
+      $entity_type_id = $this->getCurrentRoute()->getRequirement('_entity_type');
+      $bundle_id = $this->getCurrentRoute()->getRequirement('_bundle');
+      if (empty($entity_type_id) ||empty($bundle_id)) {
+        throw new PreconditionRequiredHttpException('Entity type and bundle are required.');
+      }
+      $this->resourceConfig = $this->resourceManager
+        ->get($entity_type_id, $bundle_id);
     }
 
     return $this->resourceConfig;
@@ -87,6 +92,13 @@ class CurrentContext implements CurrentContextInterface {
    */
   public function getCurrentRoute() {
     return $this->currentRoute;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setCurrentRoute(Route $route) {
+    return $this->currentRoute = $route;
   }
 
   /**

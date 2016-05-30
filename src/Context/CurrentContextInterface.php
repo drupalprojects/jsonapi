@@ -4,6 +4,7 @@ namespace Drupal\jsonapi\Context;
 
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Route;
 
 /**
  * Interface CurrentContextInterface.
@@ -29,6 +30,14 @@ interface CurrentContextInterface {
    *   The currently matched route.
    */
   public function getCurrentRoute();
+
+  /**
+   * Returns the current route match.
+   *
+   * @param \Symfony\Component\Routing\Route $route
+   *   The route to set.
+   */
+  public function setCurrentRoute(Route $route);
 
   /**
    * Returns the resource manager.

@@ -158,7 +158,8 @@ class QueryBuilder implements QueryBuilderInterface {
    *   The condition object.
    */
   protected function newCondtionOption($condition_id, array $properties) {
-    $langcode = isset($properties['langcode']) ? $properties['langcode'] : NULL;
+    $langcode_key = $this->getLangcodeKey();
+    $langcode = isset($properties[$langcode_key]) ? $properties[$langcode_key] : NULL;
     $group = isset($properties[Filter::GROUP_KEY]) ? $properties[Filter::GROUP_KEY] : NULL;
     return new ConditionOption(
       $condition_id,
@@ -214,7 +215,8 @@ class QueryBuilder implements QueryBuilderInterface {
    *   The condition object.
    */
   protected function newExistsOptions($identifier, array $properties) {
-    $langcode = isset($properties['langcode']) ? $properties['langcode'] : NULL;
+    $langcode_key = $this->getLangcodeKey();
+    $langcode = isset($properties[$langcode_key]) ? $properties[$langcode_key] : NULL;
     $group = isset($properties[Filter::GROUP_KEY]) ? $properties[Filter::GROUP_KEY] : NULL;
     return new ExistsOption(
       $identifier,
@@ -278,6 +280,20 @@ class QueryBuilder implements QueryBuilderInterface {
     }
 
     return FALSE;
+  }
+
+  /**
+   * Get the language code key.
+   *
+   * @return string
+   *   The key.
+   */
+  protected function getLangcodeKey() {
+    $entity_type_id = $this->currentContext->getResourceConfig()
+      ->getEntityTypeId();
+    return $this->entityTypeManager
+      ->getDefinition($entity_type_id)
+      ->getKey('langcode');
   }
 
 }

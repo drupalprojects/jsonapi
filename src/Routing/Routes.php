@@ -4,6 +4,7 @@ namespace Drupal\jsonapi\Routing;
 
 use Drupal\Core\Authentication\AuthenticationCollectorInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Routing\Route;

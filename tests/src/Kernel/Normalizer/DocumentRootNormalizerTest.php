@@ -126,6 +126,15 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $document_wrapper->getData()->willReturn($this->node);
     $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
     $resource_config->getTypeName()->willReturn('article');
+
+    // Make sure the route contains the entity type and bundle.
+    $current_context = $this->container->get('jsonapi.current_context');
+    $route = $this->prophesize(Route::class);
+    $route->getRequirement('_entity_type')->willReturn('node_type');
+    $route->getRequirement('_bundle')->willReturn('node_type');
+    $current_context->setCurrentRoute($route->reveal());
+
+    $this->container->set('jsonapi.current_context', $current_context);
     $normalized = $this
       ->container
       ->get('serializer.normalizer.document_root.jsonapi')
@@ -187,6 +196,15 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $document_wrapper->getData()->willReturn($this->nodeType);
     $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
     $resource_config->getTypeName()->willReturn('node_type');
+
+    // Make sure the route contains the entity type and bundle.
+    $current_context = $this->container->get('jsonapi.current_context');
+    $route = $this->prophesize(Route::class);
+    $route->getRequirement('_entity_type')->willReturn('node_type');
+    $route->getRequirement('_bundle')->willReturn('node_type');
+    $current_context->setCurrentRoute($route->reveal());
+
+    $this->container->set('jsonapi.current_context', $current_context);
     $normalized = $this
       ->container
       ->get('serializer.normalizer.document_root.jsonapi')

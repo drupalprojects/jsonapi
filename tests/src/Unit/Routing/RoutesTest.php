@@ -4,7 +4,6 @@ namespace Drupal\Tests\jsonapi\Unit\Routing;
 
 use Drupal\Core\Authentication\AuthenticationCollectorInterface;
 use Drupal\Core\Config\ImmutableConfig;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\Routing\Routes;
@@ -17,6 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @package Drupal\Tests\jsonapi\Unit\Routing
  *
  * @coversDefaultClass \Drupal\jsonapi\Routing\Routes
+ *
  * @group jsonapi
  */
 class RoutesTest extends UnitTestCase {

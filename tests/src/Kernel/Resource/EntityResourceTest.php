@@ -15,6 +15,7 @@ use Drupal\user\Entity\User;
 use Drupal\user\RoleInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Route;
 
 /**
  * Class EntityResourceTest.
@@ -88,12 +89,17 @@ class EntityResourceTest extends KernelTestBase {
       ],
     ])->save();
 
+    $current_context = $this->container->get('jsonapi.current_context');
+    $route = $this->prophesize(Route::class);
+    $route->getRequirement('_entity_type')->willReturn('node');
+    $route->getRequirement('_bundle')->willReturn('article');
+    $current_context->setCurrentRoute($route->reveal());
     $this->entityResource = new EntityResource(
       $this->container->get('jsonapi.resource.manager')->get('node', 'article'),
       $this->container->get('entity_type.manager'),
       $this->container->get('jsonapi.query_builder'),
       $this->container->get('entity_field.manager'),
-      $this->container->get('jsonapi.current_context')
+      $current_context
     );
 
   }
@@ -161,12 +167,17 @@ class EntityResourceTest extends KernelTestBase {
     $request->attributes = $params->reveal();
 
     // Get the entity resource.
+    $current_context = $this->container->get('jsonapi.current_context');
+    $route = $this->prophesize(Route::class);
+    $route->getRequirement('_entity_type')->willReturn('node');
+    $route->getRequirement('_bundle')->willReturn('article');
+    $current_context->setCurrentRoute($route->reveal());
     $entity_resource = new EntityResource(
       $this->container->get('jsonapi.resource.manager')->get('node_type', 'node_type'),
       $this->container->get('entity_type.manager'),
       $this->container->get('jsonapi.query_builder'),
       $field_manager,
-      $this->container->get('jsonapi.current_context')
+      $current_context
     );
 
     // Get the response.
