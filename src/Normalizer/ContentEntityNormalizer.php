@@ -3,16 +3,17 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\ContentEntityInterface;
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
-use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
+use Symfony\Component\HttpKernel\Exception\PreconditionFailedHttpException;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
  * Converts the Drupal entity object structure to a HAL array structure.
  */
-class ContentEntityNormalizer extends NormalizerBase implements ContentEntityNormalizerInterface {
+class ContentEntityNormalizer extends NormalizerBase implements DenormalizerInterface, ContentEntityNormalizerInterface {
 
   /**
    * The interface or class that this Normalizer supports.
@@ -43,16 +44,24 @@ class ContentEntityNormalizer extends NormalizerBase implements ContentEntityNor
   protected $resourceManager;
 
   /**
+   * The current JSON API request context.
+   *
+   * @var \Drupal\jsonapi\Context\CurrentContextInterface
+   */
+  protected $currentContext;
+
+  /**
    * Constructs an ContentEntityNormalizer object.
    *
-   * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
-   *   The config resource manager.
    * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface $link_manager
    *   The link manager.
+   * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
+   *   The current context.
    */
-  public function __construct(ResourceManagerInterface $resource_manager, LinkManagerInterface $link_manager) {
-    $this->resourceManager = $resource_manager;
+  public function __construct(LinkManagerInterface $link_manager, CurrentContextInterface $current_context) {
     $this->linkManager = $link_manager;
+    $this->currentContext = $current_context;
+    $this->resourceManager = $current_context->getResourceManager();
   }
 
   /**
@@ -101,7 +110,20 @@ class ContentEntityNormalizer extends NormalizerBase implements ContentEntityNor
    * {@inheritdoc}
    */
   public function denormalize($data, $class, $format = NULL, array $context = array()) {
-    throw new \Exception('Denormalization not implemented for JSON API');
+    if (empty($context['resource_config']) || !$context['resource_config'] instanceof ResourceConfigInterface) {
+      throw new PreconditionFailedHttpException('Missing context during denormalization.');
+    }
+    $resource_config = $context['resource_config'];
+    $bundle_id = $resource_config->getBundleId();
+    $bundle_key = $this->resourceManager
+      ->getEntityTypeManager()
+      ->getDefinition($resource_config->getEntityTypeId())
+      ->getKey('bundle');
+    if ($bundle_key) {
+      $data[$bundle_key] = $bundle_id;
+    }
+
+    return $resource_config->getStorage()->create($data);
   }
 
   /**

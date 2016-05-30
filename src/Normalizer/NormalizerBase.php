@@ -18,4 +18,11 @@ abstract class NormalizerBase extends HalNormalizerBase {
    */
   protected $formats = array('api_json');
 
+  /**
+   * The resource manager.
+   *
+   * @var \Drupal\jsonapi\Configuration\ResourceManagerInterface
+   */
+  protected $resourceManager;
+
 }

@@ -20,6 +20,7 @@ use Symfony\Component\Routing\Route;
  * @package Drupal\jsonapi\Normalizer
  *
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\ContentEntityNormalizer
+ *
  * @group jsonapi
  */
 class DocumentRootNormalizerTest extends KernelTestBase {

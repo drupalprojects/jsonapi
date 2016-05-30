@@ -5,6 +5,7 @@ namespace Drupal\jsonapi;
 use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\jsonapi\Resource\EntityResource;
+use Drupal\jsonapi\Resource\DocumentWrapperInterface;
 use Drupal\rest\RequestHandler as RestRequestHandler;
 use Drupal\rest\ResourceResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -42,6 +43,11 @@ class RequestHandler extends RestRequestHandler {
     // plugin.
     $route_parameters = $route_match->getParameters();
     $parameters = array();
+
+    if (!is_null($unserialized)) {
+      array_push($unserialized, $parameters);
+    }
+
     // Filter out all internal parameters starting with "_".
     foreach ($route_parameters as $key => $parameter) {
       if ($key{0} !== '_') {
@@ -145,7 +151,7 @@ class RequestHandler extends RestRequestHandler {
     }
     $format = $request->getContentType();
     try {
-      return $serializer->deserialize($received, $serialization_class, $format, array('request_method' => $method));
+      return $serializer->deserialize($received, DocumentWrapperInterface::class, $format, array('request_method' => $method));
     }
     catch (UnexpectedValueException $e) {
       $error['error'] = $e->getMessage();
@@ -158,13 +164,19 @@ class RequestHandler extends RestRequestHandler {
    * Gets the method to execute in the entity resource.
    */
   protected function action(RouteMatchInterface $route_match, $method) {
-    if ($route_match->getRouteObject()->getDefault('_on_relationship')) {
-      return 'getRelationship';
+    switch ($method) {
+      case 'get':
+        if ($route_match->getRouteObject()->getDefault('_on_relationship')) {
+          return 'getRelationship';
+        }
+        elseif ($route_match->getParameter('related')) {
+          return 'getRelated';
+        }
+        return $this->getEntity($route_match) ? 'getIndividual' : 'getCollection';
+      case 'post':
+        $on_relationship = ($route_match->getRouteObject()->getDefault('_on_relationship'));
+        return ($on_relationship) ? 'createRelationship' : 'createIndividual';
     }
-    elseif ($route_match->getParameter('related')) {
-      return 'getRelated';
-    }
-    return $this->getEntity($route_match) ? 'getIndividual' : 'getCollection';
   }
 
   /**

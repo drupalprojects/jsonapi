@@ -83,6 +83,14 @@ interface ResourceConfigInterface {
   public function getGlobalConfig();
 
   /**
+   * Gets the underlying entity storage for the resource.
+   *
+   * @return \Drupal\Core\Entity\EntityStorageInterface
+   *   The appropriate entity storage interface.
+   */
+  public function getStorage();
+
+  /**
    * Gets the deserialization target class.
    *
    * @return string

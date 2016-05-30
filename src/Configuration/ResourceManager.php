@@ -91,4 +91,11 @@ class ResourceManager implements ResourceManagerInterface {
     return NULL;
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function getEntityTypeManager() {
+    return $this->entityTypeManager;
+  }
+
 }

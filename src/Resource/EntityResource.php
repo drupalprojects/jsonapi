@@ -97,6 +97,19 @@ class EntityResource implements EntityResourceInterface {
   /**
    * {@inheritdoc}
    */
+  public function createIndividual(EntityInterface $entity) {
+    $entity_access = $entity->access('create', NULL, TRUE);
+    if (!$entity_access->isAllowed()) {
+      throw new AccessDeniedHttpException('The current user is not allowed to POST the selected resource.');
+    }
+    $entity->save();
+    $response = $this->buildWrappedResponse($entity, 201);
+    return $response;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getCollection(Request $request) {
     // Instantiate the query for the filtering.
     $entity_type_id = $this->resourceConfig->getEntityTypeId();
@@ -208,12 +221,14 @@ class EntityResource implements EntityResourceInterface {
    *
    * @param mixed $data
    *   The data to wrap.
+   * @param int $response_code
+   *   The response code.
    *
    * @return \Drupal\rest\ResourceResponse
    *   The response.
    */
-  protected function buildWrappedResponse($data) {
-    return new ResourceResponse(new DocumentWrapper($data), 200);
+  protected function buildWrappedResponse($data, $response_code = 200) {
+    return new ResourceResponse(new DocumentWrapper($data), $response_code);
   }
 
   /**

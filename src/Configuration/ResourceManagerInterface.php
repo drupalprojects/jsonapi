@@ -31,4 +31,12 @@ interface ResourceManagerInterface {
    */
   public function get($entity_type_id, $bundle_id);
 
+  /**
+   * Get the entity type manager.
+   *
+   * @return \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
+   */
+  public function getEntityTypeManager();
+
 }

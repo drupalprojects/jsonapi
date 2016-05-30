@@ -24,6 +24,17 @@ interface EntityResourceInterface {
   public function getIndividual(EntityInterface $entity);
 
   /**
+   * Creates an individual entity.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The loaded entity.
+   *
+   * @return \Drupal\rest\ResourceResponse
+   *   The response.
+   */
+  public function createIndividual(EntityInterface $entity);
+
+  /**
    * Gets the collection of entities.
    *
    * @param \Symfony\Component\HttpFoundation\Request $request

@@ -134,6 +134,13 @@ class ResourceConfig implements ResourceConfigInterface {
   /**
    * {@inheritdoc}
    */
+  public function getStorage() {
+    return $this->entityTypeManager->getStorage($this->entityTypeId);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getDeserializationTargetClass() {
     return $this->deserializationTargetClass;
   }

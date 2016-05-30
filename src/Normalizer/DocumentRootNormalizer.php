@@ -2,21 +2,20 @@
 
 namespace Drupal\jsonapi\Normalizer;
 
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
-use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\Resource\DocumentWrapperInterface;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
-use Drupal\jsonapi\Context\CurrentContextInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
  * Class DocumentRootNormalizer.
  *
  * @package Drupal\jsonapi\Normalizer
  */
-class DocumentRootNormalizer extends NormalizerBase implements DocumentRootNormalizerInterface {
+class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInterface, DocumentRootNormalizerInterface {
 
   /**
    * The interface or class that this Normalizer supports.
@@ -26,13 +25,6 @@ class DocumentRootNormalizer extends NormalizerBase implements DocumentRootNorma
   protected $supportedInterfaceOrClass = DocumentWrapperInterface::class;
 
   /**
-   * The resource manager.
-   *
-   * @var \Drupal\jsonapi\Configuration\ResourceManagerInterface
-   */
-  protected $resourceManager;
-
-  /**
    * The link manager to get the links.
    *
    * @var \Drupal\jsonapi\LinkManager\LinkManagerInterface
@@ -40,24 +32,40 @@ class DocumentRootNormalizer extends NormalizerBase implements DocumentRootNorma
   protected $linkManager;
 
   /**
+   * The current JSON API request context.
+   *
+   * @var \Drupal\jsonapi\Context\CurrentContextInterface
+   */
+  protected $currentContext;
+
+  /**
    * Constructs an ContentEntityNormalizer object.
    *
    * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface $link_manager
    *   The link manager to get the links.
    * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
-   *   The current context service.
+   *   The current context.
    */
   public function __construct(LinkManagerInterface $link_manager, CurrentContextInterface $current_context) {
     $this->linkManager = $link_manager;
     $this->currentContext = $current_context;
-    $this->resourceManager = $current_context->getResourceManager();
   }
 
   /**
    * {@inheritdoc}
    */
   public function denormalize($data, $class, $format = NULL, array $context = array()) {
-    throw new \Exception('Denormalization not implemented for JSON API');
+    $context['resource_config'] = $this->currentContext->getResourceConfig();
+    $normalized = $data['data']['attributes'];
+    $normalized = array_merge($normalized, array_map(function ($relationship) {
+      return $relationship['data']['id'];
+    }, $data['data']['relationships']));
+    return $this->serializer->denormalize(
+      $normalized,
+      $context['resource_config']->getDeserializationTargetClass(),
+      'api_json',
+      $context
+    );
   }
 
   /**
@@ -109,9 +117,12 @@ class DocumentRootNormalizer extends NormalizerBase implements DocumentRootNorma
     $context = array(
       'account' => NULL,
       'sparse_fieldset' => NULL,
-      'resource_config' => $this->currentContext->getResourceConfig(),
+      'resource_config' => NULL,
       'include' => array_filter(explode(',', $request->query->get('include'))),
     );
+    if (isset($this->currentContext)) {
+      $context['resource_config'] = $this->currentContext->getResourceConfig();
+    }
     if ($fields_param = $request->query->get('fields')) {
       $context['sparse_fieldset'] = array_map(function ($item) {
         return explode(',', $item);
