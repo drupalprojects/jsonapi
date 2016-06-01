@@ -294,4 +294,32 @@ class EntityResourceTest extends KernelTestBase {
     $this->assertEmpty($response->getCacheableMetadata()->getCacheTags());
   }
 
+  /**
+   * @covers ::deleteIndividual
+   */
+  public function testDeleteIndividual() {
+    $node = Node::create([
+      'type' => 'article',
+      'title' => 'Lorem ipsum',
+    ]);
+    $nid = $node->id();
+    $node->save();
+    Role::load(Role::ANONYMOUS_ID)
+      ->grantPermission('delete own article content')
+      ->save();
+    $response = $this->entityResource->deleteIndividual($node);
+    // As a side effect, the node will also be deleted.
+    $count = $this->container->get('entity_type.manager')
+      ->getStorage('node')
+      ->getQuery()
+      ->condition('nid', $nid)
+      ->count()
+      ->execute();
+    $this->assertEquals(0, $count);
+    $this->assertNull($response->getResponseData());
+    $this->assertEquals(204, $response->getStatusCode());
+    // Make sure the DELETE request is not caching.
+    $this->assertEmpty($response->getCacheableMetadata()->getCacheTags());
+  }
+
 }

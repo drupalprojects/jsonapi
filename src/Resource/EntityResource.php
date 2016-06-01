@@ -103,8 +103,19 @@ class EntityResource implements EntityResourceInterface {
       throw new AccessDeniedHttpException('The current user is not allowed to POST the selected resource.');
     }
     $entity->save();
-    $response = $this->buildWrappedResponse($entity, 201);
-    return $response;
+    return $this->buildWrappedResponse($entity, 201);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function deleteIndividual(EntityInterface $entity) {
+    $entity_access = $entity->access('delete', NULL, TRUE);
+    if (!$entity_access->isAllowed()) {
+      throw new AccessDeniedHttpException('The current user is not allowed to DELETE the selected resource.');
+    }
+    $entity->delete();
+    return new ResourceResponse(NULL, 204);
   }
 
   /**
@@ -223,12 +234,14 @@ class EntityResource implements EntityResourceInterface {
    *   The data to wrap.
    * @param int $response_code
    *   The response code.
+   * @param array $headers
+   *   An array of response headers.
    *
    * @return \Drupal\rest\ResourceResponse
    *   The response.
    */
-  protected function buildWrappedResponse($data, $response_code = 200) {
-    return new ResourceResponse(new DocumentWrapper($data), $response_code);
+  protected function buildWrappedResponse($data, $response_code = 200, array $headers = array()) {
+    return new ResourceResponse(new DocumentWrapper($data), $response_code, $headers);
   }
 
   /**

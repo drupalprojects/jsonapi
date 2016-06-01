@@ -173,9 +173,14 @@ class RequestHandler extends RestRequestHandler {
           return 'getRelated';
         }
         return $this->getEntity($route_match) ? 'getIndividual' : 'getCollection';
+
       case 'post':
         $on_relationship = ($route_match->getRouteObject()->getDefault('_on_relationship'));
         return ($on_relationship) ? 'createRelationship' : 'createIndividual';
+
+      case 'delete':
+        $on_relationship = ($route_match->getRouteObject()->getDefault('_on_relationship'));
+        return ($on_relationship) ? 'deleteRelationship' : 'deleteIndividual';
     }
   }
 
