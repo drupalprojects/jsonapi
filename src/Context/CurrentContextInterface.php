@@ -65,12 +65,4 @@ interface CurrentContextInterface {
    */
   public function fromRequest(Request $request);
 
-  /**
-   * Configures the current context from a request stack.
-   *
-   * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
-   *   The request stack.
-   */
-  public function fromRequestStack(RequestStack $request_stack);
-
 }

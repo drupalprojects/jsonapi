@@ -50,9 +50,15 @@ class CurrentContext implements CurrentContextInterface {
    *
    * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
    *   The resource manager service.
+   * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
+   *   The request stack.
    */
-  public function __construct(ResourceManagerInterface $resource_manager) {
+  public function __construct(ResourceManagerInterface $resource_manager, RequestStack $request_stack) {
     $this->resourceManager = $resource_manager;
+    $this->currentRequest = $request_stack->getCurrentRequest();
+    if ($route = $this->currentRequest->get('_route_object')) {
+      $this->setCurrentRoute($route);
+    }
   }
 
   /**
@@ -60,14 +66,6 @@ class CurrentContext implements CurrentContextInterface {
    */
   public function fromRequest(Request $request) {
     $this->currentRequest = $request;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function fromRequestStack(RequestStack $request_stack) {
-    $this->currentRequest = $request_stack->getCurrentRequest();
-    $this->setCurrentRoute($this->currentRequest->get('_route_object'));
   }
 
   /**

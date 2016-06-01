@@ -98,9 +98,7 @@ class CurrentContextTest extends UnitTestCase {
    * @covers ::getResourceConfig
    */
   public function testGetResourceConfig() {
-    $request_context = new CurrentContext($this->resourceManager);
-    $request_context->fromRequestStack($this->requestStack);
-
+    $request_context = new CurrentContext($this->resourceManager, $this->requestStack);
     $resource_config = $request_context->getResourceConfig();
 
     $this->assertEquals(
@@ -113,9 +111,7 @@ class CurrentContextTest extends UnitTestCase {
    * @covers ::getCurrentRoute
    */
   public function testGetCurrentRouteMatch() {
-    $request_context = new CurrentContext($this->resourceManager);
-    $request_context->fromRequestStack($this->requestStack);
-
+    $request_context = new CurrentContext($this->resourceManager, $this->requestStack);
     $this->assertEquals(
       $this->currentRoute,
       $request_context->getCurrentRoute()
@@ -126,9 +122,7 @@ class CurrentContextTest extends UnitTestCase {
    * @covers ::getResourceManager
    */
   public function testGetResourceManager() {
-    $request_context = new CurrentContext($this->resourceManager);
-    $request_context->fromRequestStack($this->requestStack);
-
+    $request_context = new CurrentContext($this->resourceManager, $this->requestStack);
     $this->assertEquals(
       $this->resourceManager,
       $request_context->getResourceManager()
@@ -139,8 +133,7 @@ class CurrentContextTest extends UnitTestCase {
    * @covers ::getJsonApiParameter
    */
   public function testGetJsonApiParameter() {
-    $request_context = new CurrentContext($this->resourceManager);
-    $request_context->fromRequestStack($this->requestStack);
+    $request_context = new CurrentContext($this->resourceManager, $this->requestStack);
 
     $expected = new Sort([]);
     $actual = $request_context->getJsonApiParameter('sort');
