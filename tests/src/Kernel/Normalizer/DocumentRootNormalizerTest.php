@@ -231,9 +231,15 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $route->getPath()->willReturn('/article');
     $route->getRequirement('_entity_type')->willReturn('node');
     $route->getRequirement('_bundle')->willReturn('article');
+    $route->getDefault('_on_relationship')->willReturn(NULL);
     $request->get('_route_object')->willReturn($route->reveal());
     $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
-    $resource_config->getTypeName()->willReturn('node_type');
+    $resource_config->getTypeName()->willReturn('article');
+    $resource_config->getEntityTypeId()->willReturn('node');
+    $resource_config->getBundleId()->willReturn('article');
+    $resource_config->getDeserializationTargetClass()->willReturn('Drupal\node\Entity\Node');
+    $entity_type_manager = $this->container->get('entity_type.manager');
+    $resource_config->getStorage()->willReturn($entity_type_manager->getStorage('node'));
     /* @var \Symfony\Component\HttpFoundation\RequestStack $request_stack */
     $request_stack = $this->container->get('request_stack');
     $request_stack->push($request->reveal());

@@ -47,7 +47,6 @@ class RoutesTest extends UnitTestCase {
     // different in the future.
     $resource_config->getPath()->willReturn('/bundle_path_1');
     $resource_config->getTypeName()->willReturn('resource_type_1');
-    $resource_config->getDeserializationTargetClass()->willReturn('\Drupal\jsonapi\EntityType1');
     $resource_manager->all()->willReturn([$resource_config->reveal()]);
     $container = $this->prophesize(ContainerInterface::class);
     $container->get('jsonapi.resource.manager')->willReturn($resource_manager->reveal());
@@ -82,7 +81,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['GET', 'POST'], $route->getMethods());
     $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault('_controller'));
-    $this->assertSame('\Drupal\jsonapi\EntityType1', $route->getOption('serialization_class'));
+    $this->assertSame('Drupal\jsonapi\Resource\DocumentWrapperInterface', $route->getOption('serialization_class'));
   }
 
   /**
@@ -100,7 +99,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertEquals(['GET', 'PATCH', 'DELETE'], $route->getMethods());
     $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault('_controller'));
-    $this->assertSame('\Drupal\jsonapi\EntityType1', $route->getOption('serialization_class'));
+    $this->assertSame('Drupal\jsonapi\Resource\DocumentWrapperInterface', $route->getOption('serialization_class'));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
   }
@@ -141,6 +140,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault('_controller'));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
+    $this->assertSame('Drupal\Core\Field\EntityReferenceFieldItemList', $route->getOption('serialization_class'));
   }
 
 }

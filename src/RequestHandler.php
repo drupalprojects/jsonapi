@@ -4,6 +4,7 @@ namespace Drupal\jsonapi;
 
 use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\Resource\EntityResource;
 use Drupal\jsonapi\Resource\DocumentWrapperInterface;
 use Drupal\rest\RequestHandler as RestRequestHandler;
@@ -37,7 +38,9 @@ class RequestHandler extends RestRequestHandler {
     // Deserialize incoming data if available.
     /* @var \Symfony\Component\Serializer\SerializerInterface $serializer */
     $serializer = $this->container->get('serializer');
-    $unserialized = $this->deserializeBody($request, $serializer, $route->getOption('serialization_class'));
+    /* @var \Drupal\jsonapi\Context\CurrentContextInterface $current_context */
+    $current_context = $this->container->get('jsonapi.current_context');
+    $unserialized = $this->deserializeBody($request, $serializer, $route->getOption('serialization_class'), $current_context);
 
     // Determine the request parameters that should be passed to the resource
     // plugin.
@@ -69,8 +72,6 @@ class RequestHandler extends RestRequestHandler {
     $query_builder = $this->container->get('jsonapi.query_builder');
     /* @var \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager */
     $field_manager = $this->container->get('entity_field.manager');
-    /* @var \Drupal\jsonapi\Context\CurrentContextInterface $current_context */
-    $current_context = $this->container->get('jsonapi.current_context');
     $resource = new EntityResource($resource_manager->get(
       $route->getRequirement('_entity_type'),
       $route->getRequirement('_bundle')
@@ -143,7 +144,7 @@ class RequestHandler extends RestRequestHandler {
    *
    * @todo Add this docblock.
    */
-  protected function deserializeBody(Request $request, SerializerInterface $serializer, $serialization_class) {
+  protected function deserializeBody(Request $request, SerializerInterface $serializer, $serialization_class, CurrentContextInterface $current_context) {
     $received = $request->getContent();
     $method = strtolower($request->getMethod());
     if (empty($received)) {
@@ -151,7 +152,12 @@ class RequestHandler extends RestRequestHandler {
     }
     $format = $request->getContentType();
     try {
-      return $serializer->deserialize($received, DocumentWrapperInterface::class, $format, array('request_method' => $method));
+      return $serializer->deserialize($received, $serialization_class, $format, [
+        'request_method' => $method,
+        'related' => $request->get('related'),
+        'target_entity' => $request->get($current_context->getResourceConfig()->getEntityTypeId()),
+        'resource_config' => $current_context->getResourceConfig(),
+      ]);
     }
     catch (UnexpectedValueException $e) {
       $error['error'] = $e->getMessage();

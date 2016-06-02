@@ -21,9 +21,10 @@ use Prophecy\Argument;
  * @package Drupal\Tests\jsonapi\Unit\Normalizer\Value
  *
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValue
+ *
  * @group jsonapi
  */
-class ContentEntityNormalizerValueTest extends UnitTestCase{
+class ContentEntityNormalizerValueTest extends UnitTestCase {
 
   /**
    * The ContentEntityNormalizerValue object.

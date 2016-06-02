@@ -113,6 +113,7 @@ class ContentEntityNormalizer extends NormalizerBase implements DenormalizerInte
     if (empty($context['resource_config']) || !$context['resource_config'] instanceof ResourceConfigInterface) {
       throw new PreconditionFailedHttpException('Missing context during denormalization.');
     }
+    /* @var \Drupal\jsonapi\Configuration\ResourceConfigInterface $resource_config */
     $resource_config = $context['resource_config'];
     $bundle_id = $resource_config->getBundleId();
     $bundle_key = $this->resourceManager

@@ -2,6 +2,8 @@
 
 namespace Drupal\jsonapi\Normalizer;
 
+use Symfony\Component\Serializer\Exception\UnexpectedValueException;
+
 /**
  * Class ScalarNormalizer.
  *
@@ -34,8 +36,7 @@ class ScalarNormalizer extends NormalizerBase {
    * {@inheritdoc}
    */
   public function denormalize($data, $class, $format = NULL, array $context = array()) {
-    throw new \Exception('Denormalization not implemented for JSON API');
+    throw new UnexpectedValueException('Denormalization not implemented for JSON API');
   }
-
 
 }

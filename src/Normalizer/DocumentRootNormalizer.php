@@ -55,7 +55,9 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
    * {@inheritdoc}
    */
   public function denormalize($data, $class, $format = NULL, array $context = array()) {
-    $context['resource_config'] = $this->currentContext->getResourceConfig();
+    $context += [
+      'on_relationship' => (bool) $this->currentContext->getCurrentRoute()->getDefault('_on_relationship'),
+    ];
     $normalized = [];
     if (!empty($data['data']['attributes'])) {
       $normalized = $data['data']['attributes'];
@@ -66,6 +68,8 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
         return $relationship['data']['id'];
       }, $data['data']['relationships']));
     }
+    // Overwrite the serialization target class with the one in the resource
+    // config.
     $class = $context['resource_config']->getDeserializationTargetClass();
     return $this->serializer
       ->denormalize($normalized, $class, $format, $context);
@@ -75,6 +79,7 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
    * {@inheritdoc}
    */
   public function normalize($object, $format = NULL, array $context = array()) {
+    $context += ['resource_config' => $this->currentContext->getResourceConfig()];
     $value_extractor = $this->buildNormalizerValue($object->getData(), $format, $context);
     $normalized = $value_extractor->rasterizeValue();
     $included = array_filter($value_extractor->rasterizeIncludes());

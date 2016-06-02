@@ -3,6 +3,7 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
+use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 
 /**
  * Class ConfigEntityNormalizer.
@@ -57,7 +58,7 @@ class ConfigEntityNormalizer extends ContentEntityNormalizer {
    * {@inheritdoc}
    */
   public function denormalize($data, $class, $format = NULL, array $context = array()) {
-    throw new \Exception('Denormalization not implemented for JSON API');
+    throw new UnexpectedValueException('Denormalization not implemented for JSON API');
   }
 
 }

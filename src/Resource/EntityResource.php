@@ -5,16 +5,16 @@ namespace Drupal\jsonapi\Resource;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\RequestCacheabilityDependency;
-use Drupal\jsonapi\Routing\Param\JsonApiParamInterface;
 use Drupal\jsonapi\Query\QueryBuilderInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\rest\ResourceResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -173,6 +173,42 @@ class EntityResource implements EntityResourceInterface {
     }
     $response = $this->buildWrappedResponse($field_list);
     $this->addCacheabilityMetadata($response, $entity);
+    return $response;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function createRelationship(EntityInterface $entity, $related_field, $parsed_field_list) {
+    if ($parsed_field_list instanceof Response) {
+      // This usually means that there was an error, so there is no point on
+      // processing further.
+      return $parsed_field_list;
+    }
+    /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $parsed_field_list */
+    $entity_access = $entity->access('update', NULL, TRUE);
+    if (!$entity_access->isAllowed()) {
+      throw new AccessDeniedHttpException('The current user is not allowed to POST the selected resource.');
+    }
+    /* @var $field_list \Drupal\Core\Field\FieldItemListInterface */
+    if (!($field_list = $entity->get($related_field)) || $field_list->getDataDefinition()->getType() != 'entity_reference') {
+      throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
+    }
+    // According to the specification, you are only allowed to POST to a
+    // relationship if it is a to-many relationship.
+    $is_multiple = $field_list->getFieldDefinition()
+      ->getFieldStorageDefinition()
+      ->isMultiple();
+    if (!$is_multiple) {
+      throw new ConflictHttpException(sprintf('You can only POST to to-many relationships. %s is a to-one relationship.', $related_field));
+    }
+
+    // Time to save the relationship.
+    foreach ($parsed_field_list as $field_item) {
+      $field_list->appendItem($field_item->getValue());
+    }
+    $entity->save();
+    $response = $this->buildWrappedResponse($field_list, 201);
     return $response;
   }
 

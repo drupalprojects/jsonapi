@@ -22,7 +22,7 @@ services:
     class: Drupal\jsonapi\Normalizer\EntityReferenceFieldNormalizer
     tags:
       - { name: normalizer, priority: 31 }
-    arguments: ['@jsonapi.link_manager']
+    arguments: ['@jsonapi.link_manager', '@entity_field.manager', '@plugin.manager.field.field_type', '@jsonapi.resource.manager']
   serializer.normalizer.entity.jsonapi:
     class: Drupal\jsonapi\Normalizer\ContentEntityNormalizer
     arguments: ['@jsonapi.link_manager', '@jsonapi.current_context']

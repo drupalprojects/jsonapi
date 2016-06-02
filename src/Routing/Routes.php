@@ -5,7 +5,9 @@ namespace Drupal\jsonapi\Routing;
 use Drupal\Core\Authentication\AuthenticationCollectorInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\Resource\DocumentWrapperInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
@@ -93,8 +95,8 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_bundle', $bundle)
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
-        ->setOption('serialization_class', $resource->getDeserializationTargetClass())
         ->setOption('_auth', $this->authProviderList())
+        ->setOption('serialization_class', DocumentWrapperInterface::class)
         ->setMethods(['GET', 'POST']));
 
       // Individual endpoint, like /api/photos/123.
@@ -106,8 +108,8 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setOption('parameters', $parameters)
-        ->setOption('serialization_class', $resource->getDeserializationTargetClass())
         ->setOption('_auth', $this->authProviderList())
+        ->setOption('serialization_class', DocumentWrapperInterface::class)
         ->setMethods(['GET', 'PATCH', 'DELETE']));
 
       // Related endpoint, like /api/photos/123/comments.
@@ -121,7 +123,7 @@ class Routes implements ContainerInjectionInterface {
         ->setOption('_auth', $this->authProviderList())
         ->setMethods(['GET']));
 
-      // Related endpoint, like /api/photos/123/comments.
+      // Related endpoint, like /api/photos/123/relationships/comments.
       $collection->add($route_key . 'relationship', (new Route(sprintf('%s/{%s}/relationships/{related}', $partial_path, $entity_type)))
         ->addDefaults($defaults + ['_on_relationship' => TRUE])
         ->setRequirement('_entity_type', $entity_type)
@@ -130,6 +132,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_format', 'api_json')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
+        ->setOption('serialization_class', EntityReferenceFieldItemList::class)
         ->setMethods(['GET', 'POST', 'DELETE']));
     }
 
