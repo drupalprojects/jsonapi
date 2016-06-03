@@ -184,6 +184,10 @@ class RequestHandler extends RestRequestHandler {
         $on_relationship = ($route_match->getRouteObject()->getDefault('_on_relationship'));
         return ($on_relationship) ? 'createRelationship' : 'createIndividual';
 
+      case 'patch':
+        $on_relationship = ($route_match->getRouteObject()->getDefault('_on_relationship'));
+        return ($on_relationship) ? 'patchRelationship' : 'patchIndividual';
+
       case 'delete':
         $on_relationship = ($route_match->getRouteObject()->getDefault('_on_relationship'));
         return ($on_relationship) ? 'deleteRelationship' : 'deleteIndividual';

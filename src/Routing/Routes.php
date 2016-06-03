@@ -133,7 +133,7 @@ class Routes implements ContainerInjectionInterface {
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
         ->setOption('serialization_class', EntityReferenceFieldItemList::class)
-        ->setMethods(['GET', 'POST', 'DELETE']));
+        ->setMethods(['GET', 'POST', 'PATCH', 'DELETE']));
     }
 
     return $collection;

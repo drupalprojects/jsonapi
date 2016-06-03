@@ -136,7 +136,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame('/api/bundle_path_1/{entity_type_1}/relationships/{related}', $route->getPath());
     $this->assertSame('entity_type_1', $route->getRequirement('_entity_type'));
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
-    $this->assertEquals(['GET', 'POST', 'DELETE'], $route->getMethods());
+    $this->assertEquals(['GET', 'POST', 'PATCH', 'DELETE'], $route->getMethods());
     $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault('_controller'));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));

@@ -66,6 +66,13 @@ class EntityResourceTest extends KernelTestBase {
   protected $node;
 
   /**
+   * The other node.
+   *
+   * @var \Drupal\node\Entity\Node
+   */
+  protected $node2;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp() {
@@ -96,8 +103,14 @@ class EntityResourceTest extends KernelTestBase {
       'type' => 'article',
       'uid' => $this->user->id(),
     ]);
-
     $this->node->save();
+
+    $this->node2 = Node::create([
+      'type' => 'article',
+      'title' => 'Another test node',
+      'uid' => $this->user->id(),
+    ]);
+    $this->node2->save();
 
     // Give anonymous users permission to view user profiles, so that we can
     // verify the cache tags of cached versions of user profile pages.
@@ -164,7 +177,7 @@ class EntityResourceTest extends KernelTestBase {
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
     $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
     $this->assertEquals(1, $response->getResponseData()->getData()->getIterator()->current()->id());
-    $this->assertEquals(['node:1', 'node_list'], $response->getCacheableMetadata()->getCacheTags());
+    $this->assertEquals(['node:1', 'node:2', 'node_list'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -307,7 +320,7 @@ class EntityResourceTest extends KernelTestBase {
     // As a side effect, the node will also be saved.
     $this->assertNotEmpty($node->id());
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
-    $this->assertEquals(2, $response->getResponseData()->getData()->id());
+    $this->assertEquals(3, $response->getResponseData()->getData()->id());
     $this->assertEquals(201, $response->getStatusCode());
     // Make sure the POST request is not caching.
     $this->assertEmpty($response->getCacheableMetadata()->getCacheTags());
@@ -342,7 +355,7 @@ class EntityResourceTest extends KernelTestBase {
   }
 
   /**
-   * @covers ::createIndividual
+   * @covers ::createRelationship
    */
   public function testCreateRelationship() {
     $parsed_field_list = $this->container
@@ -365,7 +378,50 @@ class EntityResourceTest extends KernelTestBase {
     $this->assertEquals([['target_id' => 1]], $field_list->getValue());
     $this->assertEquals(201, $response->getStatusCode());
     // Make sure the POST request is not caching.
-    $this->assertEmpty($response->getCacheableMetadata()->getCacheTags());
+    $this->assertEquals(['node:1'], $response->getCacheableMetadata()->getCacheTags());
+  }
+
+  /**
+   * @covers ::patchRelationship
+   * @dataProvider patchRelationshipProvider
+   */
+  public function testPatchRelationship($relationships) {
+    $this->node->field_relationships->appendItem(['target_id' => $this->node->id()]);
+    $this->node->save();
+    $parsed_field_list = $this->container
+      ->get('plugin.manager.field.field_type')
+      ->createFieldItemList($this->node, 'field_relationships', $relationships);
+    Role::load(Role::ANONYMOUS_ID)
+      ->grantPermission('edit any article content')
+      ->save();
+
+    $response = $this->entityResource->patchRelationship($this->node, 'field_relationships', $parsed_field_list);
+
+    // As a side effect, the node will also be saved.
+    $this->assertNotEmpty($this->node->id());
+    $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
+    $field_list = $response->getResponseData()->getData();
+    $this->assertInstanceOf(EntityReferenceFieldItemListInterface::class, $field_list);
+    $this->assertSame('field_relationships', $field_list->getName());
+    $this->assertEquals($relationships, $field_list->getValue());
+    $this->assertEquals(201, $response->getStatusCode());
+    // Make sure the POST request is not caching.
+    $this->assertEquals(['node:1'], $response->getCacheableMetadata()->getCacheTags());
+  }
+
+  /**
+   * Provides data for the testPatchRelationship.
+   *
+   * @return array
+   *   The input data for the test function.
+   */
+  public function patchRelationshipProvider() {
+    return [
+      // Replace relationships.
+      [[['target_id' => 2], ['target_id' => 1]]],
+      // Remove relationships.
+      [[]],
+    ];
   }
 
   /**

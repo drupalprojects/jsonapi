@@ -5,8 +5,8 @@ namespace Drupal\jsonapi\Normalizer;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
+use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -116,6 +116,8 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
     $property_key = $item_definition->getMainPropertyName();
     $target_resources = $this->getAllowedResourceTypes($item_definition);
 
+    $is_multiple = $field_definition->getFieldStorageDefinition()->isMultiple();
+    $data = $this->massageRelationshipInput($data, $is_multiple);
     $values = array_map(function ($value) use ($property_key, $target_resources) {
       // Make sure that the provided type is compatible with the targeted
       // resource.
@@ -133,15 +135,52 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
   }
 
   /**
+   * Validates and massages the relationship input depending on the cardinality.
+   *
+   * @param array $data
+   *   The input data from the body.
+   * @param bool $is_multiple
+   *   Indicates if the relationship is to-many.
+   *
+   * @return array
+   *   The massaged data array.
+   */
+  protected function massageRelationshipInput($data, $is_multiple) {
+    if ($is_multiple) {
+      if (!is_array($data['data'])) {
+        throw new BadRequestHttpException('Invalid body payload for the relationship.');
+      }
+      // Leave the invalid elements.
+      $invalid_elements = array_filter($data['data'], function ($element) {
+        return empty($element['type']) || empty($element['id']);
+      });
+      if ($invalid_elements) {
+        throw new BadRequestHttpException('Invalid body payload for the relationship.');
+      }
+    }
+    else {
+      // For to-one relationships you can have a NULL value.
+      if (is_null($data['data'])) {
+        return ['data' => []];
+      }
+      if (empty($data['data']['type']) || empty($data['data']['id'])) {
+        throw new BadRequestHttpException('Invalid body payload for the relationship.');
+      }
+      $data['data'] = [$data['data']];
+    }
+    return $data;
+  }
+
+  /**
    * Build the list of resource types supported by this entity reference field.
    *
-   * @param \Drupal\Core\Field\FieldStorageDefinitionInterface $item_definition
+   * @param \Drupal\Core\Field\TypedData\FieldItemDataDefinition $item_definition
    *   The field item definition.
    *
    * @return string[]
    *   List of resource types.
    */
-  protected function getAllowedResourceTypes(FieldStorageDefinitionInterface $item_definition) {
+  protected function getAllowedResourceTypes(FieldItemDataDefinition $item_definition) {
     // Build the list of allowed resources.
     $target_entity_id = $item_definition->getSetting('target_type');
     $handler_settings = $item_definition->getSetting('handler_settings');
