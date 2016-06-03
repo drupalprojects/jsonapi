@@ -99,7 +99,13 @@ class EntityResource implements EntityResourceInterface {
   /**
    * {@inheritdoc}
    */
-  public function createIndividual(EntityInterface $entity) {
+  public function createIndividual($entity) {
+    if ($entity instanceof Response) {
+      // This usually means that there was an error, so there is no point on
+      // processing further.
+      return $entity;
+    }
+
     $entity_access = $entity->access('create', NULL, TRUE);
     if (!$entity_access->isAllowed()) {
       throw new AccessDeniedHttpException('The current user is not allowed to POST the selected resource.');
