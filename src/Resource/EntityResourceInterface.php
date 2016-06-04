@@ -2,7 +2,6 @@
 
 
 namespace Drupal\jsonapi\Resource;
-
 use Drupal\Core\Entity\EntityInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -18,22 +17,24 @@ interface EntityResourceInterface {
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The loaded entity.
+   * @param int $response_code
+   *   The response code. Defaults to 200.
    *
    * @return \Drupal\rest\ResourceResponse
    *   The response.
    */
-  public function getIndividual(EntityInterface $entity);
+  public function getIndividual(EntityInterface $entity, $response_code = 200);
 
   /**
    * Creates an individual entity.
    *
-   * @param \Drupal\Core\Entity\EntityInterface|\Symfony\Component\HttpFoundation\Response $entity
+   * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The loaded entity.
    *
    * @return \Drupal\rest\ResourceResponse
    *   The response.
    */
-  public function createIndividual($entity);
+  public function createIndividual(EntityInterface $entity);
 
   /**
    * Patches an individual entity.

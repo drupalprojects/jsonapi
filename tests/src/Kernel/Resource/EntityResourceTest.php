@@ -323,7 +323,29 @@ class EntityResourceTest extends KernelTestBase {
     $this->assertEquals(3, $response->getResponseData()->getData()->id());
     $this->assertEquals(201, $response->getStatusCode());
     // Make sure the POST request is not caching.
-    $this->assertEmpty($response->getCacheableMetadata()->getCacheTags());
+    $this->assertEquals(['node:3'], $response->getCacheableMetadata()->getCacheTags());
+  }
+
+  /**
+   * @covers ::createIndividual
+   */
+  public function testCreateIndividualConfig() {
+    $node_type = NodeType::create([
+      'type' => 'test',
+      'name' => 'Test Type',
+      'description' => 'Lorem ipsum',
+    ]);
+    Role::load(Role::ANONYMOUS_ID)
+      ->grantPermission('administer content types')
+      ->save();
+    $response = $this->entityResource->createIndividual($node_type);
+    // As a side effect, the node type will also be saved.
+    $this->assertNotEmpty($node_type->id());
+    $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
+    $this->assertEquals('test', $response->getResponseData()->getData()->id());
+    $this->assertEquals(201, $response->getStatusCode());
+    // Make sure the POST request is not caching.
+    $this->assertEquals(['config:node.type.test'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**

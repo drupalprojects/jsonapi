@@ -2,6 +2,7 @@
 
 namespace Drupal\jsonapi\Resource;
 
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -86,12 +87,12 @@ class EntityResource implements EntityResourceInterface {
   /**
    * {@inheritdoc}
    */
-  public function getIndividual(EntityInterface $entity) {
+  public function getIndividual(EntityInterface $entity, $response_code = 200) {
     $entity_access = $entity->access('view', NULL, TRUE);
     if (!$entity_access->isAllowed()) {
       throw new AccessDeniedHttpException('The current user is not allowed to GET the selected resource.');
     }
-    $response = $this->buildWrappedResponse($entity);
+    $response = $this->buildWrappedResponse($entity, $response_code);
     $this->addCacheabilityMetadata($response, $entity);
     return $response;
   }
@@ -99,19 +100,13 @@ class EntityResource implements EntityResourceInterface {
   /**
    * {@inheritdoc}
    */
-  public function createIndividual($entity) {
-    if ($entity instanceof Response) {
-      // This usually means that there was an error, so there is no point on
-      // processing further.
-      return $entity;
-    }
-
+  public function createIndividual(EntityInterface $entity) {
     $entity_access = $entity->access('create', NULL, TRUE);
     if (!$entity_access->isAllowed()) {
       throw new AccessDeniedHttpException('The current user is not allowed to POST the selected resource.');
     }
     $entity->save();
-    return $this->buildWrappedResponse($entity, 201);
+    return $this->getIndividual($entity, 201);
   }
 
   /**

@@ -65,13 +65,7 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
     if (!empty($data['data']['relationships'])) {
       // Add the relationship ids.
       $normalized = array_merge($normalized, array_map(function ($relationship) {
-        // Make the to-one relationships into an array.
-        if (!is_array($relationship['data'][0])) {
-          $relationship['data'] = [$relationship['data']];
-        }
-        return array_map(function ($rel_item) {
-          return $rel_item['id'];
-        }, $relationship['data']);
+        return $relationship['data']['id'];
       }, $data['data']['relationships']));
     }
     // Overwrite the serialization target class with the one in the resource

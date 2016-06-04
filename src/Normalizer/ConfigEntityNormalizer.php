@@ -54,11 +54,4 @@ class ConfigEntityNormalizer extends ContentEntityNormalizer {
     return $output;
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function denormalize($data, $class, $format = NULL, array $context = array()) {
-    throw new UnexpectedValueException('Denormalization not implemented for JSON API');
-  }
-
 }
