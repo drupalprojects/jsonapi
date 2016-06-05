@@ -6,12 +6,12 @@ use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\Resource\EntityResource;
-use Drupal\jsonapi\Resource\DocumentWrapperInterface;
 use Drupal\rest\RequestHandler as RestRequestHandler;
 use Drupal\rest\ResourceResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Routing\Route;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -64,18 +64,8 @@ class RequestHandler extends RestRequestHandler {
     // format requirement. If there is no format associated, just pick JSON.
     $format = 'api_json';
     $action = $this->action($route_match, $method);
-    /** @var \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager */
-    $resource_manager = $this->container->get('jsonapi.resource.manager');
-    /* @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager */
-    $entity_type_manager = $this->container->get('entity_type.manager');
-    /* @var \Drupal\jsonapi\Query\QueryBuilderInterface $query_builder */
-    $query_builder = $this->container->get('jsonapi.query_builder');
-    /* @var \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager */
-    $field_manager = $this->container->get('entity_field.manager');
-    $resource = new EntityResource($resource_manager->get(
-      $route->getRequirement('_entity_type'),
-      $route->getRequirement('_bundle')
-    ), $entity_type_manager, $query_builder, $field_manager, $current_context);
+    $resource = $this->resourceFactory($route, $current_context);
+
     // Only add the unserialized data if there is something there.
     $extra_parameters = $unserialized ? [$unserialized, $request] : [$request];
     try {
@@ -168,11 +158,20 @@ class RequestHandler extends RestRequestHandler {
 
   /**
    * Gets the method to execute in the entity resource.
+   *
+   * @param \Drupal\Core\Routing\RouteMatchInterface $route_match
+   *   The route match.
+   * @param string $method
+   *   The lowercase HTTP method.
+   *
+   * @return string
+   *   The method to execute in the EntityResource.
    */
   protected function action(RouteMatchInterface $route_match, $method) {
+    $on_relationship = ($route_match->getRouteObject()->getDefault('_on_relationship'));
     switch ($method) {
       case 'get':
-        if ($route_match->getRouteObject()->getDefault('_on_relationship')) {
+        if ($on_relationship) {
           return 'getRelationship';
         }
         elseif ($route_match->getParameter('related')) {
@@ -181,15 +180,12 @@ class RequestHandler extends RestRequestHandler {
         return $this->getEntity($route_match) ? 'getIndividual' : 'getCollection';
 
       case 'post':
-        $on_relationship = ($route_match->getRouteObject()->getDefault('_on_relationship'));
         return ($on_relationship) ? 'createRelationship' : 'createIndividual';
 
       case 'patch':
-        $on_relationship = ($route_match->getRouteObject()->getDefault('_on_relationship'));
         return ($on_relationship) ? 'patchRelationship' : 'patchIndividual';
 
       case 'delete':
-        $on_relationship = ($route_match->getRouteObject()->getDefault('_on_relationship'));
         return ($on_relationship) ? 'deleteRelationship' : 'deleteIndividual';
     }
   }
@@ -206,6 +202,32 @@ class RequestHandler extends RestRequestHandler {
   protected function getEntity(RouteMatchInterface $route_match) {
     $route = $route_match->getRouteObject();
     return $route_match->getParameter($route->getRequirement('_entity_type'));
+  }
+
+  /**
+   * Get the resource.
+   *
+   * @param \Symfony\Component\Routing\Route $route
+   *   The matched route.
+   * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
+   *   The current context.
+   *
+   * @return \Drupal\jsonapi\Resource\EntityResourceInterface
+   *   The instantiated resource.
+   */
+  protected function resourceFactory(Route $route, CurrentContextInterface $current_context) {
+    /** @var \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager */
+    $resource_manager = $this->container->get('jsonapi.resource.manager');
+    /* @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager */
+    $entity_type_manager = $this->container->get('entity_type.manager');
+    /* @var \Drupal\jsonapi\Query\QueryBuilderInterface $query_builder */
+    $query_builder = $this->container->get('jsonapi.query_builder');
+    /* @var \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager */
+    $field_manager = $this->container->get('entity_field.manager');
+    /* @var \Drupal\Core\Field\FieldTypePluginManagerInterface $plugin_manager */
+    $plugin_manager = $this->container->get('plugin.manager.field.field_type');
+    $resource = new EntityResource($resource_manager->get($route->getRequirement('_entity_type'), $route->getRequirement('_bundle')), $entity_type_manager, $query_builder, $field_manager, $current_context, $plugin_manager);
+    return $resource;
   }
 
 }

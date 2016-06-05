@@ -2,11 +2,11 @@
 
 namespace Drupal\jsonapi\Resource;
 
-use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
+use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\RequestCacheabilityDependency;
@@ -63,6 +63,13 @@ class EntityResource implements EntityResourceInterface {
   protected $currentContext;
 
   /**
+   * The current context service.
+   *
+   * @var \Drupal\Core\Field\FieldTypePluginManagerInterface
+   */
+  protected $pluginManager;
+
+  /**
    * Instantiates a EntityResource object.
    *
    * @param \Drupal\jsonapi\Configuration\ResourceConfigInterface $resource_config
@@ -75,19 +82,22 @@ class EntityResource implements EntityResourceInterface {
    *   The entity type field manager.
    * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
    *   The current context.
+   * @param \Drupal\Core\Field\FieldTypePluginManagerInterface $plugin_manager
+   *   The plugin manager for fields.
    */
-  public function __construct(ResourceConfigInterface $resource_config, EntityTypeManagerInterface $entity_type_manager, QueryBuilderInterface $query_builder, EntityFieldManagerInterface $field_manager, CurrentContextInterface $current_context) {
+  public function __construct(ResourceConfigInterface $resource_config, EntityTypeManagerInterface $entity_type_manager, QueryBuilderInterface $query_builder, EntityFieldManagerInterface $field_manager, CurrentContextInterface $current_context, FieldTypePluginManagerInterface $plugin_manager) {
     $this->resourceConfig = $resource_config;
     $this->entityTypeManager = $entity_type_manager;
     $this->queryBuilder = $query_builder;
     $this->fieldManager = $field_manager;
     $this->currentContext = $current_context;
+    $this->pluginManager = $plugin_manager;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getIndividual(EntityInterface $entity, $response_code = 200) {
+  public function getIndividual(EntityInterface $entity, Request $request, $response_code = 200) {
     $entity_access = $entity->access('view', NULL, TRUE);
     if (!$entity_access->isAllowed()) {
       throw new AccessDeniedHttpException('The current user is not allowed to GET the selected resource.');
@@ -100,26 +110,26 @@ class EntityResource implements EntityResourceInterface {
   /**
    * {@inheritdoc}
    */
-  public function createIndividual(EntityInterface $entity) {
+  public function createIndividual(EntityInterface $entity, Request $request) {
     $entity_access = $entity->access('create', NULL, TRUE);
     if (!$entity_access->isAllowed()) {
       throw new AccessDeniedHttpException('The current user is not allowed to POST the selected resource.');
     }
     $entity->save();
-    return $this->getIndividual($entity, 201);
+    return $this->getIndividual($entity, $request, 201);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function patchIndividual(EntityInterface $entity, EntityInterface $parsed_entity) {
+  public function patchIndividual(EntityInterface $entity, EntityInterface $parsed_entity, Request $request) {
     throw new \InvalidArgumentException('Operation not yet supported.');
   }
 
   /**
    * {@inheritdoc}
    */
-  public function deleteIndividual(EntityInterface $entity) {
+  public function deleteIndividual(EntityInterface $entity, Request $request) {
     $entity_access = $entity->access('delete', NULL, TRUE);
     if (!$entity_access->isAllowed()) {
       throw new AccessDeniedHttpException('The current user is not allowed to DELETE the selected resource.');
@@ -153,14 +163,14 @@ class EntityResource implements EntityResourceInterface {
   /**
    * {@inheritdoc}
    */
-  public function getRelated(EntityInterface $entity, $related_field) {
+  public function getRelated(EntityInterface $entity, $related_field, Request $request) {
     /* @var $field_list \Drupal\Core\Field\FieldItemListInterface */
     if (!($field_list = $entity->get($related_field)) || $field_list->getDataDefinition()->getType() != 'entity_reference') {
       throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
     }
     $data_definition = $field_list->getDataDefinition();
     if (!$is_multiple = $data_definition->getFieldStorageDefinition()->isMultiple()) {
-      return $this->getIndividual($field_list->entity);
+      return $this->getIndividual($field_list->entity, $request);
     }
     $entities = [];
     foreach ($field_list as $field_item) {
@@ -176,7 +186,7 @@ class EntityResource implements EntityResourceInterface {
   /**
    * {@inheritdoc}
    */
-  public function getRelationship(EntityInterface $entity, $related_field, $response_code = 200) {
+  public function getRelationship(EntityInterface $entity, $related_field, Request $request, $response_code = 200) {
     /* @var $field_list \Drupal\Core\Field\FieldItemListInterface */
     if (!($field_list = $entity->{$related_field}) || $field_list->getDataDefinition()->getType() != 'entity_reference') {
       throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
@@ -189,23 +199,18 @@ class EntityResource implements EntityResourceInterface {
   /**
    * {@inheritdoc}
    */
-  public function createRelationship(EntityInterface $entity, $related_field, $parsed_field_list) {
+  public function createRelationship(EntityInterface $entity, $related_field, $parsed_field_list, Request $request) {
     if ($parsed_field_list instanceof Response) {
       // This usually means that there was an error, so there is no point on
       // processing further.
       return $parsed_field_list;
     }
     /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $parsed_field_list */
-    $entity_access = $entity->access('update', NULL, TRUE);
-    if (!$entity_access->isAllowed()) {
-      throw new AccessDeniedHttpException('The current user is not allowed to POST the selected resource.');
-    }
-    /* @var $field_list \Drupal\Core\Field\FieldItemListInterface */
-    if (!($field_list = $entity->{$related_field}) || $field_list->getDataDefinition()->getType() != 'entity_reference') {
-      throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
-    }
+    $this->relationshipAccess($entity, $related_field);
     // According to the specification, you are only allowed to POST to a
     // relationship if it is a to-many relationship.
+    /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $field_list */
+    $field_list = $entity->{$related_field};
     $is_multiple = $field_list->getFieldDefinition()
       ->getFieldStorageDefinition()
       ->isMultiple();
@@ -215,43 +220,38 @@ class EntityResource implements EntityResourceInterface {
 
     $field_access = $field_list->access('update', NULL, TRUE);
     if (!$field_access->isAllowed()) {
-      throw new AccessDeniedHttpException(sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_name));
+      throw new AccessDeniedHttpException(sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_list->getName()));
     }
     // Time to save the relationship.
     foreach ($parsed_field_list as $field_item) {
       $field_list->appendItem($field_item->getValue());
     }
     $entity->save();
-    return $this->getRelationship($entity, $related_field, 201);
+    return $this->getRelationship($entity, $related_field, $request, 201);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function patchRelationship(EntityInterface $entity, $related_field, $parsed_field_list) {
+  public function patchRelationship(EntityInterface $entity, $related_field, $parsed_field_list, Request $request) {
     if ($parsed_field_list instanceof Response) {
       // This usually means that there was an error, so there is no point on
       // processing further.
       return $parsed_field_list;
     }
     /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $parsed_field_list */
-    $entity_access = $entity->access('update', NULL, TRUE);
-    if (!$entity_access->isAllowed()) {
-      throw new AccessDeniedHttpException('The current user is not allowed to POST the selected resource.');
-    }
-    /* @var $field_list \Drupal\Core\Field\FieldItemListInterface */
-    if (!($field_list = $entity->{$related_field}) || $field_list->getDataDefinition()->getType() != 'entity_reference') {
-      throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
-    }
+    $this->relationshipAccess($entity, $related_field);
     // According to the specification, PATCH works a little bit different if the
     // relationship is to-one or to-many.
+    /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $field_list */
+    $field_list = $entity->{$related_field};
     $is_multiple = $field_list->getFieldDefinition()
       ->getFieldStorageDefinition()
       ->isMultiple();
     $method = $is_multiple ? 'doPatchMultipleRelationship' : 'doPatchIndividualRelationship';
     $this->{$method}($entity, $parsed_field_list);
     $entity->save();
-    return $this->getRelationship($entity, $related_field, 201);
+    return $this->getRelationship($entity, $related_field, $request, 201);
   }
 
   /**
@@ -289,6 +289,40 @@ class EntityResource implements EntityResourceInterface {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function deleteRelationship(EntityInterface $entity, $related_field, $parsed_field_list, Request $request) {
+    if ($parsed_field_list instanceof Response) {
+      // This usually means that there was an error, so there is no point on
+      // processing further.
+      return $parsed_field_list;
+    }
+    /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $parsed_field_list */
+    $this->relationshipAccess($entity, $related_field);
+
+    $field_name = $parsed_field_list->getName();
+    $field_access = $parsed_field_list->access('delete', NULL, TRUE);
+    if (!$field_access->isAllowed()) {
+      throw new AccessDeniedHttpException(sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_name));
+    }
+    /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $field_list */
+    $field_list = $entity->{$related_field};
+    // Compute the list of current values and remove the ones in the payload.
+    $current_values = $field_list->getValue();
+    $deleted_values = $parsed_field_list->getValue();
+    $keep_values = array_udiff($current_values, $deleted_values, function($first, $second) {
+      return reset($first) - reset($second);
+    });
+    // Replace the existing field with one containing the relationships to keep.
+    $entity->{$related_field} = $this->pluginManager
+      ->createFieldItemList($entity, $related_field, $keep_values);
+
+    // Save the entity and return the response object.
+    $entity->save();
+    return $this->getRelationship($entity, $related_field, $request, 201);
+  }
+
+  /**
    * Gets a basic query for a collection.
    *
    * @param string $entity_type_id
@@ -319,7 +353,7 @@ class EntityResource implements EntityResourceInterface {
    *
    * @param \Drupal\rest\ResourceResponse $response
    *   The REST response.
-   * @param EntityInterface $entity
+   * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity.
    */
   protected function addCacheabilityMetadata(ResourceResponse $response, EntityInterface $entity) {
@@ -380,6 +414,29 @@ class EntityResource implements EntityResourceInterface {
       $this->addCacheabilityMetadata($response, $entity);
     }
     return $response;
+  }
+
+  /**
+   * Check the access to update the entity and the presence of a relationship.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity.
+   * @param string $related_field
+   *   The name of the field to check.
+   */
+  protected function relationshipAccess(EntityInterface $entity, $related_field) {
+    /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $parsed_field_list */
+    $entity_access = $entity->access('update', NULL, TRUE);
+    if (!$entity_access->isAllowed()) {
+      throw new AccessDeniedHttpException('The current user is not allowed to POST the selected resource.');
+    }
+    /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $field_list */
+    if (
+      !($field_list = $entity->{$related_field}) ||
+      $field_list->getDataDefinition()->getType() != 'entity_reference'
+    ) {
+      throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
+    }
   }
 
 }

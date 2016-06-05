@@ -73,6 +73,13 @@ class EntityResourceTest extends KernelTestBase {
   protected $node2;
 
   /**
+   * A fake request.
+   *
+   * @var \Symfony\Component\HttpFoundation\Request
+   */
+  protected $request;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp() {
@@ -132,9 +139,11 @@ class EntityResourceTest extends KernelTestBase {
       $this->container->get('entity_type.manager'),
       $this->container->get('jsonapi.query_builder'),
       $this->container->get('entity_field.manager'),
-      $current_context
+      $current_context,
+      $this->container->get('plugin.manager.field.field_type')
     );
 
+    $this->request = $this->prophesize(Request::class);
   }
 
 
@@ -142,7 +151,7 @@ class EntityResourceTest extends KernelTestBase {
    * @covers ::getIndividual
    */
   public function testGetIndividual() {
-    $response = $this->entityResource->getIndividual($this->node);
+    $response = $this->entityResource->getIndividual($this->node, $this->request->reveal());
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
     $this->assertEquals(1, $response->getResponseData()->getData()->id());
     $this->assertSame('node:1', $response->getCacheableMetadata()->getCacheTags()[0]);
@@ -156,7 +165,7 @@ class EntityResourceTest extends KernelTestBase {
     $role = Role::load(RoleInterface::ANONYMOUS_ID);
     $role->revokePermission('access content');
     $role->save();
-    $this->entityResource->getIndividual($this->node);
+    $this->entityResource->getIndividual($this->node, $this->request->reveal());
   }
 
   /**
@@ -210,7 +219,8 @@ class EntityResourceTest extends KernelTestBase {
       $this->container->get('entity_type.manager'),
       $this->container->get('jsonapi.query_builder'),
       $field_manager,
-      $current_context
+      $current_context,
+      $this->container->get('plugin.manager.field.field_type')
     );
 
     // Get the response.
@@ -260,7 +270,7 @@ class EntityResourceTest extends KernelTestBase {
    */
   public function testGetRelated() {
     // to-one relationship.
-    $response = $this->entityResource->getRelated($this->node, 'uid');
+    $response = $this->entityResource->getRelated($this->node, 'uid', $this->request->reveal());
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
     $this->assertInstanceOf(User::class, $response->getResponseData()
       ->getData());
@@ -268,7 +278,7 @@ class EntityResourceTest extends KernelTestBase {
     $this->assertSame('user:1', $response->getCacheableMetadata()->getCacheTags()[0]);
 
     // to-many relationship.
-    $response = $this->entityResource->getRelated($this->user, 'roles');
+    $response = $this->entityResource->getRelated($this->user, 'roles', $this->request->reveal());
     $this->assertInstanceOf(DocumentWrapper::class, $response
       ->getResponseData());
     $this->assertInstanceOf(EntityCollection::class, $response
@@ -284,7 +294,7 @@ class EntityResourceTest extends KernelTestBase {
    */
   public function testGetRelationship() {
     // to-one relationship.
-    $response = $this->entityResource->getRelationship($this->node, 'uid');
+    $response = $this->entityResource->getRelationship($this->node, 'uid', $this->request->reveal());
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
     $this->assertInstanceOf(
       EntityReferenceFieldItemListInterface::class,
@@ -316,7 +326,7 @@ class EntityResourceTest extends KernelTestBase {
     Role::load(Role::ANONYMOUS_ID)
       ->grantPermission('create article content')
       ->save();
-    $response = $this->entityResource->createIndividual($node);
+    $response = $this->entityResource->createIndividual($node, $this->request->reveal());
     // As a side effect, the node will also be saved.
     $this->assertNotEmpty($node->id());
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
@@ -338,7 +348,7 @@ class EntityResourceTest extends KernelTestBase {
     Role::load(Role::ANONYMOUS_ID)
       ->grantPermission('administer content types')
       ->save();
-    $response = $this->entityResource->createIndividual($node_type);
+    $response = $this->entityResource->createIndividual($node_type, $this->request->reveal());
     // As a side effect, the node type will also be saved.
     $this->assertNotEmpty($node_type->id());
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
@@ -361,7 +371,7 @@ class EntityResourceTest extends KernelTestBase {
     Role::load(Role::ANONYMOUS_ID)
       ->grantPermission('delete own article content')
       ->save();
-    $response = $this->entityResource->deleteIndividual($node);
+    $response = $this->entityResource->deleteIndividual($node, $this->request->reveal());
     // As a side effect, the node will also be deleted.
     $count = $this->container->get('entity_type.manager')
       ->getStorage('node')
@@ -389,7 +399,7 @@ class EntityResourceTest extends KernelTestBase {
       ->grantPermission('edit any article content')
       ->save();
 
-    $response = $this->entityResource->createRelationship($this->node, 'field_relationships', $parsed_field_list);
+    $response = $this->entityResource->createRelationship($this->node, 'field_relationships', $parsed_field_list, $this->request->reveal());
 
     // As a side effect, the node will also be saved.
     $this->assertNotEmpty($this->node->id());
@@ -417,7 +427,7 @@ class EntityResourceTest extends KernelTestBase {
       ->grantPermission('edit any article content')
       ->save();
 
-    $response = $this->entityResource->patchRelationship($this->node, 'field_relationships', $parsed_field_list);
+    $response = $this->entityResource->patchRelationship($this->node, 'field_relationships', $parsed_field_list, $this->request->reveal());
 
     // As a side effect, the node will also be saved.
     $this->assertNotEmpty($this->node->id());
@@ -447,14 +457,59 @@ class EntityResourceTest extends KernelTestBase {
   }
 
   /**
-   * Creates a field of an entity reference field storage on the specified bundle.
+   * @covers ::deleteRelationship
+   * @dataProvider deleteRelationshipProvider
+   */
+  public function testDeleteRelationship($deleted_rels, $kept_rels) {
+    $this->node->field_relationships->appendItem(['target_id' => $this->node->id()]);
+    $this->node->field_relationships->appendItem(['target_id' => $this->node2->id()]);
+    $this->node->save();
+    $parsed_field_list = $this->container
+      ->get('plugin.manager.field.field_type')
+      ->createFieldItemList($this->node, 'field_relationships', $deleted_rels);
+    Role::load(Role::ANONYMOUS_ID)
+      ->grantPermission('edit any article content')
+      ->save();
+
+    $response = $this->entityResource->deleteRelationship($this->node, 'field_relationships', $parsed_field_list, $this->request->reveal());
+
+    // As a side effect, the node will also be saved.
+    $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
+    $field_list = $response->getResponseData()->getData();
+    $this->assertInstanceOf(EntityReferenceFieldItemListInterface::class, $field_list);
+    $this->assertSame('field_relationships', $field_list->getName());
+    $this->assertEquals($kept_rels, $field_list->getValue());
+    $this->assertEquals(201, $response->getStatusCode());
+    // Make sure the POST request is not caching.
+    $this->assertEquals(['node:1'], $response->getCacheableMetadata()->getCacheTags());
+  }
+
+  /**
+   * Provides data for the testDeleteRelationship.
+   *
+   * @return array
+   *   The input data for the test function.
+   */
+  public function deleteRelationshipProvider() {
+    return [
+      // Remove one relationship.
+      [[['target_id' => 1]], [['target_id' => 2]]],
+      // Remove all relationships.
+      [[['target_id' => 2], ['target_id' => 1]], []],
+      // Remove no relationship.
+      [[], [['target_id' => 1], ['target_id' => 2]]],
+    ];
+  }
+
+  /**
+   * Creates a field of an entity reference field storage on the bundle.
    *
    * @param string $entity_type
    *   The type of entity the field will be attached to.
    * @param string $bundle
    *   The bundle name of the entity the field will be attached to.
    * @param string $field_name
-   *   The name of the field; if it already exists, a new instance of the existing
+   *   The name of the field; if it exists, a new instance of the existing.
    *   field will be created.
    * @param string $field_label
    *   The label of the field.
@@ -462,7 +517,7 @@ class EntityResourceTest extends KernelTestBase {
    *   The type of the referenced entity.
    * @param string $selection_handler
    *   The selection handler used by this field.
-   * @param array $selection_handler_settings
+   * @param array $handler_settings
    *   An array of settings supported by the selection handler specified above.
    *   (e.g. 'target_bundles', 'sort', 'auto_create', etc).
    * @param int $cardinality
@@ -470,7 +525,7 @@ class EntityResourceTest extends KernelTestBase {
    *
    * @see \Drupal\Core\Entity\Plugin\EntityReferenceSelection\SelectionBase::buildConfigurationForm()
    */
-  protected function createEntityReferenceField($entity_type, $bundle, $field_name, $field_label, $target_entity_type, $selection_handler = 'default', $selection_handler_settings = array(), $cardinality = 1) {
+  protected function createEntityReferenceField($entity_type, $bundle, $field_name, $field_label, $target_entity_type, $selection_handler = 'default', $handler_settings = array(), $cardinality = 1) {
     // Look for or add the specified field to the requested entity bundle.
     if (!FieldStorageConfig::loadByName($entity_type, $field_name)) {
       FieldStorageConfig::create(array(
@@ -491,7 +546,7 @@ class EntityResourceTest extends KernelTestBase {
         'label' => $field_label,
         'settings' => array(
           'handler' => $selection_handler,
-          'handler_settings' => $selection_handler_settings,
+          'handler_settings' => $handler_settings,
         ),
       ))->save();
     }
