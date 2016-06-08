@@ -387,6 +387,35 @@ class EntityResourceTest extends KernelTestBase {
   }
 
   /**
+   * @covers ::deleteIndividual
+   */
+  public function testDeleteIndividualConfig() {
+    $node_type = NodeType::create([
+      'type' => 'test',
+      'name' => 'Test Type',
+      'description' => 'Lorem ipsum',
+    ]);
+    $id = $node_type->id();
+    $node_type->save();
+    Role::load(Role::ANONYMOUS_ID)
+      ->grantPermission('administer content types')
+      ->save();
+    $response = $this->entityResource->deleteIndividual($node_type, $this->request->reveal());
+    // As a side effect, the node will also be deleted.
+    $count = $this->container->get('entity_type.manager')
+      ->getStorage('node_type')
+      ->getQuery()
+      ->condition('type', $id)
+      ->count()
+      ->execute();
+    $this->assertEquals(0, $count);
+    $this->assertNull($response->getResponseData());
+    $this->assertEquals(204, $response->getStatusCode());
+    // Make sure the DELETE request is not caching.
+    $this->assertEmpty($response->getCacheableMetadata()->getCacheTags());
+  }
+
+  /**
    * @covers ::createRelationship
    */
   public function testCreateRelationship() {
