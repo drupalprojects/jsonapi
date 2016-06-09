@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\jsonapi\Kernel\Resource;
 
+use Drupal\Component\Serialization\Json;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\field\Entity\FieldConfig;
@@ -379,7 +380,6 @@ class EntityResourceTest extends KernelTestBase {
     $this->assertSame($values['title'], $this->node->getTitle());
     $this->assertSame($values['field_relationships'], $this->node->get('field_relationships')->getValue());
     $this->assertEquals(201, $response->getStatusCode());
-    // Make sure the POST request is not caching.
     $this->assertEquals(['node:1'], $response->getCacheableMetadata()->getCacheTags());
   }
 
@@ -391,7 +391,6 @@ class EntityResourceTest extends KernelTestBase {
    */
   public function patchIndividualProvider() {
     return [
-      // Replace relationships.
       [
         [
           'type' => 'article',
@@ -399,6 +398,88 @@ class EntityResourceTest extends KernelTestBase {
           'field_relationships' => [['target_id' => 1]],
         ],
       ],
+    ];
+  }
+
+  /**
+   * @covers ::patchIndividual
+   * @dataProvider patchIndividualConfigProvider
+   */
+  public function testPatchIndividualConfig($values) {
+    // List of fields to be ignored.
+    $ignored_fields = ['uuid', 'entityTypeId', 'type'];
+    $node_type = NodeType::create([
+      'type' => 'test',
+      'name' => 'Test Type',
+      'description' => '',
+    ]);
+    $node_type->save();
+
+    $parsed_node_type = NodeType::create($values);
+    Role::load(Role::ANONYMOUS_ID)
+      ->grantPermission('administer content types')
+      ->save();
+    Role::load(Role::ANONYMOUS_ID)
+      ->grantPermission('edit any article content')
+      ->save();
+    $request = $this->prophesize(Request::class);
+    $payload = Json::encode([
+      'data' => [
+        'type' => 'node_type',
+        'id' => 'test',
+        'attributes' => $values,
+      ],
+    ]);
+    $request->getContent()->willReturn($payload);
+
+    $response = $this->entityResource->patchIndividual($node_type, $parsed_node_type, $request->reveal());
+
+    // As a side effect, the node will also be saved.
+    $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
+    $updated_node_type = $response->getResponseData()->getData();
+    $this->assertInstanceOf(NodeType::class, $updated_node_type);
+    // If the field is ignored then we should not see a difference.
+    foreach ($values as $field_name => $value) {
+      in_array($field_name, $ignored_fields) ?
+        $this->assertNotSame($value, $node_type->get($field_name)) :
+        $this->assertSame($value, $node_type->get($field_name));
+    }
+    $this->assertEquals(201, $response->getStatusCode());
+    $this->assertEquals(['config:node.type.test'], $response->getCacheableMetadata()->getCacheTags());
+  }
+
+  /**
+   * Provides data for the testPatchIndividualConfig.
+   *
+   * @return array
+   *   The input data for the test function.
+   */
+  public function patchIndividualConfigProvider() {
+    return [
+      [['description' => 'PATCHED', 'status' => FALSE]],
+      [[]],
+    ];
+  }
+
+  /**
+   * @covers ::patchIndividual
+   * @dataProvider patchIndividualConfigFailedProvider
+   * @expectedException \Drupal\Core\Config\ConfigException
+   */
+  public function testPatchIndividualFailedConfig($values) {
+    $this->testPatchIndividualConfig($values);
+  }
+
+  /**
+   * Provides data for the testPatchIndividualFailedConfig.
+   *
+   * @return array
+   *   The input data for the test function.
+   */
+  public function patchIndividualConfigFailedProvider() {
+    return [
+      [['uuid' => 'PATCHED']],
+      [['type' => 'article', 'status' => FALSE]],
     ];
   }
 

@@ -3,6 +3,8 @@
 namespace Drupal\jsonapi\Resource;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\Config\Entity\ConfigEntityInterface;
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -139,21 +141,9 @@ class EntityResource implements EntityResourceInterface {
     }
     $data += array('attributes' => [], 'relationships' => []);
     $field_names = array_merge(array_keys($data['attributes']), array_keys($data['relationships']));
-    array_reduce($field_names, function (EntityInterface $entity, $field_name) use ($parsed_entity) {
-      /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $field_list */
-      if (!$field_list = $entity->{$field_name}) {
-        throw new BadRequestHttpException(sprintf(
-          'The provided field (%s) does not exist in the entity with ID %d.',
-          $field_name,
-          $entity->id()
-        ));
-      }
-      $field_access = $field_list->access('update', NULL, TRUE);
-      if (!$field_access->isAllowed()) {
-        throw new AccessDeniedHttpException(sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_list->getName()));
-      }
-      $entity->{$field_name} = $parsed_entity->{$field_name};
-      return $entity;
+    array_reduce($field_names, function (EntityInterface $destination, $field_name) use ($parsed_entity) {
+      $this->updateEntityField($parsed_entity, $destination, $field_name);
+      return $destination;
     }, $entity);
     $entity->save();
     return $this->getIndividual($entity, $request, 201);
@@ -469,6 +459,38 @@ class EntityResource implements EntityResourceInterface {
       $field_list->getDataDefinition()->getType() != 'entity_reference'
     ) {
       throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
+    }
+  }
+
+  /**
+   * Takes a field from the origin entity and puts it to the destination entity.
+   *
+   * @param EntityInterface $origin
+   *   The entity that contains the field values.
+   * @param EntityInterface $destination
+   *   The entity that needs to be updated.
+   * @param string $field_name
+   *   The name of the field to extract and update.
+   */
+  protected function updateEntityField(EntityInterface $origin, EntityInterface $destination, $field_name) {
+    // The update is different for configuration entities and content entities.
+    if ($origin instanceof ContentEntityInterface && $destination instanceof ContentEntityInterface) {
+      // First scenario: both are content entities.
+      if (!$field_list = $destination->get($field_name)) {
+        throw new BadRequestHttpException(sprintf('The provided field (%s) does not exist in the entity with ID %d.', $field_name, $destination->id()));
+      }
+      $field_access = $field_list->access('update', NULL, TRUE);
+      if (!$field_access->isAllowed()) {
+        throw new AccessDeniedHttpException(sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_list->getName()));
+      }
+      $destination->{$field_name} = $origin->get($field_name);
+    }
+    elseif ($origin instanceof ConfigEntityInterface && $destination instanceof ConfigEntityInterface) {
+      // Second scenario: both are content entities.
+      $destination->set($field_name, $origin->get($field_name));
+    }
+    else {
+      throw new BadRequestHttpException('The serialized entity and the destination entity are of different types.');
     }
   }
 
