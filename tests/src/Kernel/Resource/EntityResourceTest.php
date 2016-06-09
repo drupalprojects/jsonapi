@@ -359,6 +359,50 @@ class EntityResourceTest extends KernelTestBase {
   }
 
   /**
+   * @covers ::patchIndividual
+   * @dataProvider patchIndividualProvider
+   */
+  public function testPatchIndividual($values) {
+    $parsed_node = Node::create($values);
+    Role::load(Role::ANONYMOUS_ID)
+      ->grantPermission('edit any article content')
+      ->save();
+    $request = $this->prophesize(Request::class);
+    $request->getContent()->willReturn('{"data":{"type":"article","id":1,"attributes":{"title": "","field_relationships":""}}}');
+
+    $response = $this->entityResource->patchIndividual($this->node, $parsed_node, $request->reveal());
+
+    // As a side effect, the node will also be saved.
+    $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
+    $updated_node = $response->getResponseData()->getData();
+    $this->assertInstanceOf(Node::class, $updated_node);
+    $this->assertSame($values['title'], $this->node->getTitle());
+    $this->assertSame($values['field_relationships'], $this->node->get('field_relationships')->getValue());
+    $this->assertEquals(201, $response->getStatusCode());
+    // Make sure the POST request is not caching.
+    $this->assertEquals(['node:1'], $response->getCacheableMetadata()->getCacheTags());
+  }
+
+  /**
+   * Provides data for the testPatchIndividual.
+   *
+   * @return array
+   *   The input data for the test function.
+   */
+  public function patchIndividualProvider() {
+    return [
+      // Replace relationships.
+      [
+        [
+          'type' => 'article',
+          'title' => 'PATCHED',
+          'field_relationships' => [['target_id' => 1]],
+        ],
+      ],
+    ];
+  }
+
+  /**
    * @covers ::deleteIndividual
    */
   public function testDeleteIndividual() {

@@ -2,6 +2,7 @@
 
 namespace Drupal\jsonapi\Resource;
 
+use Drupal\Component\Serialization\Json;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -123,7 +124,39 @@ class EntityResource implements EntityResourceInterface {
    * {@inheritdoc}
    */
   public function patchIndividual(EntityInterface $entity, EntityInterface $parsed_entity, Request $request) {
-    throw new \InvalidArgumentException('Operation not yet supported.');
+    $entity_access = $entity->access('update', NULL, TRUE);
+    if (!$entity_access->isAllowed()) {
+      throw new AccessDeniedHttpException('The current user is not allowed to GET the selected resource.');
+    }
+    $body = Json::decode($request->getContent());
+    $data = $body['data'];
+    if ($data['id'] != $entity->id()) {
+      throw new BadRequestHttpException(sprintf(
+        'The selected entity (%s) does not match the ID in the payload (%s).',
+        $entity->id(),
+        $data['id']
+      ));
+    }
+    $data += array('attributes' => [], 'relationships' => []);
+    $field_names = array_merge(array_keys($data['attributes']), array_keys($data['relationships']));
+    array_reduce($field_names, function (EntityInterface $entity, $field_name) use ($parsed_entity) {
+      /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $field_list */
+      if (!$field_list = $entity->{$field_name}) {
+        throw new BadRequestHttpException(sprintf(
+          'The provided field (%s) does not exist in the entity with ID %d.',
+          $field_name,
+          $entity->id()
+        ));
+      }
+      $field_access = $field_list->access('update', NULL, TRUE);
+      if (!$field_access->isAllowed()) {
+        throw new AccessDeniedHttpException(sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_list->getName()));
+      }
+      $entity->{$field_name} = $parsed_entity->{$field_name};
+      return $entity;
+    }, $entity);
+    $entity->save();
+    return $this->getIndividual($entity, $request, 201);
   }
 
   /**
