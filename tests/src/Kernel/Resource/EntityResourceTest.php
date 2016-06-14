@@ -19,6 +19,7 @@ use Drupal\user\Entity\User;
 use Drupal\user\RoleInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Route;
 
 /**
@@ -335,6 +336,22 @@ class EntityResourceTest extends KernelTestBase {
     $this->assertEquals(201, $response->getStatusCode());
     // Make sure the POST request is not caching.
     $this->assertEquals(['node:3'], $response->getCacheableMetadata()->getCacheTags());
+  }
+
+  /**
+   * @covers ::createIndividual
+   */
+  public function testCreateIndividualWithMissingRequiredData() {
+    $node = Node::create([
+      'type' => 'article',
+      // No title specified, even if its required.
+    ]);
+    Role::load(Role::ANONYMOUS_ID)
+      ->grantPermission('create article content')
+      ->save();
+    $this->setExpectedException(HttpException::class, 'Unprocessable Entity: validation failed.
+title: This value should not be null.');
+    $this->entityResource->createIndividual($node, $this->request->reveal());
   }
 
   /**

@@ -8,6 +8,7 @@ use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
@@ -21,6 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -111,13 +113,48 @@ class EntityResource implements EntityResourceInterface {
   }
 
   /**
+   * Verifies that the whole entity does not violate any validation constraints.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity object.
+   *
+   * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+   *   If validation errors are found.
+   */
+  protected function validate(EntityInterface $entity) {
+    if (!$entity instanceof FieldableEntityInterface) {
+      return;
+    }
+
+    $violations = $entity->validate();
+
+    // Remove violations of inaccessible fields as they cannot stem from our
+    // changes.
+    $violations->filterByFieldAccess();
+
+    if (count($violations) > 0) {
+      $message = "Unprocessable Entity: validation failed.\n";
+      foreach ($violations as $violation) {
+        $message .= $violation->getPropertyPath() . ': ' . $violation->getMessage() . "\n";
+      }
+      // Instead of returning a generic 400 response we use the more specific
+      // 422 Unprocessable Entity code from RFC 4918. That way clients can
+      // distinguish between general syntax errors in bad serializations (code
+      // 400) and semantic errors in well-formed requests (code 422).
+      throw new HttpException(422, $message);
+    }
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function createIndividual(EntityInterface $entity, Request $request) {
     $entity_access = $entity->access('create', NULL, TRUE);
+
     if (!$entity_access->isAllowed()) {
       throw new AccessDeniedHttpException('The current user is not allowed to POST the selected resource.');
     }
+    $this->validate($entity);
     $entity->save();
     return $this->getIndividual($entity, $request, 201);
   }
@@ -145,6 +182,8 @@ class EntityResource implements EntityResourceInterface {
       $this->updateEntityField($parsed_entity, $destination, $field_name);
       return $destination;
     }, $entity);
+
+    $this->validate($entity);
     $entity->save();
     return $this->getIndividual($entity, $request, 201);
   }
@@ -249,6 +288,7 @@ class EntityResource implements EntityResourceInterface {
     foreach ($parsed_field_list as $field_item) {
       $field_list->appendItem($field_item->getValue());
     }
+    $this->validate($entity);
     $entity->save();
     return $this->getRelationship($entity, $related_field, $request, 201);
   }
@@ -273,6 +313,7 @@ class EntityResource implements EntityResourceInterface {
       ->isMultiple();
     $method = $is_multiple ? 'doPatchMultipleRelationship' : 'doPatchIndividualRelationship';
     $this->{$method}($entity, $parsed_field_list);
+    $this->validate($entity);
     $entity->save();
     return $this->getRelationship($entity, $related_field, $request, 201);
   }
@@ -341,6 +382,7 @@ class EntityResource implements EntityResourceInterface {
       ->createFieldItemList($entity, $related_field, $keep_values);
 
     // Save the entity and return the response object.
+    $this->validate($entity);
     $entity->save();
     return $this->getRelationship($entity, $related_field, $request, 201);
   }
