@@ -9,7 +9,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  *
  * @package Drupal\jsonapi\Routing\Param
  */
-class CursorPage extends JsonApiParamBase {
+class OffsetPage extends JsonApiParamBase {
 
   /**
    * {@inheritdoc}
@@ -24,7 +24,7 @@ class CursorPage extends JsonApiParamBase {
   protected $maxSize = 50;
 
   /**
-   * Instantiates a CursorPage object.
+   * Instantiates an OffsetPage object.
    *
    * @param string|\string[] $original
    *   The original user generated data.

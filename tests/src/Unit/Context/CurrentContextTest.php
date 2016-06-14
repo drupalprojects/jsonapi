@@ -7,7 +7,7 @@ use Drupal\jsonapi\Configuration\ResourceConfig;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\Sort;
-use Drupal\jsonapi\Routing\Param\CursorPage;
+use Drupal\jsonapi\Routing\Param\OffsetPage;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -86,7 +86,7 @@ class CurrentContextTest extends UnitTestCase {
       '_json_api_params' => [
         'filter' => new Filter([], 'node', $this->fieldManager),
         'sort' => new Sort([]),
-        'page' => new CursorPage([]),
+        'page' => new OffsetPage([]),
         // 'include' => new IncludeParam([]),
         // 'fields' => new Fields([]),.
       ],

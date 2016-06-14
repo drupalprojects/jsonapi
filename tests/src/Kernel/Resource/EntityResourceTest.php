@@ -11,6 +11,7 @@ use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\Resource\DocumentWrapper;
 use Drupal\jsonapi\Resource\EntityResource;
 use Drupal\jsonapi\Routing\Param\Filter;
+use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
@@ -233,6 +234,52 @@ class EntityResourceTest extends KernelTestBase {
     $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
     $this->assertCount(1, $response->getResponseData()->getData());
     $this->assertEquals(['config:node.type.article', 'config:node_type_list'], $response->getCacheableMetadata()->getCacheTags());
+  }
+
+  /**
+   * @covers ::getCollection
+   */
+  public function testGetPagedCollection() {
+    // Fake the request.
+    $request = $this->prophesize(Request::class);
+    $params = $this->prophesize(ParameterBag::class);
+    $field_manager = $this->container->get('entity_field.manager');
+    $pager = new OffsetPage(['offset' => 1, 'size' => 1]);
+    $params->get('_route_params')->willReturn([
+      '_json_api_params' => [
+        'page' => $pager,
+      ],
+    ]);
+    $params->get('_json_api_params')->willReturn([
+      'page' => $pager,
+    ]);
+    $request->attributes = $params->reveal();
+
+    // Get the entity resource.
+    $current_context = $this->container->get('jsonapi.current_context');
+    $route = $this->prophesize(Route::class);
+    $route->getRequirement('_entity_type')->willReturn('node');
+    $route->getRequirement('_bundle')->willReturn('article');
+    $current_context->setCurrentRoute($route->reveal());
+    $entity_resource = new EntityResource(
+      $this->container->get('jsonapi.resource.manager')->get('node', 'article'),
+      $this->container->get('entity_type.manager'),
+      $this->container->get('jsonapi.query_builder'),
+      $field_manager,
+      $current_context,
+      $this->container->get('plugin.manager.field.field_type')
+    );
+
+    // Get the response.
+    $response = $entity_resource->getCollection($request->reveal());
+
+    // Assertions.
+    $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
+    $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
+    $data = $response->getResponseData()->getData();
+    $this->assertCount(1, $data);
+    $this->assertEquals(2, $data->toArray()[0]->id());
+    $this->assertEquals(['node:2', 'node_list'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**

@@ -4,7 +4,7 @@ namespace Drupal\Tests\jsonapi\Unit\Routing;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\jsonapi\Routing\JsonApiParamEnhancer;
-use Drupal\jsonapi\Routing\Param\CursorPage;
+use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\Sort;
 use Drupal\jsonapi\Routing\Routes;
@@ -73,7 +73,7 @@ class JsonApiParamEnhancerTest extends UnitTestCase {
     $request->query = $query->reveal();
 
     $defaults = $object->enhance([], $request->reveal());
-    $this->assertInstanceOf(CursorPage::class, $defaults['_json_api_params']['page']);
+    $this->assertInstanceOf(OffsetPage::class, $defaults['_json_api_params']['page']);
     $this->assertTrue(empty($defaults['_json_api_params']['filter']));
     $this->assertTrue(empty($defaults['_json_api_params']['sort']));
   }

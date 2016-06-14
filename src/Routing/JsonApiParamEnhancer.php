@@ -4,7 +4,7 @@ namespace Drupal\jsonapi\Routing;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Routing\Enhancer\RouteEnhancerInterface;
-use Drupal\jsonapi\Routing\Param\CursorPage;
+use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\Sort;
 use Symfony\Component\HttpFoundation\Request;
@@ -55,11 +55,10 @@ class JsonApiParamEnhancer implements RouteEnhancerInterface {
       $options['sort'] = new Sort($request->query->get('sort'));
     }
     if ($request->query->has('page')) {
-      $options['page'] = new CursorPage($request->query->get('page'), 50);
+      $options['page'] = new OffsetPage($request->query->get('page'), 50);
     }
     $defaults['_json_api_params'] = $options;
     return $defaults;
   }
-
 
 }

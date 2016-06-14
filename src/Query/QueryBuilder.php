@@ -4,6 +4,7 @@ namespace Drupal\jsonapi\Query;
 
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\JsonApiParamInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
@@ -87,6 +88,9 @@ class QueryBuilder implements QueryBuilderInterface {
     if ($sort = $this->currentContext->getJsonApiParameter(Sort::KEY_NAME)) {
       $this->configureSort($sort);
     }
+    if ($pager = $this->currentContext->getJsonApiParameter(OffsetPage::KEY_NAME)) {
+      $this->configurePager($pager);
+    }
   }
 
   /**
@@ -144,6 +148,16 @@ class QueryBuilder implements QueryBuilderInterface {
     array_walk($param->get(), $sort_collector);
 
     $this->buildTree($extracted);
+  }
+
+  /**
+   * Configures the query builder from a Pager parameter.
+   *
+   * @param \Drupal\jsonapi\Routing\Param\JsonApiParamInterface $param
+   *   A pager parameter from which to configure this query builder.
+   */
+  protected function configurePager(JsonApiParamInterface $param) {
+    $this->buildTree([$this->newPagerOption($param->get())]);
   }
 
   /**
@@ -225,6 +239,20 @@ class QueryBuilder implements QueryBuilderInterface {
       $langcode,
       $group
     );
+  }
+
+  /**
+   * Returns a new SortOption.
+   *
+   * @param array $properties
+   *   The pager properties.
+   *
+   * @return \Drupal\jsonapi\Query\SortOption
+   *   The sort object.
+   */
+  protected function newPagerOption(array $properties) {
+    $offset = isset($properties['offset']) ? $properties['offset'] : 0;
+    return new OffsetPagerOption($properties['size'], $offset);
   }
 
   /**
