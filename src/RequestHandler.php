@@ -8,6 +8,7 @@ use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\Resource\EntityResource;
 use Drupal\rest\RequestHandler as RestRequestHandler;
 use Drupal\rest\ResourceResponse;
+use Drupal\rest\ResourceResponseInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -96,7 +97,7 @@ class RequestHandler extends RestRequestHandler {
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
-   * @param \Drupal\rest\ResourceResponse $response
+   * @param \Drupal\rest\ResourceResponseInterface $response
    *   The response from the REST resource.
    * @param \Symfony\Component\Serializer\SerializerInterface $serializer
    *   The serializer to use.
@@ -109,7 +110,7 @@ class RequestHandler extends RestRequestHandler {
    * @todo Add test coverage for language negotiation contexts in
    *   https://www.drupal.org/node/2135829.
    */
-  protected function renderResponse(Request $request, ResourceResponse $response, SerializerInterface $serializer, $format) {
+  protected function renderResponse(Request $request, ResourceResponseInterface $response, SerializerInterface $serializer, $format) {
     $data = $response->getResponseData();
     $context = new RenderContext();
     $output = $this->container->get('renderer')
