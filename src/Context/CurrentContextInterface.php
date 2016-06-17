@@ -65,4 +65,25 @@ interface CurrentContextInterface {
    */
   public function fromRequest(Request $request);
 
+  /**
+   * Determines, whether the JSONAPI extension was requested.
+   *
+   * @todo Find a better place for such a JSONAPI derived information.
+   *
+   * @param string $extension_name
+   *   The extension name.
+   *
+   * @return bool
+   *   Returns TRUE, if the extension has been found.
+   */
+  public function hasExtension($extension_name);
+
+  /**
+   * Returns a list of requested extensions.
+   *
+   * @return string[]
+   *   The extension names.
+   */
+  public function getExtensions();
+
 }

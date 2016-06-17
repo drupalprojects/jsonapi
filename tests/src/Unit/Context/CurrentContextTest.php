@@ -141,4 +141,41 @@ class CurrentContextTest extends UnitTestCase {
     $this->assertEquals($expected, $actual);
   }
 
+  /**
+   * @covers ::hasExtension
+   */
+  public function testHasExtensionWithExistingExtension() {
+    $request = new Request();
+    $request->headers->set('Content-Type', 'application/vnd.api+json; ext="ext1,ext2"');
+    $this->requestStack->push($request);
+    $request_context = new CurrentContext($this->resourceManager, $this->requestStack);
+
+    $this->assertTrue($request_context->hasExtension('ext1'));
+    $this->assertTrue($request_context->hasExtension('ext2'));
+  }
+
+  /**
+   * @covers ::getExtensions
+   */
+  public function testGetExtensions() {
+    $request = new Request();
+    $request->headers->set('Content-Type', 'application/vnd.api+json; ext="ext1,ext2"');
+    $this->requestStack->push($request);
+    $request_context = new CurrentContext($this->resourceManager, $this->requestStack);
+
+    $this->assertEquals(['ext1', 'ext2'], $request_context->getExtensions());
+  }
+
+  /**
+   * @covers ::hasExtension
+   */
+  public function testHasExtensionWithNotExistingExtension() {
+    $request = new Request();
+    $request->headers->set('Content-Type', 'application/vnd.api+json;');
+    $this->requestStack->push($request);
+    $request_context = new CurrentContext($this->resourceManager, $this->requestStack);
+    $this->assertFalse($request_context->hasExtension('ext1'));
+    $this->assertFalse($request_context->hasExtension('ext2'));
+  }
+
 }

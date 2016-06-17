@@ -114,4 +114,24 @@ class CurrentContext implements CurrentContextInterface {
     return (isset($params[$parameter_key])) ? $params[$parameter_key] : NULL;
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function hasExtension($extension_name) {
+    return in_array($extension_name, $this->getExtensions());
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getExtensions() {
+    $content_type_header = $this->currentRequest->headers->get('Content-Type');
+    if (preg_match('/ext="([^"]+)"/i', $content_type_header, $match)) {
+      $extensions = array_map('trim', explode(',', $match[1]));
+      return $extensions;
+    }
+    return [];
+  }
+
+
 }
