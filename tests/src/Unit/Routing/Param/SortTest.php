@@ -4,7 +4,7 @@ namespace Drupal\Tests\jsonapi\Unit\Routing\Param;
 
 use Drupal\jsonapi\Routing\Param\Sort;
 use Drupal\Tests\UnitTestCase;
-
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * Class SortTest.
@@ -21,8 +21,8 @@ class SortTest extends UnitTestCase {
    * @dataProvider getProvider
    */
   public function testGet($original, $expected) {
-    $pager = new Sort($original);
-    $this->assertEquals($expected, $pager->get());
+    $sort = new Sort($original);
+    $this->assertEquals($expected, $sort->get());
   }
 
   /**
@@ -30,29 +30,46 @@ class SortTest extends UnitTestCase {
    */
   public function getProvider() {
     return [
-      ['lorem', [['value' => 'lorem', 'direction' => 'ASC']]],
-      ['-lorem', [['value' => 'lorem', 'direction' => 'DESC']]],
-      ['-lorem,ipsum', [['value' => 'lorem', 'direction' => 'DESC'], ['value' => 'ipsum', 'direction' => 'ASC']]],
-      ['-lorem,-ipsum', [['value' => 'lorem', 'direction' => 'DESC'], ['value' => 'ipsum', 'direction' => 'DESC']]],
+      ['lorem', [['field' => 'lorem', 'direction' => 'ASC', 'langcode' => NULL]]],
+      ['-lorem', [['field' => 'lorem', 'direction' => 'DESC', 'langcode' => NULL]]],
+      ['-lorem,ipsum', [
+        ['field' => 'lorem', 'direction' => 'DESC', 'langcode' => NULL],
+        ['field' => 'ipsum', 'direction' => 'ASC', 'langcode' => NULL]
+      ]],
+      ['-lorem,-ipsum', [
+        ['field' => 'lorem', 'direction' => 'DESC', 'langcode' => NULL],
+        ['field' => 'ipsum', 'direction' => 'DESC', 'langcode' => NULL]
+      ]],
+      [[
+        ['field' => 'lorem', 'langcode' => NULL],
+        ['field' => 'ipsum', 'langcode' => 'ca'],
+        ['field' => 'dolor', 'direction' => 'ASC', 'langcode' => 'ca'],
+        ['field' => 'sit', 'direction' => 'DESC', 'langcode' => 'ca'],
+      ], [
+        ['field' => 'lorem', 'direction' => 'ASC', 'langcode' => NULL],
+        ['field' => 'ipsum', 'direction' => 'ASC', 'langcode' => 'ca'],
+        ['field' => 'dolor', 'direction' => 'ASC', 'langcode' => 'ca'],
+        ['field' => 'sit', 'direction' => 'DESC', 'langcode' => 'ca'],
+      ]],
     ];
   }
 
   /**
    * @covers ::get
-   * @expectedException \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
    */
   public function testGetFail() {
-    $pager = new Sort(['lorem']);
-    $pager->get();
+    $sort = new Sort([['lorem']]);
+    $this->setExpectedException(BadRequestHttpException::class);
+    $sort->get();
   }
 
   /**
    * @covers ::get
-   * @expectedException \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
    */
   public function testGetEmpty() {
-    $pager = new Sort('');
-    $pager->get();
+    $sort = new Sort('');
+    $this->setExpectedException(BadRequestHttpException::class);
+    $sort->get();
   }
 
 }

@@ -8,6 +8,7 @@ use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\JsonApiParamInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
+use Drupal\jsonapi\Context\FieldResolverInterface;
 use Drupal\jsonapi\Routing\Param\Sort;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -43,16 +44,26 @@ class QueryBuilder implements QueryBuilderInterface {
   protected $currentContext;
 
   /**
+   * The field resolver service.
+   *
+   * @var \Drupal\jsonapi\Context\FieldResolverInterface
+   */
+  protected $fieldResolver;
+
+  /**
    * Contructs a new QueryBuilder object.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   An instance of a QueryFactory.
    * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
    *   An instance of the current context service.
+   * @param \Drupal\jsonapi\Context\FieldResolverInterface $field_resolver
+   *   The field resolver service.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, CurrentContextInterface $current_context) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, CurrentContextInterface $current_context, FieldResolverInterface $field_resolver) {
     $this->entityTypeManager = $entity_type_manager;
     $this->currentContext = $current_context;
+    $this->fieldResolver = $field_resolver;
   }
 
   /**
@@ -145,7 +156,8 @@ class QueryBuilder implements QueryBuilderInterface {
       $extracted[] = $this->newSortOption($sort_index, $sort);
     };
 
-    array_walk($param->get(), $sort_collector);
+    $param = $param->get();
+    array_walk($param, $sort_collector);
 
     $this->buildTree($extracted);
   }
@@ -177,7 +189,7 @@ class QueryBuilder implements QueryBuilderInterface {
     $group = isset($properties[Filter::GROUP_KEY]) ? $properties[Filter::GROUP_KEY] : NULL;
     return new ConditionOption(
       $condition_id,
-      $properties[Filter::FIELD_KEY],
+      $this->fieldResolver->resolveInternal($properties[Filter::FIELD_KEY]),
       $properties[Filter::VALUE_KEY],
       $properties[Filter::OPERATOR_KEY],
       $langcode,
@@ -213,8 +225,12 @@ class QueryBuilder implements QueryBuilderInterface {
    *   The sort object.
    */
   protected function newSortOption($identifier, array $properties) {
-    // TODO: We need to figure out some way to support langcode on these sorts.
-    return new SortOption($identifier, $properties['value'], $properties['direction']);
+    return new SortOption(
+      $identifier,
+      $this->fieldResolver->resolveInternal($properties[Sort::FIELD_KEY]),
+      $properties[Sort::DIRECTION_KEY],
+      $properties[Sort::LANGUAGE_KEY]
+    );
   }
 
   /**
@@ -234,7 +250,7 @@ class QueryBuilder implements QueryBuilderInterface {
     $group = isset($properties[Filter::GROUP_KEY]) ? $properties[Filter::GROUP_KEY] : NULL;
     return new ExistsOption(
       $identifier,
-      $properties[Filter::FIELD_KEY],
+      $this->fieldResolver->resolveInternal($properties[Filter::FIELD_KEY]),
       $properties[Filter::EXISTS_KEY],
       $langcode,
       $group

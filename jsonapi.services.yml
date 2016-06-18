@@ -56,9 +56,12 @@ services:
       - { name: route_enhancer }
   jsonapi.query_builder:
     class: Drupal\jsonapi\Query\QueryBuilder
-    arguments: ['@entity_type.manager', '@jsonapi.current_context']
+    arguments: ['@entity_type.manager', '@jsonapi.current_context', '@jsonapi.field_resolver']
   jsonapi.link_manager:
     class: Drupal\jsonapi\LinkManager\LinkManager
   jsonapi.current_context:
     class: Drupal\jsonapi\Context\CurrentContext
     arguments: ['@jsonapi.resource.manager', '@request_stack']
+  jsonapi.field_resolver:
+    class: Drupal\jsonapi\Context\FieldResolver
+    arguments: ['@jsonapi.current_context', '@entity_field.manager']
