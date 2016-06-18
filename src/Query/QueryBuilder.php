@@ -69,10 +69,10 @@ class QueryBuilder implements QueryBuilderInterface {
   /**
    * {@inheritdoc}
    */
-  public function newQuery(EntityTypeInterface $entity_type) {
+  public function newQuery(EntityTypeInterface $entity_type, array $params = []) {
     $this->entityType = $entity_type;
 
-    $this->configureFromContext();
+    $this->configureFromContext($params);
 
     $query = $this->entityTypeManager
       ->getStorage($this->entityType->id())
@@ -90,17 +90,53 @@ class QueryBuilder implements QueryBuilderInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Configure the query from the current context and the provided parameters.
+   *
+   * To avoid using the global context so much use the passed in parameters
+   * over the ones in the current context.
+   *
+   * @param \Drupal\jsonapi\Routing\Param\JsonApiParamInterface[] $params
+   *   The JSON API parameters.
    */
-  protected function configureFromContext() {
-    if ($filter = $this->currentContext->getJsonApiParameter(Filter::KEY_NAME)) {
-      $this->configureFilter($filter);
+  protected function configureFromContext(array $params = []) {
+    // TODO: Explore the possibility to turn JsonApiParam into a plugin type.
+    $param_keys = [Filter::KEY_NAME, Sort::KEY_NAME];
+    foreach ($param_keys as $param_key) {
+      if (isset($params[$param_key])) {
+        $this->configureParam($param_key, $params[$param_key]);
+      }
+      elseif ($param = $this->currentContext->getJsonApiParameter($param_key)) {
+        $this->configureParam($param_key, $param);
+      }
     }
-    if ($sort = $this->currentContext->getJsonApiParameter(Sort::KEY_NAME)) {
-      $this->configureSort($sort);
-    }
-    if ($pager = $this->currentContext->getJsonApiParameter(OffsetPage::KEY_NAME)) {
-      $this->configurePager($pager);
+    // We always add a default pagination parameter.
+    $pager = isset($params[OffsetPage::KEY_NAME]) ?
+      $params[OffsetPage::KEY_NAME] :
+      new OffsetPage([]);
+    $this->configureParam(OffsetPage::KEY_NAME, $pager);
+  }
+
+  /**
+   * Configure a parameter based on the type parameter type.
+   *
+   * @param string $type
+   *   The parameter type.
+   * @param \Drupal\jsonapi\Routing\Param\JsonApiParamInterface $param
+   *   The parameter to configure.
+   */
+  protected function configureParam($type, JsonApiParamInterface $param) {
+    switch ($type) {
+      case Filter::KEY_NAME:
+        $this->configureFilter($param);
+        break;
+
+      case Sort::KEY_NAME:
+        $this->configureSort($param);
+        break;
+
+      case OffsetPage::KEY_NAME:
+        $this->configurePager($param);
+        break;
     }
   }
 
@@ -109,12 +145,14 @@ class QueryBuilder implements QueryBuilderInterface {
    *
    * @param \Drupal\jsonapi\Routing\Param\JsonApiParamInterface $param
    *   A Filter parameter from which to configure this query builder.
+   *
+   * @todo The nested closures passing parameters by reference may not be ideal.
    */
   protected function configureFilter(JsonApiParamInterface $param) {
     $extracted = [];
 
-    $filter_collector = function ($filter, $filter_index) use (&$extracted) {
-      $option_maker = function ($properties, $filter_type) use (&$extracted, $filter_index) {
+    foreach ($param->get() as $filter_index => $filter) {
+      foreach ($filter as $filter_type => $properties) {
         switch ($filter_type) {
           case Filter::CONDITION_KEY:
             $extracted[] = $this->newCondtionOption($filter_index, $properties);
@@ -132,13 +170,8 @@ class QueryBuilder implements QueryBuilderInterface {
               sprintf('Invalid syntax in the filter parameter: %s.', $filter_index)
             );
         };
-      };
-
-      array_walk($filter, $option_maker);
-    };
-
-    $parameter = $param->get();
-    array_walk($parameter, $filter_collector);
+      }
+    }
 
     $this->buildTree($extracted);
   }
@@ -151,13 +184,9 @@ class QueryBuilder implements QueryBuilderInterface {
    */
   protected function configureSort(JsonApiParamInterface $param) {
     $extracted = [];
-
-    $sort_collector = function ($sort, $sort_index) use (&$extracted) {
+    foreach ($param->get() as $sort_index => $sort) {
       $extracted[] = $this->newSortOption($sort_index, $sort);
-    };
-
-    $param = $param->get();
-    array_walk($param, $sort_collector);
+    }
 
     $this->buildTree($extracted);
   }
@@ -267,8 +296,12 @@ class QueryBuilder implements QueryBuilderInterface {
    *   The sort object.
    */
   protected function newPagerOption(array $properties) {
-    $offset = isset($properties['offset']) ? $properties['offset'] : 0;
-    return new OffsetPagerOption($properties['size'], $offset);
+    // Add defaults to avoid unset warnings.
+    $properties += [
+      'size' => NULL,
+      'offset' => 0,
+    ];
+    return new OffsetPagerOption($properties['size'], $properties['offset']);
   }
 
   /**

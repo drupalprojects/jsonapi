@@ -13,9 +13,13 @@ use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\EntityCollection;
+use Drupal\jsonapi\EntityCollectionInterface;
 use Drupal\jsonapi\RequestCacheabilityDependency;
 use Drupal\jsonapi\Query\QueryBuilderInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
+use Drupal\jsonapi\Routing\Param\JsonApiParamBase;
+use Drupal\jsonapi\Routing\Param\OffsetPage;
+use Drupal\jsonapi\Routing\Param\Sort;
 use Drupal\rest\ResourceResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -218,7 +222,15 @@ class EntityResource implements EntityResourceInterface {
 
     // TODO: Make this method testable by removing the "new".
     $storage = $this->entityTypeManager->getStorage($entity_type_id);
+    // We request N+1 items to find out if there is a next page for the pager. We may need to remove that extra item
+    // before loading the entities.
+    $pager_size = $query->getMetaData('pager_size');
+    if ($has_next_page = $pager_size < count($results)) {
+      // Drop the last result.
+      array_pop($results);
+    }
     $entity_collection = new EntityCollection($storage->loadMultiple($results));
+    $entity_collection->setHasNextPage($has_next_page);
     return $this->respondWithCollection($entity_collection, $entity_type_id);
   }
 
@@ -401,7 +413,7 @@ class EntityResource implements EntityResourceInterface {
   protected function getCollectionQuery($entity_type_id, $params) {
     $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
 
-    $query = $this->queryBuilder->newQuery($entity_type);
+    $query = $this->queryBuilder->newQuery($entity_type, $params);
 
     // Limit this query to the bundle type for this resource.
     if ($bundle_key = $entity_type->getKey('bundle')) {
@@ -411,6 +423,23 @@ class EntityResource implements EntityResourceInterface {
     }
 
     return $query;
+  }
+
+  /**
+   * Gets a basic query for a collection count.
+   *
+   * @param string $entity_type_id
+   *   The entity type for the entity query.
+   * @param \Drupal\jsonapi\Routing\Param\JsonApiParamInterface[] $params
+   *   The parameters for the query.
+   *
+   * @return \Drupal\Core\Entity\Query\QueryInterface
+   *   A new query.
+   */
+  protected function getCollectionCountQuery($entity_type_id, $params) {
+    // Override the pagination parameter to get all the available results.
+    $params[OffsetPage::KEY_NAME] = new JsonApiParamBase([]);
+    return $this->getCollectionQuery($entity_type_id, $params);
   }
 
   /**
@@ -458,7 +487,7 @@ class EntityResource implements EntityResourceInterface {
   /**
    * Respond with an entity collection.
    *
-   * @param \Drupal\jsonapi\EntityCollection $entity_collection
+   * @param \Drupal\jsonapi\EntityCollectionInterface $entity_collection
    *   The collection of entites.
    * @param string $entity_type_id
    *   The entity type.
@@ -466,7 +495,7 @@ class EntityResource implements EntityResourceInterface {
    * @return \Drupal\rest\ResourceResponse
    *   The response.
    */
-  protected function respondWithCollection(EntityCollection $entity_collection, $entity_type_id) {
+  protected function respondWithCollection(EntityCollectionInterface $entity_collection, $entity_type_id) {
     $response = $this->buildWrappedResponse($entity_collection);
 
     // When a new change to any entity in the resource happens, we cannot ensure

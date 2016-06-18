@@ -35,10 +35,29 @@ interface LinkManagerInterface {
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
+   * @param array|NULL $query
+   *   The query parameters to use. Leave it empty to get the query from the
+   *   request object.
    *
    * @return string
    *   The full URL.
    */
-  public function getRequestLink(Request $request);
+  public function getRequestLink(Request $request, $query = NULL);
+
+  /**
+   * Get the full URL for a given request object.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request object.
+   * @param array
+   *   An associative array with extra data to build the links.
+   *
+   * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+   *   When the offset and size are invalid.
+   *
+   * @return string
+   *   The full URL.
+   */
+  public function getPagerLinks(Request $request, array $link_context = []);
 
 }

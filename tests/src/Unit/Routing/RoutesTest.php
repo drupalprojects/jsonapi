@@ -8,6 +8,7 @@ use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\Routing\Routes;
 use Drupal\Tests\UnitTestCase;
+use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -80,7 +81,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['GET', 'POST'], $route->getMethods());
-    $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault('_controller'));
+    $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
     $this->assertSame('Drupal\jsonapi\Resource\DocumentWrapperInterface', $route->getOption('serialization_class'));
   }
 
@@ -98,7 +99,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame('entity_type_1', $route->getRequirement('_entity_type'));
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertEquals(['GET', 'PATCH', 'DELETE'], $route->getMethods());
-    $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault('_controller'));
+    $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
     $this->assertSame('Drupal\jsonapi\Resource\DocumentWrapperInterface', $route->getOption('serialization_class'));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
@@ -118,7 +119,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame('entity_type_1', $route->getRequirement('_entity_type'));
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertEquals(['GET'], $route->getMethods());
-    $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault('_controller'));
+    $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
   }
@@ -137,7 +138,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame('entity_type_1', $route->getRequirement('_entity_type'));
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertEquals(['GET', 'POST', 'PATCH', 'DELETE'], $route->getMethods());
-    $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault('_controller'));
+    $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
     $this->assertSame('Drupal\Core\Field\EntityReferenceFieldItemList', $route->getOption('serialization_class'));

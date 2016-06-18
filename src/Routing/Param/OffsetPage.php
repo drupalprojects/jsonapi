@@ -21,7 +21,7 @@ class OffsetPage extends JsonApiParamBase {
    *
    * @var int
    */
-  protected $maxSize = 50;
+  public static $maxSize = 50;
 
   /**
    * Instantiates an OffsetPage object.
@@ -34,7 +34,7 @@ class OffsetPage extends JsonApiParamBase {
   public function __construct($original, $max_size = NULL) {
     parent::__construct($original);
     if ($max_size) {
-      $this->maxSize = $max_size;
+      static::$maxSize = $max_size;
     }
   }
 
@@ -46,11 +46,32 @@ class OffsetPage extends JsonApiParamBase {
     if (!is_array($this->original)) {
       throw new BadRequestHttpException('The page parameter needs to be an array.');
     }
-    $output = $this->original + ['size' => $this->maxSize];
-    $output['size'] = $output['size'] > $this->maxSize ?
-      $this->maxSize :
+    $output = $this->original + ['size' => static::$maxSize];
+    $output['size'] = $output['size'] > static::$maxSize ?
+      static::$maxSize :
       $output['size'];
     return $output;
+  }
+
+  /**
+   * Returns the current offset.
+   *
+   * @return int
+   */
+  public function getOffset() {
+    $data = $this->get();
+    return isset($data['offset']) ? $data['offset'] : 0;
+  }
+
+  /**
+   * Returns the page size.
+   *
+   * @return int
+   */
+  public function getSize() {
+    $data = $this->get();
+    $size = isset($data['size']) ? $data['size'] : static::$maxSize;
+    return $size > static::$maxSize ? static::$maxSize : $size;
   }
 
 }

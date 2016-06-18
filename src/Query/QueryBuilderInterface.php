@@ -16,10 +16,12 @@ interface QueryBuilderInterface {
    *
    * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
    *   The entity type for which to create a query.
+   * @param \Drupal\jsonapi\Routing\Param\JsonApiParamInterface[] $params
+   *   The JSON API parameters.
    *
    * @return \Drupal\Core\Entity\Query\QueryInterface
    *   The new query.
    */
-  public function newQuery(EntityTypeInterface $entity_type);
+  public function newQuery(EntityTypeInterface $entity_type, array $params = []);
 
 }

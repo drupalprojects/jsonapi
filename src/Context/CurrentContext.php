@@ -3,6 +3,7 @@
 namespace Drupal\jsonapi\Context;
 
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\PreconditionRequiredHttpException;
@@ -56,7 +57,7 @@ class CurrentContext implements CurrentContextInterface {
   public function __construct(ResourceManagerInterface $resource_manager, RequestStack $request_stack) {
     $this->resourceManager = $resource_manager;
     $this->currentRequest = $request_stack->getCurrentRequest();
-    if ($route = $this->currentRequest->get('_route_object')) {
+    if ($route = $this->currentRequest->get(RouteObjectInterface::ROUTE_OBJECT)) {
       $this->setCurrentRoute($route);
     }
   }

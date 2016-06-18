@@ -11,6 +11,7 @@ use Drupal\jsonapi\Routing\Routes;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Prophecy\Promise\ReturnPromise;
+use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
@@ -32,7 +33,7 @@ class JsonApiParamEnhancerTest extends UnitTestCase {
   public function testApplies() {
     $object = new JsonApiParamEnhancer($this->prophesize(EntityFieldManagerInterface::class)->reveal());
     $route = $this->prophesize(Route::class);
-    $route->getDefault('_controller')->will(new ReturnPromise([Routes::FRONT_CONTROLLER, 'lorem']));
+    $route->getDefault(RouteObjectInterface::CONTROLLER_NAME)->will(new ReturnPromise([Routes::FRONT_CONTROLLER, 'lorem']));
 
     $this->assertTrue($object->applies($route->reveal()));
     $this->assertFalse($object->applies($route->reveal()));
@@ -53,7 +54,7 @@ class JsonApiParamEnhancerTest extends UnitTestCase {
     $route = $this->prophesize(Route::class);
     $route->getRequirement('_entity_type')->willReturn('dolor');
     $defaults = $object->enhance([
-      '_route_object' => $route->reveal()
+      RouteObjectInterface::ROUTE_OBJECT => $route->reveal()
     ], $request->reveal());
     $this->assertInstanceOf(Filter::class, $defaults['_json_api_params']['filter']);
     $this->assertTrue(empty($defaults['_json_api_params']['page']));

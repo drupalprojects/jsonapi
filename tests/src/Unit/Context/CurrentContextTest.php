@@ -15,6 +15,7 @@ use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Tests\UnitTestCase;
 
+use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
@@ -90,7 +91,7 @@ class CurrentContextTest extends UnitTestCase {
         // 'include' => new IncludeParam([]),
         // 'fields' => new Fields([]),.
       ],
-      '_route_object' => $this->currentRoute,
+      RouteObjectInterface::ROUTE_OBJECT => $this->currentRoute,
     ]));
   }
 

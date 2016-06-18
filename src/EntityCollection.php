@@ -7,7 +7,7 @@ namespace Drupal\jsonapi;
  *
  * @package Drupal\jsonapi
  */
-class EntityCollection implements \IteratorAggregate, \Countable {
+class EntityCollection implements EntityCollectionInterface {
 
   /**
    * Entity storage.
@@ -15,6 +15,13 @@ class EntityCollection implements \IteratorAggregate, \Countable {
    * @var array
    */
   protected $entities;
+
+  /**
+   * Holds a boolean indicating if there is a next page.
+   *
+   * @var bool
+   */
+  protected $hasNextPage;
 
   /**
    * Instantiates a EntityCollection object.
@@ -47,13 +54,24 @@ class EntityCollection implements \IteratorAggregate, \Countable {
   }
 
   /**
-   * Returns the collection as an array.
-   *
-   * @return \Drupal\Core\Entity\EntityInterface[]
-   *   The array of entities.
+   * {@inheritdoc}
    */
   public function toArray() {
     return $this->entities;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function hasNextPage() {
+    return (bool) $this->hasNextPage;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setHasNextPage($has_next_page) {
+    return $this->hasNextPage = (bool) $has_next_page;
   }
 
 }

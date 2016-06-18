@@ -34,7 +34,7 @@ class OffsetPagerOption implements QueryOptionInterface {
    */
   public function __construct($size, $offset = 0) {
     $this->size = $size;
-    $this->offset = $offset;
+    $this->offset = $offset ?: 0;
   }
 
   /**
@@ -48,7 +48,11 @@ class OffsetPagerOption implements QueryOptionInterface {
    * {@inheritdoc}
    */
   public function apply($query) {
-    $query->range($this->offset, $this->size);
+    if (isset($this->offset) && isset($this->size)) {
+      // Request one extra entity to know if there is a next page.
+      $query->range($this->offset, $this->size + 1);
+      $query->addMetaData('pager_size', (int) $this->size);
+    }
   }
 
 

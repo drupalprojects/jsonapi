@@ -13,7 +13,7 @@ interface DocumentWrapperInterface {
   /**
    * Gets the data.
    *
-   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\jsonapi\EntityCollection
+   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\jsonapi\EntityCollectionInterface
    *   The data.
    */
   public function getData();

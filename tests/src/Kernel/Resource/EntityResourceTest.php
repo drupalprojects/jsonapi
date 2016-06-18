@@ -7,7 +7,7 @@ use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
-use Drupal\jsonapi\EntityCollection;
+use Drupal\jsonapi\EntityCollectionInterface;
 use Drupal\jsonapi\Resource\DocumentWrapper;
 use Drupal\jsonapi\Resource\EntityResource;
 use Drupal\jsonapi\Routing\Param\Filter;
@@ -188,7 +188,7 @@ class EntityResourceTest extends KernelTestBase {
 
     // Assertions.
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
-    $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
+    $this->assertInstanceOf(EntityCollectionInterface::class, $response->getResponseData()->getData());
     $this->assertEquals(1, $response->getResponseData()->getData()->getIterator()->current()->id());
     $this->assertEquals(['node:1', 'node:2', 'node_list'], $response->getCacheableMetadata()->getCacheTags());
   }
@@ -232,7 +232,7 @@ class EntityResourceTest extends KernelTestBase {
 
     // Assertions.
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
-    $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
+    $this->assertInstanceOf(EntityCollectionInterface::class, $response->getResponseData()->getData());
     $this->assertCount(1, $response->getResponseData()->getData());
     $this->assertEquals(['config:node.type.article', 'config:node_type_list'], $response->getCacheableMetadata()->getCacheTags());
   }
@@ -276,7 +276,7 @@ class EntityResourceTest extends KernelTestBase {
 
     // Assertions.
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
-    $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
+    $this->assertInstanceOf(EntityCollectionInterface::class, $response->getResponseData()->getData());
     $this->assertCount(2, $response->getResponseData()->getData());
     $this->assertEquals($response->getResponseData()->getData()->toArray()[0]->id(), 'lorem');
     $this->assertEquals(['config:node.type.article', 'config:node.type.lorem', 'config:node_type_list'], $response->getCacheableMetadata()->getCacheTags());
@@ -321,7 +321,7 @@ class EntityResourceTest extends KernelTestBase {
 
     // Assertions.
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
-    $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
+    $this->assertInstanceOf(EntityCollectionInterface::class, $response->getResponseData()->getData());
     $data = $response->getResponseData()->getData();
     $this->assertCount(1, $data);
     $this->assertEquals(2, $data->toArray()[0]->id());
@@ -355,7 +355,7 @@ class EntityResourceTest extends KernelTestBase {
 
     // Assertions.
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
-    $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
+    $this->assertInstanceOf(EntityCollectionInterface::class, $response->getResponseData()->getData());
     $this->assertEquals(0, $response->getResponseData()->getData()->count());
     $this->assertEquals(['node_list'], $response->getCacheableMetadata()->getCacheTags());
   }
@@ -376,7 +376,7 @@ class EntityResourceTest extends KernelTestBase {
     $response = $this->entityResource->getRelated($this->user, 'roles', $this->request->reveal());
     $this->assertInstanceOf(DocumentWrapper::class, $response
       ->getResponseData());
-    $this->assertInstanceOf(EntityCollection::class, $response
+    $this->assertInstanceOf(EntityCollectionInterface::class, $response
       ->getResponseData()
       ->getData());
     $this->assertEquals(['config:user_role_list'], $response

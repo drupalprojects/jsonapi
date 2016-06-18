@@ -4,7 +4,7 @@ namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
-use Drupal\jsonapi\EntityCollection;
+use Drupal\jsonapi\EntityCollectionInterface;
 use Drupal\jsonapi\Resource\DocumentWrapperInterface;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -100,10 +100,11 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
       return $this->serializer->normalize($data, $format, $context);
     }
     else {
-      $is_collection = $data instanceof EntityCollection;
+      $is_collection = $data instanceof EntityCollectionInterface;
       // To improve the logical workflow deal with an array at all times.
       $entities = $is_collection ? $data->toArray() : [$data];
       $context += $this->expandContext($context['request']);
+      $context['has_next_page'] = $is_collection ? $data->hasNextPage() : FALSE;
       $serializer = $this->serializer;
       $normalizer_values = array_map(function ($entity) use ($format, $context, $serializer) {
         return $serializer->normalize($entity, $format, $context);
@@ -112,6 +113,7 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
 
     return new Value\DocumentRootNormalizerValue($normalizer_values, $context, $is_collection, [
       'link_manager' => $this->linkManager,
+      'has_next_page' => $context['has_next_page'],
     ]);
   }
 

@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\Resource\DocumentWrapperInterface;
+use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
@@ -85,7 +86,7 @@ class Routes implements ContainerInjectionInterface {
       $route_key = sprintf('%s.dynamic.%s.', $prefix, $resource->getTypeName());
       // Add the collection route.
       $defaults = [
-        '_controller' => static::FRONT_CONTROLLER,
+        RouteObjectInterface::CONTROLLER_NAME => static::FRONT_CONTROLLER,
       ];
 
       // Collection endpoint, like /api/photos.

@@ -12,6 +12,7 @@ use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\user\Entity\User;
 use Prophecy\Argument;
+use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
@@ -124,7 +125,7 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $route->getPath()->willReturn('/node/{node}');
     $route->getRequirement('_entity_type')->willReturn('node');
     $route->getRequirement('_bundle')->willReturn('article');
-    $request->get('_route_object')->willReturn($route->reveal());
+    $request->get(RouteObjectInterface::ROUTE_OBJECT)->willReturn($route->reveal());
     $document_wrapper = $this->prophesize(DocumentWrapper::class);
     $document_wrapper->getData()->willReturn($this->node);
     $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
@@ -193,7 +194,7 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $route->getPath()->willReturn('/node_type/{node_type}');
     $route->getRequirement('_entity_type')->willReturn('node');
     $route->getRequirement('_bundle')->willReturn('article');
-    $request->get('_route_object')->willReturn($route->reveal());
+    $request->get(RouteObjectInterface::ROUTE_OBJECT)->willReturn($route->reveal());
     $document_wrapper = $this->prophesize(DocumentWrapper::class);
     $document_wrapper->getData()->willReturn($this->nodeType);
     $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
@@ -232,7 +233,7 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $route->getRequirement('_entity_type')->willReturn('node');
     $route->getRequirement('_bundle')->willReturn('article');
     $route->getDefault('_on_relationship')->willReturn(NULL);
-    $request->get('_route_object')->willReturn($route->reveal());
+    $request->get(RouteObjectInterface::ROUTE_OBJECT)->willReturn($route->reveal());
     $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
     $resource_config->getTypeName()->willReturn('article');
     $resource_config->getEntityTypeId()->willReturn('node');

@@ -7,6 +7,7 @@ use Drupal\Core\Routing\Enhancer\RouteEnhancerInterface;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\Sort;
+use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 
@@ -39,7 +40,7 @@ class JsonApiParamEnhancer implements RouteEnhancerInterface {
    */
   public function applies(Route $route) {
     // This enhancer applies to the JSON API routes.
-    return $route->getDefault('_controller') == Routes::FRONT_CONTROLLER;
+    return $route->getDefault(RouteObjectInterface::CONTROLLER_NAME) == Routes::FRONT_CONTROLLER;
   }
 
   /**
@@ -48,7 +49,7 @@ class JsonApiParamEnhancer implements RouteEnhancerInterface {
   public function enhance(array $defaults, Request $request) {
     $options = [];
     if ($request->query->has('filter')) {
-      $entity_type_id = $defaults['_route_object']->getRequirement('_entity_type');
+      $entity_type_id = $defaults[RouteObjectInterface::ROUTE_OBJECT]->getRequirement('_entity_type');
       $options['filter'] = new Filter($request->query->get('filter'), $entity_type_id, $this->fieldManager);
     }
     if ($request->query->has('sort')) {

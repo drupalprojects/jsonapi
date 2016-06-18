@@ -2,9 +2,6 @@
 
 namespace Drupal\jsonapi\Normalizer\Value;
 
-use Drupal\Core\Url;
-use Drupal\jsonapi\LinkManager\LinkManagerInterface;
-
 /**
  * Class DocumentRootNormalizerValue.
  *
@@ -48,6 +45,13 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
   protected $linkManager;
 
   /**
+   * The link context.
+   *
+   * @var array
+   */
+  protected $linkContext;
+
+  /**
    * Instantiates a DocumentRootNormalizerValue object.
    *
    * @param \Drupal\Core\Entity\EntityInterface[] $values
@@ -66,6 +70,9 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
     $this->context = $context;
     $this->isCollection = $is_collection;
     $this->linkManager = $link_context['link_manager'];
+    // Remove the manager and store the link context.
+    unset($link_context['link_manager']);
+    $this->linkContext = $link_context;
     // Get an array of arrays of includes.
     $this->includes = array_map(function ($value) {
       return $value->getIncludes();
@@ -101,6 +108,10 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
       $rasterized['links'] = [
         'self' => $this->linkManager->getRequestLink($request),
       ];
+      // If this is a collection we need to append the pager links.
+      if ($this->isCollection) {
+        $rasterized['links'] += $this->linkManager->getPagerLinks($request, $this->linkContext);
+      }
     }
     return $rasterized;
   }
