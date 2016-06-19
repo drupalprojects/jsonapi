@@ -46,7 +46,7 @@ class RoutesTest extends UnitTestCase {
     $resource_config->getBundleId()->willReturn('bundle_1_1');
     // Make sure that we're not coercing the bundle into the path, they can be
     // different in the future.
-    $resource_config->getPath()->willReturn('/bundle_path_1');
+    $resource_config->getPath()->willReturn('/entity_type_1/bundle_path_1');
     $resource_config->getTypeName()->willReturn('resource_type_1');
     $resource_manager->all()->willReturn([$resource_config->reveal()]);
     $container = $this->prophesize(ContainerInterface::class);
@@ -76,7 +76,7 @@ class RoutesTest extends UnitTestCase {
     // Check the collection route.
     /** @var \Symfony\Component\Routing\Route $route */
     $route = $iterator->offsetGet('api.dynamic.resource_type_1.collection');
-    $this->assertSame('/api/bundle_path_1', $route->getPath());
+    $this->assertSame('/api/entity_type_1/bundle_path_1', $route->getPath());
     $this->assertSame('entity_type_1', $route->getRequirement('_entity_type'));
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
@@ -95,7 +95,7 @@ class RoutesTest extends UnitTestCase {
     // Check the individual route.
     /** @var \Symfony\Component\Routing\Route $route */
     $route = $iterator->offsetGet('api.dynamic.resource_type_1.individual');
-    $this->assertSame('/api/bundle_path_1/{entity_type_1}', $route->getPath());
+    $this->assertSame('/api/entity_type_1/bundle_path_1/{entity_type_1}', $route->getPath());
     $this->assertSame('entity_type_1', $route->getRequirement('_entity_type'));
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertEquals(['GET', 'PATCH', 'DELETE'], $route->getMethods());
@@ -115,7 +115,7 @@ class RoutesTest extends UnitTestCase {
     // Check the related route.
     /** @var \Symfony\Component\Routing\Route $route */
     $route = $iterator->offsetGet('api.dynamic.resource_type_1.related');
-    $this->assertSame('/api/bundle_path_1/{entity_type_1}/{related}', $route->getPath());
+    $this->assertSame('/api/entity_type_1/bundle_path_1/{entity_type_1}/{related}', $route->getPath());
     $this->assertSame('entity_type_1', $route->getRequirement('_entity_type'));
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertEquals(['GET'], $route->getMethods());
@@ -134,7 +134,7 @@ class RoutesTest extends UnitTestCase {
     // Check the relationships route.
     /** @var \Symfony\Component\Routing\Route $route */
     $route = $iterator->offsetGet('api.dynamic.resource_type_1.relationship');
-    $this->assertSame('/api/bundle_path_1/{entity_type_1}/relationships/{related}', $route->getPath());
+    $this->assertSame('/api/entity_type_1/bundle_path_1/{entity_type_1}/relationships/{related}', $route->getPath());
     $this->assertSame('entity_type_1', $route->getRequirement('_entity_type'));
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertEquals(['GET', 'POST', 'PATCH', 'DELETE'], $route->getMethods());

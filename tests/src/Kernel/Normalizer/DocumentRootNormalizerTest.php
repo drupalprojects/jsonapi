@@ -115,21 +115,21 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $request = $this->prophesize(Request::class);
     $query = $this->prophesize(ParameterBag::class);
     $query->get('fields')->willReturn([
-      'article' => 'title,type,uid',
-      'user' => 'name',
+      'node--article' => 'title,type,uid',
+      'user--user' => 'name',
     ]);
     $query->get('include')->willReturn('uid');
     $query->getIterator()->willReturn(new \ArrayIterator());
     $request->query = $query->reveal();
     $route = $this->prophesize(Route::class);
-    $route->getPath()->willReturn('/node/{node}');
+    $route->getPath()->willReturn('/node/article/{node}');
     $route->getRequirement('_entity_type')->willReturn('node');
     $route->getRequirement('_bundle')->willReturn('article');
     $request->get(RouteObjectInterface::ROUTE_OBJECT)->willReturn($route->reveal());
     $document_wrapper = $this->prophesize(DocumentWrapper::class);
     $document_wrapper->getData()->willReturn($this->node);
     $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
-    $resource_config->getTypeName()->willReturn('article');
+    $resource_config->getTypeName()->willReturn('node--article');
 
     // Make sure the route contains the entity type and bundle.
     $current_context = $this->container->get('jsonapi.current_context');
@@ -152,7 +152,7 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $this->assertEquals($normalized['data']['id'], 1);
     $this->assertSame([
       'data' => [
-        'type' => 'node_type',
+        'type' => 'node_type--node_type',
         'id' => 'article',
       ],
       'links' => [
@@ -161,10 +161,10 @@ class DocumentRootNormalizerTest extends KernelTestBase {
       ],
     ], $normalized['data']['relationships']['type']);
     $this->assertTrue(!isset($normalized['data']['attributes']['created']));
-    $this->assertSame('article', $normalized['data']['type']);
+    $this->assertSame('node--article', $normalized['data']['type']);
     $this->assertEquals([
       'data' => [
-        'type' => 'user',
+        'type' => 'user--user',
         'id' => $this->user->id(),
       ],
       'links' => [
@@ -173,7 +173,7 @@ class DocumentRootNormalizerTest extends KernelTestBase {
       ],
     ], $normalized['data']['relationships']['uid']);
     $this->assertEquals($this->user->id(), $normalized['included'][0]['data']['id']);
-    $this->assertEquals('user', $normalized['included'][0]['data']['type']);
+    $this->assertEquals('user--user', $normalized['included'][0]['data']['type']);
     $this->assertEquals($this->user->label(), $normalized['included'][0]['data']['attributes']['name']);
     $this->assertTrue(!isset($normalized['included'][0]['data']['attributes']['created']));
   }
@@ -185,20 +185,20 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $request = $this->prophesize(Request::class);
     $query = $this->prophesize(ParameterBag::class);
     $query->get('fields')->willReturn([
-      'node_type' => 'uuid,display_submitted',
+      'node_type--node_type' => 'uuid,display_submitted',
     ]);
     $query->get('include')->willReturn(NULL);
     $query->getIterator()->willReturn(new \ArrayIterator());
     $request->query = $query->reveal();
     $route = $this->prophesize(Route::class);
-    $route->getPath()->willReturn('/node_type/{node_type}');
+    $route->getPath()->willReturn('/node_type/node_type/{node_type}');
     $route->getRequirement('_entity_type')->willReturn('node');
     $route->getRequirement('_bundle')->willReturn('article');
     $request->get(RouteObjectInterface::ROUTE_OBJECT)->willReturn($route->reveal());
     $document_wrapper = $this->prophesize(DocumentWrapper::class);
     $document_wrapper->getData()->willReturn($this->nodeType);
     $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
-    $resource_config->getTypeName()->willReturn('node_type');
+    $resource_config->getTypeName()->willReturn('node_type--node_type');
 
     // Make sure the route contains the entity type and bundle.
     $current_context = $this->container->get('jsonapi.current_context');
@@ -217,7 +217,7 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $this->assertTrue(!empty($normalized['data']['attributes']['uuid']));
     $this->assertSame($normalized['data']['attributes']['display_submitted'], TRUE);
     $this->assertSame($normalized['data']['id'], 'article');
-    $this->assertSame($normalized['data']['type'], 'node_type');
+    $this->assertSame($normalized['data']['type'], 'node_type--node_type');
   }
 
   /**
@@ -229,13 +229,13 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $payload = '{"type":"article", "data":{"attributes":{"title":"Testing article"}}}';
     $request = $this->prophesize(Request::class);
     $route = $this->prophesize(Route::class);
-    $route->getPath()->willReturn('/article');
+    $route->getPath()->willReturn('/node/article');
     $route->getRequirement('_entity_type')->willReturn('node');
     $route->getRequirement('_bundle')->willReturn('article');
     $route->getDefault('_on_relationship')->willReturn(NULL);
     $request->get(RouteObjectInterface::ROUTE_OBJECT)->willReturn($route->reveal());
     $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
-    $resource_config->getTypeName()->willReturn('article');
+    $resource_config->getTypeName()->willReturn('node--article');
     $resource_config->getEntityTypeId()->willReturn('node');
     $resource_config->getBundleId()->willReturn('article');
     $resource_config->getDeserializationTargetClass()->willReturn('Drupal\node\Entity\Node');

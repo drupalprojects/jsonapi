@@ -78,17 +78,31 @@ class ResourceManagerTest extends KernelTestBase {
 
   /**
    * @covers ::get
+   * @dataProvider getProvider
    */
-  public function testGet() {
+  public function testGet($entity_type_id, $bundle_id, $entity_class) {
     // Make sure that there are resources being created.
-    $resource_config = $this->resourceManager->get('node', 'article');
+    $resource_config = $this->resourceManager->get($entity_type_id, $bundle_id);
     $this->assertInstanceOf(ResourceConfigInterface::class, $resource_config);
-    $this->assertSame('Drupal\node\Entity\Node', $resource_config->getDeserializationTargetClass());
-    $this->assertSame('node', $resource_config->getEntityTypeId());
-    $this->assertSame('article', $resource_config->getBundleId());
+    $this->assertSame($entity_class, $resource_config->getDeserializationTargetClass());
+    $this->assertSame($entity_type_id, $resource_config->getEntityTypeId());
+    $this->assertSame($bundle_id, $resource_config->getBundleId());
     $this->assertNotEmpty($resource_config->getGlobalConfig());
-    $this->assertSame('/article', $resource_config->getPath());
-    $this->assertSame('article', $resource_config->getTypeName());
+    $this->assertSame('/' . $entity_type_id . '/' . $bundle_id, $resource_config->getPath());
+    $this->assertSame($entity_type_id . '--' . $bundle_id, $resource_config->getTypeName());
+  }
+
+  /**
+   * Data provider for testGet.
+   *
+   * @returns array
+   *   The data for the test method.
+   */
+  public function getProvider() {
+    return [
+      ['node', 'article', 'Drupal\node\Entity\Node'],
+      ['node_type', 'node_type', 'Drupal\node\Entity\NodeType'],
+    ];
   }
 
 }

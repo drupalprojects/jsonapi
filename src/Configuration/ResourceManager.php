@@ -72,8 +72,8 @@ class ResourceManager implements ResourceManagerInterface {
         $resource_config = new ResourceConfig($this->configFactory, $this->entityTypeManager);
         $resource_config->setEntityTypeId($entity_type_id);
         $resource_config->setBundleId($bundle);
-        $resource_config->setPath('/' . $bundle);
-        $resource_config->setTypeName($bundle);
+        $resource_config->setPath(sprintf('/%s/%s', $entity_type_id, $bundle));
+        $resource_config->setTypeName(sprintf('%s--%s', $entity_type_id, $bundle));
         return $resource_config;
       }, array_keys($this->bundleManager->getBundleInfo($entity_type_id))));
     }
