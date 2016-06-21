@@ -66,6 +66,13 @@ class ResourceManager implements ResourceManagerInterface {
       return $this->all;
     }
     $entity_type_ids = array_keys($this->entityTypeManager->getDefinitions());
+    $this->all = array_map(function ($entity_type_id) {
+      $resource_config = new ResourceConfig($this->configFactory, $this->entityTypeManager);
+      $resource_config->setEntityTypeId($entity_type_id);
+      $resource_config->setPath(sprintf('/%s', $entity_type_id));
+      $resource_config->setTypeName(sprintf('%s', $entity_type_id));
+      return $resource_config;
+    }, $entity_type_ids);
     foreach ($entity_type_ids as $entity_type_id) {
       // Add a ResourceConfig per bundle.
       $this->all = array_merge($this->all, array_map(function ($bundle) use ($entity_type_id) {
@@ -84,7 +91,7 @@ class ResourceManager implements ResourceManagerInterface {
    * {@inheritdoc}
    */
   public function get($entity_type_id, $bundle_id) {
-    if (!$entity_type_id || !$bundle_id) {
+    if (empty($entity_type_id)) {
       throw new PreconditionFailedHttpException('Server error. The current route is malformed.');
     }
     foreach ($this->all() as $resource) {

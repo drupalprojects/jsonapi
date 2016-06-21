@@ -81,6 +81,7 @@ class Routes implements ContainerInjectionInterface {
       $global_config = $resource->getGlobalConfig();
       $prefix = $global_config->get('prefix');
       $entity_type = $resource->getEntityTypeId();
+      // For the entity type resources the bundle is NULL.
       $bundle = $resource->getBundleId();
       $partial_path = '/' . $prefix . $resource->getPath();
       $route_key = sprintf('%s.dynamic.%s.', $prefix, $resource->getTypeName());
@@ -90,51 +91,63 @@ class Routes implements ContainerInjectionInterface {
       ];
 
       // Collection endpoint, like /api/photos.
-      $collection->add($route_key . 'collection', (new Route($partial_path))
+      $route_collection = (new Route($partial_path))
         ->addDefaults($defaults)
         ->setRequirement('_entity_type', $entity_type)
-        ->setRequirement('_bundle', $bundle)
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setOption('_auth', $this->authProviderList())
         ->setOption('serialization_class', DocumentWrapperInterface::class)
-        ->setMethods(['GET', 'POST']));
+        ->setMethods(['GET', 'POST']);
+      if ($bundle) {
+        $route_collection->setRequirement('_bundle', $bundle);
+      }
+      $collection->add($route_key . 'collection', $route_collection);
 
       // Individual endpoint, like /api/photos/123.
       $parameters = [$entity_type => ['type' => 'entity:' . $entity_type]];
-      $collection->add($route_key . 'individual', (new Route(sprintf('%s/{%s}', $partial_path, $entity_type)))
+      $route_individual = (new Route(sprintf('%s/{%s}', $partial_path, $entity_type)))
         ->addDefaults($defaults)
         ->setRequirement('_entity_type', $entity_type)
-        ->setRequirement('_bundle', $bundle)
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
         ->setOption('serialization_class', DocumentWrapperInterface::class)
-        ->setMethods(['GET', 'PATCH', 'DELETE']));
+        ->setMethods(['GET', 'PATCH', 'DELETE']);
+      if ($bundle) {
+        $route_individual->setRequirement('_bundle', $bundle);
+      }
+      $collection->add($route_key . 'individual', $route_individual);
 
-      // Related endpoint, like /api/photos/123/comments.
-      $collection->add($route_key . 'related', (new Route(sprintf('%s/{%s}/{related}', $partial_path, $entity_type)))
+      // Related resource, like /api/photos/123/comments.
+      $route_related = (new Route(sprintf('%s/{%s}/{related}', $partial_path, $entity_type)))
         ->addDefaults($defaults)
         ->setRequirement('_entity_type', $entity_type)
-        ->setRequirement('_bundle', $bundle)
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
-        ->setMethods(['GET']));
+        ->setMethods(['GET']);
+      if ($bundle) {
+        $route_related->setRequirement('_bundle', $bundle);
+      }
+      $collection->add($route_key . 'related', $route_related);
 
       // Related endpoint, like /api/photos/123/relationships/comments.
-      $collection->add($route_key . 'relationship', (new Route(sprintf('%s/{%s}/relationships/{related}', $partial_path, $entity_type)))
+      $route_relationship = (new Route(sprintf('%s/{%s}/relationships/{related}', $partial_path, $entity_type)))
         ->addDefaults($defaults + ['_on_relationship' => TRUE])
         ->setRequirement('_entity_type', $entity_type)
-        ->setRequirement('_bundle', $bundle)
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
         ->setOption('serialization_class', EntityReferenceFieldItemList::class)
-        ->setMethods(['GET', 'POST', 'PATCH', 'DELETE']));
+        ->setMethods(['GET', 'POST', 'PATCH', 'DELETE']);
+      if ($bundle) {
+        $route_relationship->setRequirement('_bundle', $bundle);
+      }
+      $collection->add($route_key . 'relationship', $route_relationship);
     }
 
     return $collection;
