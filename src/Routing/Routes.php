@@ -96,6 +96,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_entity_type', $entity_type)
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
+        ->setRequirement('_custom_parameter_names', 'TRUE')
         ->setOption('_auth', $this->authProviderList())
         ->setOption('serialization_class', DocumentWrapperInterface::class)
         ->setMethods(['GET', 'POST']);
@@ -111,6 +112,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_entity_type', $entity_type)
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
+        ->setRequirement('_custom_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
         ->setOption('serialization_class', DocumentWrapperInterface::class)
@@ -126,6 +128,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_entity_type', $entity_type)
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
+        ->setRequirement('_custom_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
         ->setMethods(['GET']);
@@ -140,6 +143,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_entity_type', $entity_type)
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
+        ->setRequirement('_custom_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
         ->setOption('serialization_class', EntityReferenceFieldItemList::class)
