@@ -4,6 +4,7 @@ namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
+use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
@@ -120,7 +121,7 @@ class ContentEntityNormalizer extends NormalizerBase implements DenormalizerInte
       ->getEntityTypeManager()
       ->getDefinition($resource_config->getEntityTypeId())
       ->getKey('bundle');
-    if ($bundle_key) {
+    if ($bundle_key && $bundle_id) {
       $data[$bundle_key] = $bundle_id;
     }
 
@@ -152,7 +153,17 @@ class ContentEntityNormalizer extends NormalizerBase implements DenormalizerInte
    */
   protected function getFields($entity) {
     /* @var \Drupal\Core\Entity\ContentEntityInterface $entity */
-    return $entity->getFields();
+    $fields = $entity->getFields();
+    if (!$this->currentContext->getResourceConfig()->getBundleId()) {
+      // If this request if for the base entity, then strip all fields attached to a specific bundles. That way all the
+      // entity requests will look the same regardless of their bundle. If you need the information about the fields
+      // attached to the bundle, you can request the whole entity by using the bundle resource. As a shortcut, all
+      // entity resources contain a fake relationship to the bundle specific resource.
+      $fields = array_filter($fields, function (FieldItemListInterface $field) {
+        return (bool) !$field->getDataDefinition()->getTargetBundle();
+      });
+    }
+    return $fields;
   }
 
 

@@ -66,14 +66,17 @@ class ResourceManagerTest extends KernelTestBase {
     // Make sure that there are resources being created.
     $all = $this->resourceManager->all();
     $this->assertNotEmpty($all);
-    // Get a random resource config.
-    $resource_config = $all[mt_rand(0, count($all) - 1)];
-    $this->assertNotEmpty($resource_config->getDeserializationTargetClass());
-    $this->assertNotEmpty($resource_config->getEntityTypeId());
-    $this->assertNotEmpty($resource_config->getBundleId());
-    $this->assertNotEmpty($resource_config->getGlobalConfig());
-    $this->assertNotEmpty($resource_config->getPath());
-    $this->assertNotEmpty($resource_config->getTypeName());
+    array_walk($all, function (ResourceConfigInterface $resource_config) {
+      $this->assertNotEmpty($resource_config->getDeserializationTargetClass());
+      $this->assertNotEmpty($resource_config->getEntityTypeId());
+      $this->assertNotEmpty($resource_config->getGlobalConfig());
+      $this->assertNotEmpty($resource_config->getTypeName());
+      $path = $resource_config->getPath();
+      if (!$resource_config->getBundleId()) {
+        $this->assertCount(1, explode('/', ltrim($path, '/')));
+      }
+      $this->assertNotEmpty($path);
+    });
   }
 
   /**

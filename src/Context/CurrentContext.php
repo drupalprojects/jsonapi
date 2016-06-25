@@ -76,9 +76,6 @@ class CurrentContext implements CurrentContextInterface {
     if (!isset($this->resourceConfig)) {
       $entity_type_id = $this->getCurrentRoute()->getRequirement('_entity_type');
       $bundle_id = $this->getCurrentRoute()->getRequirement('_bundle');
-      if (empty($entity_type_id) ||empty($bundle_id)) {
-        throw new PreconditionRequiredHttpException('Entity type and bundle are required.');
-      }
       $this->resourceConfig = $this->resourceManager
         ->get($entity_type_id, $bundle_id);
     }
