@@ -82,7 +82,7 @@ class RequestHandler extends RestRequestHandler {
     }
 
     return $response instanceof ResourceResponse ?
-      $this->renderResponse($request, $response, $serializer, $format) :
+      $this->renderJsonApiResponse($request, $response, $serializer, $format) :
       $response;
   }
 
@@ -110,7 +110,7 @@ class RequestHandler extends RestRequestHandler {
    * @todo Add test coverage for language negotiation contexts in
    *   https://www.drupal.org/node/2135829.
    */
-  protected function renderResponse(Request $request, ResourceResponseInterface $response, SerializerInterface $serializer, $format) {
+  protected function renderJsonApiResponse(Request $request, ResourceResponseInterface $response, SerializerInterface $serializer, $format) {
     $data = $response->getResponseData();
     $context = new RenderContext();
     $output = $this->container->get('renderer')
