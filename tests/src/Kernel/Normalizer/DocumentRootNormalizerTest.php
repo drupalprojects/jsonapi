@@ -3,6 +3,7 @@
 namespace Drupal\Tests\jsonapi\Kernel\Normalizer;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\Config\ImmutableConfig;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Normalizer\DocumentRootNormalizerInterface;
 use Drupal\jsonapi\Resource\DocumentWrapper;
@@ -130,6 +131,10 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $document_wrapper->getData()->willReturn($this->node);
     $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
     $resource_config->getTypeName()->willReturn('node--article');
+    $resource_config->getIdKey()->willReturn('id');
+    \Drupal::configFactory()->getEditable('jsonapi.resource_info')
+      ->set('id_field', 'id')
+      ->save();
 
     // Make sure the route contains the entity type and bundle.
     $current_context = $this->container->get('jsonapi.current_context');
@@ -181,6 +186,58 @@ class DocumentRootNormalizerTest extends KernelTestBase {
   /**
    * @covers ::normalize
    */
+  public function testNormalizeUuid() {
+    $request = $this->prophesize(Request::class);
+    $query = $this->prophesize(ParameterBag::class);
+    $query->get('fields')->willReturn([
+      'node--article' => 'title,type,uid',
+      'user--user' => 'name',
+    ]);
+    $query->get('include')->willReturn('uid');
+    $query->getIterator()->willReturn(new \ArrayIterator());
+    $request->query = $query->reveal();
+    $route = $this->prophesize(Route::class);
+    $route->getPath()->willReturn('/node/article/{node}');
+    $route->getRequirement('_entity_type')->willReturn('node');
+    $route->getRequirement('_bundle')->willReturn('article');
+    $request->get(RouteObjectInterface::ROUTE_OBJECT)
+      ->willReturn($route->reveal());
+    $document_wrapper = $this->prophesize(DocumentWrapper::class);
+    $document_wrapper->getData()->willReturn($this->node);
+    $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
+    $resource_config->getTypeName()->willReturn('node--article');
+    $resource_config->getIdKey()->willReturn('uuid');
+    $resource_config->getBundleId()->willReturn('article');
+    \Drupal::configFactory()->getEditable('jsonapi.resource_info')
+      ->set('id_field', 'uuid')
+      ->save();
+
+    // Make sure the route contains the entity type and bundle.
+    $current_context = $this->container->get('jsonapi.current_context');
+    $current_context->setCurrentRoute($route->reveal());
+
+    $this->container->set('jsonapi.current_context', $current_context);
+    $this->container->get('serializer');
+    $normalized = $this
+      ->container
+      ->get('serializer.normalizer.document_root.jsonapi')
+      ->normalize(
+        $document_wrapper->reveal(),
+        'api_json',
+        [
+          'request' => $request->reveal(),
+          'resource_config' => $resource_config->reveal(),
+        ]
+      );
+    $this->assertStringMatchesFormat($this->node->uuid(), $normalized['data']['id']);
+    $this->assertEquals($this->node->type->entity->uuid(), $normalized['data']['relationships']['type']['data']['id']);
+    $this->assertEquals($this->user->uuid(), $normalized['data']['relationships']['uid']['data']['id']);
+    $this->assertEquals($this->user->uuid(), $normalized['included'][0]['data']['id']);
+  }
+
+  /**
+   * @covers ::normalize
+   */
   public function testNormalizeNoBundle() {
     $request = $this->prophesize(Request::class);
     $query = $this->prophesize(ParameterBag::class);
@@ -197,8 +254,11 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $document_wrapper->getData()->willReturn($this->node);
     $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
     $resource_config->getTypeName()->willReturn('node');
+    $resource_config->getIdKey()->willReturn('id');
+    $resource_config->getBundleId()->willReturn(NULL);
 
     // Make sure the route contains the entity type.
+    /** @var \Drupal\jsonapi\Context\CurrentContextInterface $current_context */
     $current_context = $this->container->get('jsonapi.current_context');
     $current_context->setCurrentRoute($route->reveal());
 
@@ -255,6 +315,7 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $document_wrapper->getData()->willReturn($this->nodeType);
     $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
     $resource_config->getTypeName()->willReturn('node_type--node_type');
+    $resource_config->getIdKey()->willReturn('id');
 
     // Make sure the route contains the entity type and bundle.
     $current_context = $this->container->get('jsonapi.current_context');

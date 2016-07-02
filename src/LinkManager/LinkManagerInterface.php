@@ -17,7 +17,8 @@ interface LinkManagerInterface {
    * Gets a link for the entity.
    *
    * @param int $entity_id
-   *   The entity ID to generate the link for.
+   *   The entity ID to generate the link for. Note: Depending on the
+   *   configuration this might be the UUID as well.
    * @param \Drupal\jsonapi\Configuration\ResourceConfigInterface $resource_config
    *   The resource configuration.
    * @param array $route_parameters

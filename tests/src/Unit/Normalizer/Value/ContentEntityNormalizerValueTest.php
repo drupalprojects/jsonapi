@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\jsonapi\Unit\Normalizer\Value;
 
+use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Url;
@@ -78,6 +79,7 @@ class ContentEntityNormalizerValueTest extends UnitTestCase {
     }, $included));
     $resource_config = $this->prophesize(ResourceConfigInterface::class);
     $resource_config->getTypeName()->willReturn('node');
+    $resource_config->getIdKey()->willReturn('id');
     $context = ['resource_config' => $resource_config->reveal()];
     $entity = $this->prophesize(EntityInterface::class);
     $entity->id()->willReturn(1);

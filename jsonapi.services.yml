@@ -70,3 +70,8 @@ services:
     class: Drupal\jsonapi\Access\CustomParameterNames
     tags:
       - { name: access_check, applies_to: _custom_parameter_names }
+  paramconverteruuid.entity:
+    class: Drupal\jsonapi\ParamConverter\EntityConverterField
+    tags:
+      - { name: paramconverter }
+    arguments: ['@entity.manager']

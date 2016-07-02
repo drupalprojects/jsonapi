@@ -1,6 +1,9 @@
 jsonapi.resource_info:
-  type: mapping
+  type: config_object
   mapping:
     prefix:
       type: string
       label: 'Prefix'
+    id_field:
+      type: string
+      label: 'API field'

@@ -146,6 +146,13 @@ class ResourceConfig implements ResourceConfigInterface {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function getIdKey() {
+    return $this->getGlobalConfig()->get('id_field');
+  }
+
+  /**
    * Instantiates a ResourceConfig object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory

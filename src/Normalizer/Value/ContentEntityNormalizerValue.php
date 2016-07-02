@@ -80,10 +80,11 @@ class ContentEntityNormalizerValue implements ContentEntityNormalizerValueInterf
    * {@inheritdoc}
    */
   public function rasterizeValue() {
+    $id_key = $this->context['resource_config']->getIdKey();
     // Create the array of normalized fields, starting with the URI.
     $rasterized = [
       'type' => $this->context['resource_config']->getTypeName(),
-      'id' => $this->entity->id(),
+      'id' => $id_key == 'uuid' ? $this->entity->uuid() : $this->entity->id(),
       'attributes' => [],
       'relationships' => [],
     ];

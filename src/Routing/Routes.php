@@ -89,6 +89,11 @@ class Routes implements ContainerInjectionInterface {
       $defaults = [
         RouteObjectInterface::CONTROLLER_NAME => static::FRONT_CONTROLLER,
       ];
+      // Options that apply to all routes.
+      $options = [
+        '_auth' => $this->authProviderList(),
+        '_is_jsonapi' => TRUE,
+      ];
 
       // Collection endpoint, like /api/photos.
       $route_collection = (new Route($partial_path))
@@ -97,12 +102,12 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setRequirement('_custom_parameter_names', 'TRUE')
-        ->setOption('_auth', $this->authProviderList())
         ->setOption('serialization_class', DocumentWrapperInterface::class)
         ->setMethods(['GET', 'POST']);
       if ($bundle) {
         $route_collection->setRequirement('_bundle', $bundle);
       }
+      $route_collection->addOptions($options);
       $collection->add($route_key . 'collection', $route_collection);
 
       // Individual endpoint, like /api/photos/123.
@@ -120,6 +125,7 @@ class Routes implements ContainerInjectionInterface {
       if ($bundle) {
         $route_individual->setRequirement('_bundle', $bundle);
       }
+      $route_individual->addOptions($options);
       $collection->add($route_key . 'individual', $route_individual);
 
       // Related resource, like /api/photos/123/comments.
@@ -135,6 +141,7 @@ class Routes implements ContainerInjectionInterface {
       if ($bundle) {
         $route_related->setRequirement('_bundle', $bundle);
       }
+      $route_related->addOptions($options);
       $collection->add($route_key . 'related', $route_related);
 
       // Related endpoint, like /api/photos/123/relationships/comments.
@@ -151,6 +158,7 @@ class Routes implements ContainerInjectionInterface {
       if ($bundle) {
         $route_relationship->setRequirement('_bundle', $bundle);
       }
+      $route_relationship->addOptions($options);
       $collection->add($route_key . 'relationship', $route_relationship);
     }
 

@@ -1,1 +1,2 @@
 prefix: api
+id_field: uuid

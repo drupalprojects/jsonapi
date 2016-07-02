@@ -2,6 +2,7 @@
 
 namespace Drupal\jsonapi\Context;
 
+use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;

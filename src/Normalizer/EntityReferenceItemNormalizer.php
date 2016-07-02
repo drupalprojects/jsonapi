@@ -45,16 +45,22 @@ class EntityReferenceItemNormalizer extends FieldItemNormalizer implements UuidR
   public function normalize($field_item, $format = NULL, array $context = array()) {
     /* @var $field_item \Drupal\Core\Field\FieldItemInterface */
     $target_entity = $field_item->get('entity')->getValue();
-    $values = $field_item->toArray();
     $main_property = $field_item->mainPropertyName();
-    $values = [$main_property => $values[$main_property]];
+    $resource_config = $this->resourceManager
+      ->get($target_entity->getEntityTypeId(), $target_entity->bundle());
+    if ($resource_config->getIdKey() == 'uuid') {
+      $values = [$main_property => $target_entity->uuid()];
+    }
+    else {
+      $values = $field_item->toArray();
+      $values = [$main_property => $values[$main_property]];
+    }
     if (isset($context['langcode'])) {
       $values['lang'] = $context['langcode'];
     }
     $normalizer_value = new Value\EntityReferenceItemNormalizerValue(
       $values,
-      $this->resourceManager
-        ->get($target_entity->getEntityTypeId(), $target_entity->bundle())
+      $resource_config
         ->getTypeName()
     );
 

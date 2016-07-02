@@ -89,10 +89,11 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
       ->getFieldStorageDefinition()
       ->getCardinality();
     $link_context = [
-      'host_entity_id' => $field->getEntity()->id(),
+      'host_entity_id' => $context['resource_config']->getIdKey() == 'uuid' ? $field->getEntity()->uuid() : $field->getEntity()->id(),
       'field_name' => $definition->getName(),
       'link_manager' => $this->linkManager,
       'resource_config' => $context['resource_config'],
+      'host_uuid' => $field->getEntity()->uuid(),
     ];
     return new Value\EntityReferenceNormalizerValue($normalizer_items, $cardinality, $link_context);
   }
