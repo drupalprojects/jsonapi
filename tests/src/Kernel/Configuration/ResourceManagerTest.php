@@ -108,4 +108,13 @@ class ResourceManagerTest extends KernelTestBase {
     ];
   }
 
+  /**
+   * @covers ::hasBundle
+   */
+  public function testHasBundle() {
+    $this->assertTrue($this->resourceManager->hasBundle('node'));
+    $this->assertFalse($this->resourceManager->hasBundle('node_type'));
+    $this->assertFalse($this->resourceManager->hasBundle('date_format'));
+    $this->assertFalse($this->resourceManager->hasBundle('user'));
+  }
 }

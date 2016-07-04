@@ -8,6 +8,7 @@ use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\Routing\Routes;
 use Drupal\Tests\UnitTestCase;
+use Prophecy\Argument;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -49,6 +50,7 @@ class RoutesTest extends UnitTestCase {
     $resource_config->getPath()->willReturn('/entity_type_1/bundle_path_1');
     $resource_config->getTypeName()->willReturn('resource_type_1');
     $resource_manager->all()->willReturn([$resource_config->reveal()]);
+    $resource_manager->hasBundle(Argument::type('string'))->willReturn(FALSE);
     $container = $this->prophesize(ContainerInterface::class);
     $container->get('jsonapi.resource.manager')->willReturn($resource_manager->reveal());
     $auth_collector = $this->prophesize(AuthenticationCollectorInterface::class);
@@ -70,7 +72,7 @@ class RoutesTest extends UnitTestCase {
     $routes = $this->routes['ok']->routes();
 
     // Make sure that there are 4 routes for each resource.
-    $this->assertEquals(4, $routes->count());
+    $this->assertEquals(6, $routes->count());
 
     $iterator = $routes->getIterator();
     // Check the collection route.

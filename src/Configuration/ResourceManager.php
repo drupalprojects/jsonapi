@@ -102,4 +102,14 @@ class ResourceManager implements ResourceManagerInterface {
     return $this->entityTypeManager;
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function hasBundle($entity_type_id) {
+    return (bool) $this->getEntityTypeManager()
+      ->getDefinition($entity_type_id)
+      ->getBundleEntityType();
+  }
+
+
 }

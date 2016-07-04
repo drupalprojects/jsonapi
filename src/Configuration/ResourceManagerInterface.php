@@ -39,4 +39,15 @@ interface ResourceManagerInterface {
    */
   public function getEntityTypeManager();
 
+  /**
+   * Entity type has a bundle.
+   *
+   * @param string $entity_type_id
+   *   The entity type ID.
+   *
+   * @return bool
+   *   TRUE if the provided entity type has a bundle.
+   */
+  public function hasBundle($entity_type_id);
+
 }

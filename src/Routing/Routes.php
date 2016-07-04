@@ -83,6 +83,7 @@ class Routes implements ContainerInjectionInterface {
       $entity_type = $resource->getEntityTypeId();
       // For the entity type resources the bundle is NULL.
       $bundle = $resource->getBundleId();
+      $entity_type_has_bundle = $this->resourceManager->hasBundle($entity_type);
       $partial_path = '/' . $prefix . $resource->getPath();
       $route_key = sprintf('%s.dynamic.%s.', $prefix, $resource->getTypeName());
       // Add the collection route.
@@ -110,6 +111,16 @@ class Routes implements ContainerInjectionInterface {
       $route_collection->addOptions($options);
       $collection->add($route_key . 'collection', $route_collection);
 
+      // Provide a schema for /api/file/photo.
+      $route_individual_schema = (new Route($partial_path . '/scheme'))
+        ->addDefaults([
+          '_controller' => '\Drupal\jsonapi\Controller\SchemaController::entityCollectionSchema',
+          'typed_data_id' => 'entity:' . $entity_type . (($entity_type_has_bundle) ? ':' . $bundle : ''),
+        ])
+        ->setRequirement('_permission', 'access content')
+        ->setMethods(['GET']);
+      $collection->add($route_key . 'schema', $route_individual_schema);
+
       // Individual endpoint, like /api/file/photo/123.
       $parameters = [$entity_type => ['type' => 'entity:' . $entity_type]];
       $route_individual = (new Route(sprintf('%s/{%s}', $partial_path, $entity_type)))
@@ -127,6 +138,16 @@ class Routes implements ContainerInjectionInterface {
       }
       $route_individual->addOptions($options);
       $collection->add($route_key . 'individual', $route_individual);
+
+      // Schema for /api/file/photos/123.
+      $route_individual_schema = (new Route(sprintf('%s/scheme', $partial_path)))
+        ->addDefaults([
+          '_controller' => '\Drupal\jsonapi\Controller\SchemaController::entitySchema',
+          'typed_data_id' => 'entity:' . $entity_type . (($entity_type_has_bundle) ? ':' . $bundle : ''),
+        ])
+        ->setRequirement('_permission', 'access content')
+        ->setMethods(['GET']);
+      $collection->add($route_key . 'individual.schema', $route_individual_schema);
 
       // Related resource, like /api/file/photo/123/comments.
       $route_related = (new Route(sprintf('%s/{%s}/{related}', $partial_path, $entity_type)))
