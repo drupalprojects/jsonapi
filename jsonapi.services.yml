@@ -38,6 +38,11 @@ services:
     arguments: ['@jsonapi.link_manager', '@jsonapi.current_context']
     tags:
       - { name: normalizer, priority: 22 }
+  serializer.normalizer.htt_exception.jsonapi:
+    class: Drupal\jsonapi\Normalizer\HttpExceptionNormalizer
+    arguments: ['@current_user']
+    tags:
+      - { name: normalizer, priority: 1 }
   serializer.encoder.jsonapi:
     class: Drupal\jsonapi\Encoder\JsonEncoder
     tags:
@@ -75,3 +80,5 @@ services:
     tags:
       - { name: paramconverter }
     arguments: ['@entity.manager']
+  jsonapi.error_handler:
+    class: Drupal\jsonapi\Error\ErrorHandler

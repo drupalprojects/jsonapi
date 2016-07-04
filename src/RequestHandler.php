@@ -69,17 +69,22 @@ class RequestHandler extends RestRequestHandler {
 
     // Only add the unserialized data if there is something there.
     $extra_parameters = $unserialized ? [$unserialized, $request] : [$request];
+
+    /** @var \Drupal\jsonapi\Error\ErrorHandlerInterface $error_handler */
+    $error_handler = $this->container->get('jsonapi.error_handler');
+    $error_handler->register();
     try {
       $response = call_user_func_array([$resource, $action], array_merge($parameters, $extra_parameters));
     }
-    catch (HttpException $e) {
-      $error['error'] = $e->getMessage();
-      $content = $serializer->serialize($error, $format);
+    catch (HttpException $error_exception) {
+      $content = $serializer->serialize($error_exception, $format);
       // Add the default content type, but only if the headers from the
       // exception have not specified it already.
-      $headers = $e->getHeaders() + array('Content-Type' => $request->getMimeType($format));
-      return new Response($content, $e->getStatusCode(), $headers);
+      $headers = $error_exception->getHeaders() + array('Content-Type' => $request->getMimeType($format));
+      $error_handler->restore();
+      return new Response($content, $error_exception->getStatusCode(), $headers);
     }
+    $error_handler->restore();
 
     return $response instanceof ResourceResponse ?
       $this->renderJsonApiResponse($request, $response, $serializer, $format) :
