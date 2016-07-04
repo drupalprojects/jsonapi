@@ -8,7 +8,9 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
+use Drupal\jsonapi\Relationship;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
@@ -65,37 +67,22 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
   }
 
   /**
-   * Helper function to normalize field items.
-   *
-   * @param \Drupal\Core\Field\FieldItemListInterface $field
-   *   The field object.
-   * @param string $format
-   *   The format.
-   * @param array $context
-   *   The context array.
-   *
-   * @return array
-   *   The array of normalized field items.
+   * {@inheritdoc}
    */
-  protected function normalizeFieldItems(FieldItemListInterface $field, $format, $context) {
-    $normalizer_items = array();
-    if (!$field->isEmpty()) {
-      foreach ($field as $field_item) {
-        $normalizer_items[] = $this->serializer->normalize($field_item, $format, $context);
-      }
-    }
+  public function normalize($field, $format = NULL, array $context = array()) {
+    /* @var $field \Drupal\Core\Field\FieldItemListInterface */
+    // Build the relationship object based on the Entity Reference and normalize
+    // that object instead.
+    $main_property = $field->getItemDefinition()->getMainPropertyName();
     $definition = $field->getFieldDefinition();
     $cardinality = $definition
       ->getFieldStorageDefinition()
       ->getCardinality();
-    $link_context = [
-      'host_entity_id' => $context['resource_config']->getIdKey() == 'uuid' ? $field->getEntity()->uuid() : $field->getEntity()->id(),
-      'field_name' => $definition->getName(),
-      'link_manager' => $this->linkManager,
-      'resource_config' => $context['resource_config'],
-      'host_uuid' => $field->getEntity()->uuid(),
-    ];
-    return new Value\EntityReferenceNormalizerValue($normalizer_items, $cardinality, $link_context);
+    $entity_collection = new EntityCollection(array_map(function ($item) {
+      return $item->get('entity')->getValue();
+    }, (array) $field->getIterator()));
+    $relationship = new Relationship($this->resourceManager, $field->getName(), $cardinality, $entity_collection, $field->getEntity(), $main_property);
+    return $this->serializer->normalize($relationship, $format, $context);
   }
 
   /**

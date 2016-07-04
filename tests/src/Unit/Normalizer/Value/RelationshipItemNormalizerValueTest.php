@@ -2,7 +2,8 @@
 
 namespace Drupal\Tests\jsonapi\Unit\Normalizer\Value;
 
-use Drupal\jsonapi\Normalizer\Value\EntityReferenceItemNormalizerValue;
+use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\Normalizer\Value\RelationshipItemNormalizerValue;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -10,17 +11,19 @@ use Drupal\Tests\UnitTestCase;
  *
  * @package Drupal\Tests\jsonapi\Unit\Normalizer\Value
  *
- * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\EntityReferenceItemNormalizerValue
+ * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\RelationshipItemNormalizerValue
  * @group jsonapi
  */
-class EntityReferenceItemNormalizerValueTest extends UnitTestCase {
+class RelationshipItemNormalizerValueTest extends UnitTestCase {
 
   /**
    * @covers ::rasterizeValue
    * @dataProvider rasterizeValueProvider
    */
-  public function testRasterizeValue($values, $resource, $expected) {
-    $object = new EntityReferenceItemNormalizerValue($values, $resource);
+  public function testRasterizeValue($values, $resource_type, $expected) {
+    $resource = $this->prophesize(ResourceConfigInterface::class);
+    $resource->getTypeName()->willReturn($resource_type);
+    $object = new RelationshipItemNormalizerValue($values, $resource->reveal());
     $this->assertEquals($expected, $object->rasterizeValue());
   }
 

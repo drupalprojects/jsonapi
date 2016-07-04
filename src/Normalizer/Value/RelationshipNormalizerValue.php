@@ -7,7 +7,7 @@ namespace Drupal\jsonapi\Normalizer\Value;
  *
  * @package Drupal\jsonapi\Normalizer\Value
  */
-class EntityReferenceNormalizerValue extends FieldNormalizerValue implements EntityReferenceNormalizerValueInterface {
+class RelationshipNormalizerValue extends FieldNormalizerValue implements RelationshipNormalizerValueInterface {
 
   /**
    * The link manager.
@@ -40,7 +40,7 @@ class EntityReferenceNormalizerValue extends FieldNormalizerValue implements Ent
   /**
    * Instantiate a EntityReferenceNormalizerValue object.
    *
-   * @param EntityReferenceItemNormalizerValue[] $values
+   * @param RelationshipItemNormalizerValue[] $values
    *   The normalized result.
    * @param int $cardinality
    *   The number of fields for the field list.
@@ -54,7 +54,7 @@ class EntityReferenceNormalizerValue extends FieldNormalizerValue implements Ent
     $this->linkManager = $link_context['link_manager'];
     $this->resourceConfig = $link_context['resource_config'];
     array_walk($values, function ($field_item_value) {
-      if (!$field_item_value instanceof EntityReferenceItemNormalizerValueInterface) {
+      if (!$field_item_value instanceof RelationshipItemNormalizerValueInterface) {
         throw new \RuntimeException(sprintf('Unexpected normalizer item value for this %s.', get_called_class()));
       }
     });

@@ -9,13 +9,14 @@ use Drupal\jsonapi\Resource\DocumentWrapperInterface;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * Class DocumentRootNormalizer.
  *
  * @package Drupal\jsonapi\Normalizer
  */
-class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInterface, DocumentRootNormalizerInterface {
+class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInterface, NormalizerInterface, DocumentRootNormalizerInterface {
 
   /**
    * The interface or class that this Normalizer supports.

@@ -12,10 +12,10 @@ interface FieldItemNormalizerValueInterface extends ValueExtractorInterface {
   /**
    * Add an include.
    *
-   * @param DocumentRootNormalizerValueInterface $include
+   * @param ValueExtractorInterface $include
    *   The included entity.
    */
-  public function setInclude(DocumentRootNormalizerValueInterface $include);
+  public function setInclude(ValueExtractorInterface $include);
 
   /**
    * Gets the include.

@@ -1,9 +1,7 @@
 services:
   serializer.normalizer.entity_reference_item.jsonapi:
-    class: Drupal\jsonapi\Normalizer\EntityReferenceItemNormalizer
-    arguments: ['@jsonapi.resource.manager']
-    calls:
-      - [setContainer, ['@service_container']]
+    class: Drupal\jsonapi\Normalizer\RelationshipItemNormalizer
+    arguments: ['@jsonapi.resource.manager', '@serializer.normalizer.document_root.jsonapi',]
     tags:
       - { name: normalizer, priority: 21 }
   serializer.normalizer.field_item.jsonapi:
@@ -20,9 +18,14 @@ services:
       - { name: normalizer, priority: 21 }
   serializer.normalizer.entity_reference_field.jsonapi:
     class: Drupal\jsonapi\Normalizer\EntityReferenceFieldNormalizer
+    arguments: ['@jsonapi.link_manager', '@entity_field.manager', '@plugin.manager.field.field_type', '@jsonapi.resource.manager']
     tags:
       - { name: normalizer, priority: 31 }
-    arguments: ['@jsonapi.link_manager', '@entity_field.manager', '@plugin.manager.field.field_type', '@jsonapi.resource.manager']
+  serializer.normalizer.relationship.jsonapi:
+    class: Drupal\jsonapi\Normalizer\RelationshipNormalizer
+    arguments: ['@jsonapi.resource.manager', '@serializer.normalizer.document_root.jsonapi', '@jsonapi.link_manager']
+    tags:
+      - { name: normalizer, priority: 21 }
   serializer.normalizer.entity.jsonapi:
     class: Drupal\jsonapi\Normalizer\ContentEntityNormalizer
     arguments: ['@jsonapi.link_manager', '@jsonapi.current_context']

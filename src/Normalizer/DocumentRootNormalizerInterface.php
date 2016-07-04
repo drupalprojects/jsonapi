@@ -8,4 +8,14 @@ namespace Drupal\jsonapi\Normalizer;
  *
  * @package Drupal\jsonapi\Normalizer
  */
-interface DocumentRootNormalizerInterface {}
+interface DocumentRootNormalizerInterface {
+
+  /**
+   * Build the normalizer value.
+   *
+   * @return \Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValueInterface
+   *   The normalizer value.
+   */
+  public function buildNormalizerValue($data, $format = NULL, array $context = array());
+
+}

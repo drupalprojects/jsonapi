@@ -54,7 +54,6 @@ class FieldNormalizer extends NormalizerBase {
    */
   protected function normalizeFieldItems(FieldItemListInterface $field, $format, $context) {
     $normalizer_items = array();
-    $includes = [];
     if (!$field->isEmpty()) {
       foreach ($field as $field_item) {
         $normalizer_items[] = $this->serializer->normalize($field_item, $format, $context);

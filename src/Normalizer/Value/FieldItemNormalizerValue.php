@@ -51,7 +51,7 @@ class FieldItemNormalizerValue implements FieldItemNormalizerValueInterface {
   /**
    * {@inheritdoc}
    */
-  public function setInclude(DocumentRootNormalizerValueInterface $include) {
+  public function setInclude(ValueExtractorInterface $include) {
     $this->include = $include;
   }
 

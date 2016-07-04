@@ -7,7 +7,7 @@ namespace Drupal\jsonapi\Normalizer\Value;
  *
  * @package Drupal\jsonapi\Normalizer\Value
  */
-class EntityReferenceItemNormalizerValue extends FieldItemNormalizerValue implements EntityReferenceItemNormalizerValueInterface {
+class RelationshipItemNormalizerValue extends FieldItemNormalizerValue implements RelationshipItemNormalizerValueInterface {
 
   /**
    * Resource path.
@@ -22,7 +22,7 @@ class EntityReferenceItemNormalizerValue extends FieldItemNormalizerValue implem
    * @param array $values
    *   The values.
    * @param string $resource
-   *   The resource path of the target entity.
+   *   The resource type of the target entity.
    */
   public function __construct(array $values, $resource) {
     parent::__construct($values);
@@ -37,7 +37,7 @@ class EntityReferenceItemNormalizerValue extends FieldItemNormalizerValue implem
       return $value;
     }
     return [
-      'type' => $this->resource,
+      'type' => $this->resource->getTypeName(),
       'id' => $value,
     ];
   }

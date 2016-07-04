@@ -7,7 +7,7 @@ namespace Drupal\jsonapi\Normalizer\Value;
  *
  * @package Drupal\jsonapi\Normalizer\Value
  */
-interface EntityReferenceItemNormalizerValueInterface extends FieldItemNormalizerValueInterface {
+interface RelationshipItemNormalizerValueInterface extends FieldItemNormalizerValueInterface {
 
   /**
    * Sets the resource.

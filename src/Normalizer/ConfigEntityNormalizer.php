@@ -3,6 +3,7 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
+use Drupal\jsonapi\RelationshipInterface;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 
 /**
@@ -12,7 +13,7 @@ use Symfony\Component\Serializer\Exception\UnexpectedValueException;
  *
  * @package Drupal\jsonapi\Normalizer
  */
-class ConfigEntityNormalizer extends ContentEntityNormalizer {
+class ConfigEntityNormalizer extends EntityNormalizer {
 
   /**
    * The interface or class that this Normalizer supports.
@@ -22,35 +23,21 @@ class ConfigEntityNormalizer extends ContentEntityNormalizer {
   protected $supportedInterfaceOrClass = ConfigEntityInterface::class;
 
   /**
-   * Gets the field names for the given entity.
-   *
-   * @param mixed $entity
-   *   The entity.
-   *
-   * @return array
-   *   The fields.
+   * {@inheritdoc}
    */
-  protected function getFields($entity) {
+  protected function getFields($entity, $bundle_id) {
     /* @var \Drupal\Core\Config\Entity\ConfigEntityInterface $entity */
     return $entity->toArray();
   }
 
   /**
-   * Serializes a given field.
-   *
-   * @param mixed $field
-   *   The field to serialize.
-   * @param array $context
-   *   The normalization context.
-   * @param string $format
-   *   The serialization format.
-   *
-   * @return Value\FieldNormalizerValueInterface
-   *   The normalized value.
+   * {@inheritdoc}
    */
   protected function serializeField($field, $context, $format) {
     $output = $this->serializer->normalize($field, $format, $context);
-    $output->setPropertyType('attributes');
+    $field instanceof RelationshipInterface ?
+      $output->setPropertyType('relationships') :
+      $output->setPropertyType('attributes');
     return $output;
   }
 

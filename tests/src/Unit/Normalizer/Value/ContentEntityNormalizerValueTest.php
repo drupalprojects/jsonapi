@@ -11,7 +11,7 @@ use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValueInterface;
-use Drupal\jsonapi\Normalizer\Value\EntityReferenceNormalizerValueInterface;
+use Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValueInterface;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
@@ -43,7 +43,7 @@ class ContentEntityNormalizerValueTest extends UnitTestCase {
     $field1->getIncludes()->willReturn([]);
     $field1->getPropertyType()->willReturn('attributes');
     $field1->rasterizeValue()->willReturn('dummy_title');
-    $field2 = $this->prophesize(EntityReferenceNormalizerValueInterface::class);
+    $field2 = $this->prophesize(RelationshipNormalizerValueInterface::class);
     $field2->getPropertyType()->willReturn('relationships');
     $field2->rasterizeValue()->willReturn(['data' => ['type' => 'node', 'id' => 2]]);
     $included[] = $this->prophesize(DocumentRootNormalizerValueInterface::class);

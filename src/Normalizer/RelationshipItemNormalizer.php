@@ -5,22 +5,21 @@ namespace Drupal\jsonapi\Normalizer;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\RelationshipItemInterface;
 use Drupal\serialization\EntityResolver\UuidReferenceInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
 /**
  * Converts the Drupal entity reference item object to HAL array structure.
  */
-class EntityReferenceItemNormalizer extends FieldItemNormalizer implements UuidReferenceInterface {
-
-  use ContainerAwareTrait;
+class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidReferenceInterface {
 
   /**
    * The interface or class that this Normalizer supports.
    *
    * @var string
    */
-  protected $supportedInterfaceOrClass = EntityReferenceItem::class;
+  protected $supportedInterfaceOrClass = RelationshipItemInterface::class;
 
   /**
    * The manager for resource configuration.
@@ -30,48 +29,51 @@ class EntityReferenceItemNormalizer extends FieldItemNormalizer implements UuidR
   protected $resourceManager;
 
   /**
+   * The document normalizer.
+   *
+   * @var \Drupal\jsonapi\Normalizer\DocumentRootNormalizerInterface
+   */
+  protected $documentRootNormalizer;
+
+  /**
    * Instantiates a EntityReferenceItemNormalizer object.
    *
    * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
    *   The resource manager.
+   * @param \Drupal\jsonapi\Normalizer\DocumentRootNormalizerInterface $document_root_normalizer
+   *   The document root normalizer for the include.
    */
-  public function __construct(ResourceManagerInterface $resource_manager) {
+  public function __construct(ResourceManagerInterface $resource_manager, DocumentRootNormalizerInterface $document_root_normalizer) {
     $this->resourceManager = $resource_manager;
+    $this->documentRootNormalizer = $document_root_normalizer;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function normalize($field_item, $format = NULL, array $context = array()) {
-    /* @var $field_item \Drupal\Core\Field\FieldItemInterface */
-    $target_entity = $field_item->get('entity')->getValue();
-    $main_property = $field_item->mainPropertyName();
-    $resource_config = $this->resourceManager
-      ->get($target_entity->getEntityTypeId(), $target_entity->bundle());
-    if ($resource_config->getIdKey() == 'uuid') {
-      $values = [$main_property => $target_entity->uuid()];
-    }
-    else {
-      $values = $field_item->toArray();
-      $values = [$main_property => $values[$main_property]];
-    }
+  public function normalize($relationship_item, $format = NULL, array $context = array()) {
+    /* @var $relationship_item \Drupal\jsonapi\RelationshipItemInterface */
+    // TODO: We are always loading the referenced entity. Even if it is not
+    // going to be included. That may be a performance issue. We do it because
+    // we need to know the entity type and bundle to load the resource config to
+    // get the type for the relationship item. We need a better way of finding
+    // about this.
+    $target_entity = $relationship_item->getTargetEntity();
+    $values = $relationship_item->getValue();
     if (isset($context['langcode'])) {
       $values['lang'] = $context['langcode'];
     }
-    $normalizer_value = new Value\EntityReferenceItemNormalizerValue(
+    $normalizer_value = new Value\RelationshipItemNormalizerValue(
       $values,
-      $resource_config
-        ->getTypeName()
+      $relationship_item->getTargetResourceConfig()
     );
 
+    $host_field_name = $relationship_item->getParent()->getPropertyName();
     // TODO Only include if the target entity type has the resource enabled.
-    if (!empty($context['include']) && in_array($field_item->getParent()
-        ->getName(), $context['include'])
-    ) {
-      $context = $this->buildSubContext($context, $target_entity, $field_item->getParent()
-        ->getName());
-      $entity_normalizer = $this->container->get('serializer.normalizer.document_root.jsonapi');
-      $normalizer_value->setInclude($entity_normalizer->buildNormalizerValue($target_entity, $format, $context));
+    if (!empty($context['include']) && in_array($host_field_name, $context['include'])) {
+      $context = $this->buildSubContext($context, $target_entity, $host_field_name);
+      $included_normalizer_value = $this->documentRootNormalizer->buildNormalizerValue($target_entity, $format, $context);
+      $normalizer_value->setInclude($included_normalizer_value);
     }
     return $normalizer_value;
   }

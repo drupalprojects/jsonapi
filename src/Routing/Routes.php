@@ -95,7 +95,7 @@ class Routes implements ContainerInjectionInterface {
         '_is_jsonapi' => TRUE,
       ];
 
-      // Collection endpoint, like /api/photos.
+      // Collection endpoint, like /api/file/photo.
       $route_collection = (new Route($partial_path))
         ->addDefaults($defaults)
         ->setRequirement('_entity_type', $entity_type)
@@ -110,7 +110,7 @@ class Routes implements ContainerInjectionInterface {
       $route_collection->addOptions($options);
       $collection->add($route_key . 'collection', $route_collection);
 
-      // Individual endpoint, like /api/photos/123.
+      // Individual endpoint, like /api/file/photo/123.
       $parameters = [$entity_type => ['type' => 'entity:' . $entity_type]];
       $route_individual = (new Route(sprintf('%s/{%s}', $partial_path, $entity_type)))
         ->addDefaults($defaults)
@@ -128,7 +128,7 @@ class Routes implements ContainerInjectionInterface {
       $route_individual->addOptions($options);
       $collection->add($route_key . 'individual', $route_individual);
 
-      // Related resource, like /api/photos/123/comments.
+      // Related resource, like /api/file/photo/123/comments.
       $route_related = (new Route(sprintf('%s/{%s}/{related}', $partial_path, $entity_type)))
         ->addDefaults($defaults)
         ->setRequirement('_entity_type', $entity_type)
@@ -144,7 +144,7 @@ class Routes implements ContainerInjectionInterface {
       $route_related->addOptions($options);
       $collection->add($route_key . 'related', $route_related);
 
-      // Related endpoint, like /api/photos/123/relationships/comments.
+      // Related endpoint, like /api/file/photo/123/relationships/comments.
       $route_relationship = (new Route(sprintf('%s/{%s}/relationships/{related}', $partial_path, $entity_type)))
         ->addDefaults($defaults + ['_on_relationship' => TRUE])
         ->setRequirement('_entity_type', $entity_type)
