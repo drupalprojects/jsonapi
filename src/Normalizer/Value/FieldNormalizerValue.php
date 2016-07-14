@@ -2,12 +2,16 @@
 
 namespace Drupal\jsonapi\Normalizer\Value;
 
+use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
+
 /**
  * Class FieldNormalizerValue.
  *
  * @package Drupal\jsonapi\Normalizer\Value
  */
 class FieldNormalizerValue implements FieldNormalizerValueInterface {
+
+  use RefinableCacheableDependencyTrait;
 
   /**
    * The values.

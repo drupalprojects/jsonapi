@@ -55,6 +55,7 @@ class ContentEntityNormalizerValueTest extends UnitTestCase {
         'attributes' => ['body' => 'dummy_body1'],
       ],
     ]);
+    $included[0]->getCacheContexts()->willReturn(['lorem', 'ipsum']);
     // Type & id duplicated in purpose.
     $included[] = $this->prophesize(DocumentRootNormalizerValueInterface::class);
     $included[1]->getIncludes()->willReturn([]);
@@ -90,12 +91,19 @@ class ContentEntityNormalizerValueTest extends UnitTestCase {
     $link_manager
       ->getEntityLink(Argument::any(), Argument::any(), Argument::type('array'), Argument::type('string'))
       ->willReturn('dummy_entity_link');
-    $this->object = new ContentEntityNormalizerValue(
-      ['title' => $field1->reveal(), 'field_related' => $field2->reveal()],
-      $context,
-      $entity->reveal(),
-      ['link_manager' => $link_manager->reveal()]
-    );
+
+    // Stub the addCacheableDependency on the SUT. We'll test the cacheable
+    // metadata bubbling using Kernel tests.
+    $this->object = $this->getMockBuilder(ContentEntityNormalizerValue::class)
+      ->setMethods(['addCacheableDependency'])
+      ->setConstructorArgs([
+        ['title' => $field1->reveal(), 'field_related' => $field2->reveal()],
+        $context,
+        $entity->reveal(),
+        ['link_manager' => $link_manager->reveal()],
+      ])
+      ->getMock();
+    $this->object->method('addCacheableDependency');
   }
 
 

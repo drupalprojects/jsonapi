@@ -118,9 +118,10 @@ class RequestHandler extends RestRequestHandler {
   protected function renderJsonApiResponse(Request $request, ResourceResponseInterface $response, SerializerInterface $serializer, $format) {
     $data = $response->getResponseData();
     $context = new RenderContext();
+    $cacheable_metadata = $response->getCacheableMetadata();
     $output = $this->container->get('renderer')
-      ->executeInRenderContext($context, function () use ($serializer, $data, $format, $request) {
-        return $serializer->serialize($data, $format, ['request' => $request]);
+      ->executeInRenderContext($context, function () use ($serializer, $data, $format, $request, $cacheable_metadata) {
+        return $serializer->serialize($data, $format, ['request' => $request, 'cacheable_metadata' => $cacheable_metadata]);
       });
     $response->setContent($output);
     if (!$context->isEmpty()) {
@@ -130,7 +131,7 @@ class RequestHandler extends RestRequestHandler {
     $response->headers->set('Content-Type', $request->getMimeType($format));
     // Add rest settings config's cache tags.
     $response->addCacheableDependency($this->container->get('config.factory')
-      ->get('rest.settings'));
+      ->get('jsonapi.resource_info'));
 
     return $response;
   }

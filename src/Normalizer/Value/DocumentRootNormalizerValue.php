@@ -2,12 +2,17 @@
 
 namespace Drupal\jsonapi\Normalizer\Value;
 
+use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
+use Drupal\jsonapi\RequestCacheabilityDependency;
+
 /**
  * Class DocumentRootNormalizerValue.
  *
  * @package Drupal\jsonapi\Normalizer\Value
  */
 class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterface {
+
+  use RefinableCacheableDependencyTrait;
 
   /**
    * The values.
@@ -67,6 +72,12 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
    */
   public function __construct(array $values, array $context, $is_collection = FALSE, array $link_context) {
     $this->values = $values;
+    array_walk($values, function ($value) {
+      $this->addCacheableDependency($value);
+    });
+    // Make sure that different sparse fieldsets are cached differently.
+    $this->addCacheableDependency(new RequestCacheabilityDependency());
+
     $this->context = $context;
     $this->isCollection = $is_collection;
     $this->linkManager = $link_context['link_manager'];
@@ -79,6 +90,9 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
     }, $values);
     // Flatten the includes.
     $this->includes = array_reduce($this->includes, function ($carry, $includes) {
+      array_walk($includes, function ($include) {
+        $this->addCacheableDependency($include);
+      });
       return array_merge($carry, $includes);
     }, []);
     // Filter the empty values.

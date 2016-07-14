@@ -52,6 +52,7 @@ class DocumentRootNormalizerValueTest extends UnitTestCase{
         'attributes' => ['body' => 'dummy_body1'],
       ],
     ]);
+    $included[0]->getCacheContexts()->willReturn(['lorem:ipsum']);
     // Type & id duplicated in purpose.
     $included[] = $this->prophesize(DocumentRootNormalizerValue::class);
     $included[1]->getIncludes()->willReturn([]);
@@ -91,12 +92,16 @@ class DocumentRootNormalizerValueTest extends UnitTestCase{
     $link_manager
       ->getEntityLink(Argument::any(), Argument::any(), Argument::type('array'), Argument::type('string'))
       ->willReturn('dummy_entity_link');
-    $this->object = new DocumentRootNormalizerValue(
-      ['title' => $field1->reveal(), 'field_related' => $field2->reveal()],
-      $context,
-      $entity->reveal(),
-      ['link_manager' => $link_manager->reveal()]
-    );
+    $this->object = $this->getMockBuilder(DocumentRootNormalizerValue::class)
+      ->setMethods(['addCacheableDependency'])
+      ->setConstructorArgs([
+        ['title' => $field1->reveal(), 'field_related' => $field2->reveal()],
+        $context,
+        $entity->reveal(),
+        ['link_manager' => $link_manager->reveal()]
+      ])
+      ->getMock();
+    $this->object->method('addCacheableDependency');
   }
 
   /**

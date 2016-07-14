@@ -2,17 +2,19 @@
 
 namespace Drupal\jsonapi\Normalizer;
 
+use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
+use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\RelationshipItemInterface;
 use Drupal\serialization\EntityResolver\UuidReferenceInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
 /**
  * Converts the Drupal entity reference item object to HAL array structure.
  */
-class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidReferenceInterface {
+class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidReferenceInterface, RefinableCacheableDependencyInterface {
+
+  use RefinableCacheableDependencyTrait;
 
   /**
    * The interface or class that this Normalizer supports.
@@ -74,6 +76,12 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
       $context = $this->buildSubContext($context, $target_entity, $host_field_name);
       $included_normalizer_value = $this->documentRootNormalizer->buildNormalizerValue($target_entity, $format, $context);
       $normalizer_value->setInclude($included_normalizer_value);
+      // Add the cacheable dependency of the included item directly to the
+      // response cacheable metadata. This is similar to the flatten include
+      // data structure, instead of a content graph.
+      if (!empty($context['cacheable_metadata'])) {
+        $context['cacheable_metadata']->addCacheableDependency($normalizer_value);
+      }
     }
     return $normalizer_value;
   }

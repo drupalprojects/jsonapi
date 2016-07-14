@@ -3,11 +3,13 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Access\AccessibleInterface;
+use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
+use Drupal\jsonapi\Normalizer\Value\NullFieldNormalizerValue;
 use Drupal\jsonapi\RelationshipInterface;
 use Symfony\Component\HttpKernel\Exception\PreconditionFailedHttpException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -15,7 +17,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 /**
  * Converts the Drupal entity object structure to a HAL array structure.
  */
-class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, ContentEntityNormalizerInterface {
+class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, EntityNormalizerInterface {
 
   /**
    * The interface or class that this Normalizer supports.
@@ -95,7 +97,16 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
     $normalizer_values = array_filter($normalizer_values);
 
     $link_context = ['link_manager' => $this->linkManager];
-    return new Value\ContentEntityNormalizerValue($normalizer_values, $context, $entity, $link_context);
+    $output = new Value\ContentEntityNormalizerValue($normalizer_values, $context, $entity, $link_context);
+    // Add the entity level cacheability metadata.
+    $output->addCacheableDependency($entity);
+    // Add the field level cacheability metadata.
+    array_walk($normalizer_values, function ($normalizer_value) {
+      if ($normalizer_value instanceof RefinableCacheableDependencyInterface) {
+        $normalizer_value->addCacheableDependency($normalizer_value);
+      }
+    });
+    return $output;
   }
 
   /**
@@ -178,13 +189,22 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
   protected function serializeField($field, $context, $format) {
     /* @var \Drupal\Core\Field\FieldItemListInterface|\Drupal\jsonapi\RelationshipInterface $field */
     // Continue if the current user does not have access to view this field.
-    if ($field instanceof AccessibleInterface && !$field->access('view', $context['account'])) {
-      return NULL;
+    $access = $field->access('view', $context['account'], TRUE);
+    if ($field instanceof AccessibleInterface && !$access) {
+      return (new NullFieldNormalizerValue())->addCacheableDependency($access);
     }
+    /** @var \Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue $output */
     $output = $this->serializer->normalize($field, $format, $context);
     $is_relationship = $this->isRelationship($field);
     $property_type = $is_relationship ? 'relationships' : 'attributes';
     $output->setPropertyType($property_type);
+
+    if ($output instanceof RefinableCacheableDependencyInterface) {
+      // Add the cache dependency to the field level object because we want to
+      // allow the field normalizers to add extra cacheability metadata.
+      $output->addCacheableDependency($access);
+    }
+
     return $output;
   }
 

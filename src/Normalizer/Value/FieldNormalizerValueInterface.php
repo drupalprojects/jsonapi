@@ -2,12 +2,14 @@
 
 namespace Drupal\jsonapi\Normalizer\Value;
 
+use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
+
 /**
  * Class FieldNormalizerValueInterface.
  *
  * @package Drupal\jsonapi\Normalizer\Value
  */
-interface FieldNormalizerValueInterface extends ValueExtractorInterface {
+interface FieldNormalizerValueInterface extends ValueExtractorInterface, RefinableCacheableDependencyInterface {
 
   /**
    * Gets the includes

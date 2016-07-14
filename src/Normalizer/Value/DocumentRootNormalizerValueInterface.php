@@ -2,12 +2,14 @@
 
 namespace Drupal\jsonapi\Normalizer\Value;
 
+use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
+
 /**
  * Class DocumentRootNormalizerValueInterface.
  *
  * @package Drupal\jsonapi\Normalizer\Value
  */
-interface DocumentRootNormalizerValueInterface extends ValueExtractorInterface {
+interface DocumentRootNormalizerValueInterface extends ValueExtractorInterface, RefinableCacheableDependencyInterface {
 
   /**
    * Gets a flattened list of includes in all the chain.

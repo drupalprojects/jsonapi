@@ -11,6 +11,7 @@ use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
+use Drupal\rest\ResourceResponse;
 use Drupal\user\Entity\User;
 use Prophecy\Argument;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
@@ -143,6 +144,7 @@ class DocumentRootNormalizerTest extends KernelTestBase {
 
     $this->container->set('jsonapi.current_context', $current_context);
     $this->container->get('serializer');
+    $response = new ResourceResponse();
     $normalized = $this
       ->container
       ->get('serializer.normalizer.document_root.jsonapi')
@@ -152,6 +154,7 @@ class DocumentRootNormalizerTest extends KernelTestBase {
         [
           'request' => $request->reveal(),
           'resource_config' => $resource_config->reveal(),
+          'cacheable_metadata' => $response->getCacheableMetadata(),
         ]
       );
     $this->assertSame($normalized['data']['attributes']['title'], 'dummy_title');
@@ -182,6 +185,9 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     $this->assertEquals('user--user', $normalized['included'][0]['data']['type']);
     $this->assertEquals($this->user->label(), $normalized['included'][0]['data']['attributes']['name']);
     $this->assertTrue(!isset($normalized['included'][0]['data']['attributes']['created']));
+    // Make sure that the cache tags for the includes and the requested entities
+    // are bubbling as expected.
+    $this->assertSame(['node:1', 'user:1'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -219,6 +225,7 @@ class DocumentRootNormalizerTest extends KernelTestBase {
 
     $this->container->set('jsonapi.current_context', $current_context);
     $this->container->get('serializer');
+    $response = new ResourceResponse();
     $normalized = $this
       ->container
       ->get('serializer.normalizer.document_root.jsonapi')
@@ -228,12 +235,16 @@ class DocumentRootNormalizerTest extends KernelTestBase {
         [
           'request' => $request->reveal(),
           'resource_config' => $resource_config->reveal(),
+          'cacheable_metadata' => $response->getCacheableMetadata(),
         ]
       );
     $this->assertStringMatchesFormat($this->node->uuid(), $normalized['data']['id']);
     $this->assertEquals($this->node->type->entity->uuid(), $normalized['data']['relationships']['type']['data']['id']);
     $this->assertEquals($this->user->uuid(), $normalized['data']['relationships']['uid']['data']['id']);
     $this->assertEquals($this->user->uuid(), $normalized['included'][0]['data']['id']);
+    // Make sure that the cache tags for the includes and the requested entities
+    // are bubbling as expected.
+    $this->assertSame(['node:1', 'user:1'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -266,18 +277,23 @@ class DocumentRootNormalizerTest extends KernelTestBase {
 
     $this->container->set('jsonapi.current_context', $current_context);
     $this->container->get('serializer');
+    $response = new ResourceResponse();
     $normalized = $this
       ->container
       ->get('serializer.normalizer.document_root.jsonapi')
       ->normalize($document_wrapper->reveal(), 'api_json', [
         'request' => $request->reveal(),
         'resource_config' => $resource_config->reveal(),
+        'cacheable_metadata' => $response->getCacheableMetadata(),
       ]);
     $this->assertTrue(empty($normalized['data']['attributes']['type']));
     $this->assertTrue(!empty($normalized['data']['attributes']['uuid']));
     $this->assertSame($normalized['data']['attributes']['display_submitted'], TRUE);
     $this->assertSame($normalized['data']['id'], 'article');
     $this->assertSame($normalized['data']['type'], 'node_type--node_type');
+    // Make sure that the cache tags for the includes and the requested entities
+    // are bubbling as expected.
+    $this->assertSame(['config:node.type.article'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**

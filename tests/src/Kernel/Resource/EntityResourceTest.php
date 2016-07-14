@@ -158,7 +158,6 @@ class EntityResourceTest extends KernelTestBase {
     $response = $this->entityResource->getIndividual($this->node, $this->request->reveal());
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
     $this->assertEquals(1, $response->getResponseData()->getData()->id());
-    $this->assertSame('node:1', $response->getCacheableMetadata()->getCacheTags()[0]);
   }
 
   /**
@@ -190,7 +189,7 @@ class EntityResourceTest extends KernelTestBase {
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
     $this->assertInstanceOf(EntityCollectionInterface::class, $response->getResponseData()->getData());
     $this->assertEquals(1, $response->getResponseData()->getData()->getIterator()->current()->id());
-    $this->assertEquals(['node:1', 'node:2', 'node_list'], $response->getCacheableMetadata()->getCacheTags());
+    $this->assertEquals(['node_list'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -234,7 +233,7 @@ class EntityResourceTest extends KernelTestBase {
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
     $this->assertInstanceOf(EntityCollectionInterface::class, $response->getResponseData()->getData());
     $this->assertCount(1, $response->getResponseData()->getData());
-    $this->assertEquals(['config:node.type.article', 'config:node_type_list'], $response->getCacheableMetadata()->getCacheTags());
+    $this->assertEquals(['config:node_type_list'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -279,7 +278,7 @@ class EntityResourceTest extends KernelTestBase {
     $this->assertInstanceOf(EntityCollectionInterface::class, $response->getResponseData()->getData());
     $this->assertCount(2, $response->getResponseData()->getData());
     $this->assertEquals($response->getResponseData()->getData()->toArray()[0]->id(), 'lorem');
-    $this->assertEquals(['config:node.type.article', 'config:node.type.lorem', 'config:node_type_list'], $response->getCacheableMetadata()->getCacheTags());
+    $this->assertEquals(['config:node_type_list'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -325,7 +324,7 @@ class EntityResourceTest extends KernelTestBase {
     $data = $response->getResponseData()->getData();
     $this->assertCount(1, $data);
     $this->assertEquals(2, $data->toArray()[0]->id());
-    $this->assertEquals(['node:2', 'node_list'], $response->getCacheableMetadata()->getCacheTags());
+    $this->assertEquals(['node_list'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -370,7 +369,6 @@ class EntityResourceTest extends KernelTestBase {
     $this->assertInstanceOf(User::class, $response->getResponseData()
       ->getData());
     $this->assertEquals(1, $response->getResponseData()->getData()->id());
-    $this->assertSame('user:1', $response->getCacheableMetadata()->getCacheTags()[0]);
 
     // to-many relationship.
     $response = $this->entityResource->getRelated($this->user, 'roles', $this->request->reveal());
@@ -407,7 +405,6 @@ class EntityResourceTest extends KernelTestBase {
       ->getEntity()
       ->getEntityTypeId()
     );
-    $this->assertSame('node:1', $response->getCacheableMetadata()->getCacheTags()[0]);
   }
 
   /**
@@ -427,8 +424,6 @@ class EntityResourceTest extends KernelTestBase {
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
     $this->assertEquals(3, $response->getResponseData()->getData()->id());
     $this->assertEquals(201, $response->getStatusCode());
-    // Make sure the POST request is not caching.
-    $this->assertEquals(['node:3'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -465,8 +460,6 @@ title: This value should not be null.');
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
     $this->assertEquals('test', $response->getResponseData()->getData()->id());
     $this->assertEquals(201, $response->getStatusCode());
-    // Make sure the POST request is not caching.
-    $this->assertEquals(['config:node.type.test'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -490,7 +483,6 @@ title: This value should not be null.');
     $this->assertSame($values['title'], $this->node->getTitle());
     $this->assertSame($values['field_relationships'], $this->node->get('field_relationships')->getValue());
     $this->assertEquals(201, $response->getStatusCode());
-    $this->assertEquals(['node:1'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -555,7 +547,6 @@ title: This value should not be null.');
         $this->assertSame($value, $node_type->get($field_name));
     }
     $this->assertEquals(201, $response->getStatusCode());
-    $this->assertEquals(['config:node.type.test'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -617,8 +608,6 @@ title: This value should not be null.');
     $this->assertEquals(0, $count);
     $this->assertNull($response->getResponseData());
     $this->assertEquals(204, $response->getStatusCode());
-    // Make sure the DELETE request is not caching.
-    $this->assertEmpty($response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -646,8 +635,6 @@ title: This value should not be null.');
     $this->assertEquals(0, $count);
     $this->assertNull($response->getResponseData());
     $this->assertEquals(204, $response->getStatusCode());
-    // Make sure the DELETE request is not caching.
-    $this->assertEmpty($response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -673,8 +660,6 @@ title: This value should not be null.');
     $this->assertSame('field_relationships', $field_list->getName());
     $this->assertEquals([['target_id' => 1]], $field_list->getValue());
     $this->assertEquals(201, $response->getStatusCode());
-    // Make sure the POST request is not caching.
-    $this->assertEquals(['node:1'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -701,8 +686,6 @@ title: This value should not be null.');
     $this->assertSame('field_relationships', $field_list->getName());
     $this->assertEquals($relationships, $field_list->getValue());
     $this->assertEquals(201, $response->getStatusCode());
-    // Make sure the POST request is not caching.
-    $this->assertEquals(['node:1'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -744,8 +727,6 @@ title: This value should not be null.');
     $this->assertSame('field_relationships', $field_list->getName());
     $this->assertEquals($kept_rels, $field_list->getValue());
     $this->assertEquals(201, $response->getStatusCode());
-    // Make sure the POST request is not caching.
-    $this->assertEquals(['node:1'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**

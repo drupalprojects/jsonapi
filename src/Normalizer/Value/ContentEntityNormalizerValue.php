@@ -2,6 +2,7 @@
 
 namespace Drupal\jsonapi\Normalizer\Value;
 
+use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 use Drupal\Core\Entity\EntityInterface;
 
 /**
@@ -10,6 +11,8 @@ use Drupal\Core\Entity\EntityInterface;
  * @package Drupal\jsonapi\Normalizer\Value
  */
 class ContentEntityNormalizerValue implements ContentEntityNormalizerValueInterface {
+
+  use RefinableCacheableDependencyTrait;
 
   /**
    * The values.
@@ -74,6 +77,9 @@ class ContentEntityNormalizerValue implements ContentEntityNormalizerValueInterf
     }, []);
     // Filter the empty values.
     $this->includes = array_filter($this->includes);
+    array_walk($this->includes, function ($include) {
+      $this->addCacheableDependency($include);
+    });
   }
 
   /**

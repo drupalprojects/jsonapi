@@ -3,6 +3,7 @@
 namespace Drupal\jsonapi\Resource;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -19,7 +20,6 @@ use Drupal\jsonapi\Query\QueryBuilderInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\Routing\Param\JsonApiParamBase;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
-use Drupal\jsonapi\Routing\Param\Sort;
 use Drupal\rest\ResourceResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -112,7 +112,6 @@ class EntityResource implements EntityResourceInterface {
       throw new AccessDeniedHttpException('The current user is not allowed to GET the selected resource.');
     }
     $response = $this->buildWrappedResponse($entity, $response_code);
-    $this->addCacheabilityMetadata($response, $entity);
     return $response;
   }
 
@@ -266,7 +265,6 @@ class EntityResource implements EntityResourceInterface {
       throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
     }
     $response = $this->buildWrappedResponse($field_list, $response_code);
-    $this->addCacheabilityMetadata($response, $entity);
     return $response;
   }
 
@@ -444,31 +442,6 @@ class EntityResource implements EntityResourceInterface {
   }
 
   /**
-   * Adds cacheability metadata to an entity.
-   *
-   * @param \Drupal\rest\ResourceResponse $response
-   *   The REST response.
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The entity.
-   */
-  protected function addCacheabilityMetadata(ResourceResponse $response, EntityInterface $entity) {
-    $entity_access = $entity->access('view', NULL, TRUE);
-    $response->addCacheableDependency($entity);
-    $response->addCacheableDependency($entity_access);
-    // Make sure that different sparse fieldsets are cached differently.
-    $response->addCacheableDependency(new RequestCacheabilityDependency());
-    foreach ($entity as $field_name => $field) {
-      /* @var \Drupal\Core\Field\FieldItemListInterface $field */
-      $field_access = $field->access('view', NULL, TRUE);
-      $response->addCacheableDependency($field_access);
-
-      if (!$field_access->isAllowed()) {
-        $entity->set($field_name, NULL);
-      }
-    }
-  }
-
-  /**
    * Builds a response with the appropriate wrapped document.
    *
    * @param mixed $data
@@ -504,10 +477,6 @@ class EntityResource implements EntityResourceInterface {
     $list_tag = $this->entityTypeManager->getDefinition($entity_type_id)
       ->getListCacheTags();
     $response->getCacheableMetadata()->setCacheTags($list_tag);
-    // Add a cache tag for every entity in the list.
-    foreach ($entity_collection as $entity) {
-      $this->addCacheabilityMetadata($response, $entity);
-    }
     return $response;
   }
 

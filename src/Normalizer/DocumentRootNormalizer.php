@@ -82,6 +82,9 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
   public function normalize($object, $format = NULL, array $context = array()) {
     $context += ['resource_config' => $this->currentContext->getResourceConfig()];
     $value_extractor = $this->buildNormalizerValue($object->getData(), $format, $context);
+    if (!empty($context['cacheable_metadata'])) {
+      $context['cacheable_metadata']->addCacheableDependency($value_extractor);
+    }
     $normalized = $value_extractor->rasterizeValue();
     $included = array_filter($value_extractor->rasterizeIncludes());
     if (!empty($included)) {
