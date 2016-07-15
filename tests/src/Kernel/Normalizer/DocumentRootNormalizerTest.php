@@ -17,6 +17,7 @@ use Prophecy\Argument;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Route;
 
 /**
@@ -245,6 +246,60 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
     $this->assertSame(['node:1', 'user:1'], $response->getCacheableMetadata()->getCacheTags());
+  }
+
+  /**
+   * @covers ::normalize
+   */
+  public function testNormalizeException() {
+    $request = $this->prophesize(Request::class);
+    $query = $this->prophesize(ParameterBag::class);
+    $query->get('fields')->willReturn([
+      'node--article' => 'title,type,uid',
+      'user--user' => 'name',
+    ]);
+    $query->get('include')->willReturn('uid');
+    $query->getIterator()->willReturn(new \ArrayIterator());
+    $request->query = $query->reveal();
+    $route = new Route('/node/article/{node}', [], [
+      '_entity_type' => 'node',
+      '_bundle' => 'article',
+    ]);
+    $request->get(RouteObjectInterface::ROUTE_OBJECT)->willReturn($route);
+    $document_wrapper = $this->prophesize(DocumentWrapper::class);
+    $document_wrapper->getData()->willReturn($this->node);
+    $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
+    $resource_config->getTypeName()->willReturn('node--article');
+    $resource_config->getBundleId()->willReturn('article');
+    $resource_config->getIdKey()->willReturn('id');
+    \Drupal::configFactory()->getEditable('jsonapi.resource_info')
+      ->set('id_field', 'id')
+      ->save();
+
+    // Make sure the route contains the entity type and bundle.
+    $current_context = $this->container->get('jsonapi.current_context');
+    $current_context->setCurrentRoute($route);
+
+    $this->container->set('jsonapi.current_context', $current_context);
+    $this->container->get('serializer');
+    $response = new ResourceResponse();
+    $normalized = $this
+      ->container
+      ->get('serializer')
+      ->normalize(
+        new BadRequestHttpException('Lorem'),
+        'api_json',
+        [
+          'request' => $request->reveal(),
+          'resource_config' => $resource_config->reveal(),
+          'cacheable_metadata' => $response->getCacheableMetadata(),
+        ]
+      );
+    $this->assertNotEmpty($normalized['errors']);
+    $this->assertArrayNotHasKey('data', $normalized);
+    $this->assertEquals(400, $normalized['errors'][0]['status']);
+    $this->assertEquals('Lorem', $normalized['errors'][0]['detail']);
+    $this->assertEquals(['info' => 'http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1'], $normalized['errors'][0]['links']);
   }
 
   /**

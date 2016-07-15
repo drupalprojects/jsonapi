@@ -5,6 +5,7 @@ namespace Drupal\jsonapi;
 use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
+use Drupal\jsonapi\Error\ErrorHandlerInterface;
 use Drupal\jsonapi\Resource\EntityResource;
 use Drupal\rest\RequestHandler as RestRequestHandler;
 use Drupal\rest\ResourceResponse;
@@ -12,6 +13,7 @@ use Drupal\rest\ResourceResponseInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -76,18 +78,22 @@ class RequestHandler extends RestRequestHandler {
     try {
       $response = call_user_func_array([$resource, $action], array_merge($parameters, $extra_parameters));
     }
-    catch (HttpException $error_exception) {
+    catch (\Exception $error_exception) {
+      if (!$error_exception instanceof HttpExceptionInterface) {
+        // If this is a generic exception, generate a Server Exception HTTP
+        // exception and process it.
+        $error_exception = new HttpException(500, $error_exception->getMessage(), $error_exception);
+      }
       $content = $serializer->serialize($error_exception, $format);
       // Add the default content type, but only if the headers from the
       // exception have not specified it already.
       $headers = $error_exception->getHeaders() + array('Content-Type' => $request->getMimeType($format));
-      $error_handler->restore();
-      return new Response($content, $error_exception->getStatusCode(), $headers);
+      $response = new Response($content, $error_exception->getStatusCode(), $headers);
     }
     $error_handler->restore();
 
     return $response instanceof ResourceResponse ?
-      $this->renderJsonApiResponse($request, $response, $serializer, $format) :
+      $this->renderJsonApiResponse($request, $response, $serializer, $format, $error_handler) :
       $response;
   }
 
@@ -108,6 +114,8 @@ class RequestHandler extends RestRequestHandler {
    *   The serializer to use.
    * @param string $format
    *   The response format.
+   * @param \Drupal\jsonapi\Error\ErrorHandlerInterface $error_handler
+   *   The error handler service.
    *
    * @return \Drupal\rest\ResourceResponse
    *   The altered response.
@@ -115,13 +123,27 @@ class RequestHandler extends RestRequestHandler {
    * @todo Add test coverage for language negotiation contexts in
    *   https://www.drupal.org/node/2135829.
    */
-  protected function renderJsonApiResponse(Request $request, ResourceResponseInterface $response, SerializerInterface $serializer, $format) {
+  protected function renderJsonApiResponse(Request $request, ResourceResponseInterface $response, SerializerInterface $serializer, $format, ErrorHandlerInterface $error_handler) {
     $data = $response->getResponseData();
     $context = new RenderContext();
     $cacheable_metadata = $response->getCacheableMetadata();
     $output = $this->container->get('renderer')
-      ->executeInRenderContext($context, function () use ($serializer, $data, $format, $request, $cacheable_metadata) {
-        return $serializer->serialize($data, $format, ['request' => $request, 'cacheable_metadata' => $cacheable_metadata]);
+      ->executeInRenderContext($context, function () use ($serializer, $data, $format, $request, $cacheable_metadata, $error_handler, $response) {
+        $error_handler->register();
+        try {
+          $content = $serializer->serialize($data, $format, ['request' => $request, 'cacheable_metadata' => $cacheable_metadata]);
+        }
+        catch (\Exception $error_exception) {
+          if (!$error_exception instanceof HttpExceptionInterface) {
+            // If this is a generic exception, generate a Server Exception HTTP
+            // exception and process it.
+            $error_exception = new HttpException(500, $error_exception->getMessage(), $error_exception);
+          }
+          $content = $serializer->serialize($error_exception, $format);
+          $response->setStatusCode($error_exception->getStatusCode());
+        }
+        $error_handler->restore();
+        return $content;
       });
     $response->setContent($output);
     if (!$context->isEmpty()) {
