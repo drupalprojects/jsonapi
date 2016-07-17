@@ -1,0 +1,7 @@
+type: module
+core: 8.x
+name: JSON API docson
+description: Graphical representation of the auto generated schemas for the JSON API resources.
+dependencies:
+  - jsonapi
+package: REST
