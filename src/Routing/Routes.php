@@ -4,7 +4,6 @@ namespace Drupal\jsonapi\Routing;
 
 use Drupal\Core\Authentication\AuthenticationCollectorInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\Resource\DocumentWrapperInterface;
@@ -79,12 +78,14 @@ class Routes implements ContainerInjectionInterface {
     $collection = new RouteCollection();
     foreach ($this->resourceManager->all() as $resource) {
       $global_config = $resource->getGlobalConfig();
-      $prefix = $global_config->get('prefix');
+      $prefix = $global_config->get('prefix') ?: 'api';
+      $schema_prefix = $global_config->get('schema_prefix') ?: 'schema';
       $entity_type = $resource->getEntityTypeId();
       // For the entity type resources the bundle is NULL.
       $bundle = $resource->getBundleId();
       $entity_type_has_bundle = $this->resourceManager->hasBundle($entity_type);
       $partial_path = '/' . $prefix . $resource->getPath();
+      $schema_partial_path = '/' . $schema_prefix . $resource->getPath();
       $route_key = sprintf('%s.dynamic.%s.', $prefix, $resource->getTypeName());
       // Add the collection route.
       $defaults = [
@@ -111,16 +112,6 @@ class Routes implements ContainerInjectionInterface {
       $route_collection->addOptions($options);
       $collection->add($route_key . 'collection', $route_collection);
 
-      // Provide a schema for /api/file/photo.
-      $route_individual_schema = (new Route($partial_path . '/scheme'))
-        ->addDefaults([
-          '_controller' => '\Drupal\jsonapi\Controller\SchemaController::entityCollectionSchema',
-          'typed_data_id' => 'entity:' . $entity_type . (($entity_type_has_bundle) ? ':' . $bundle : ''),
-        ])
-        ->setRequirement('_permission', 'access content')
-        ->setMethods(['GET']);
-      $collection->add($route_key . 'schema', $route_individual_schema);
-
       // Individual endpoint, like /api/file/photo/123.
       $parameters = [$entity_type => ['type' => 'entity:' . $entity_type]];
       $route_individual = (new Route(sprintf('%s/{%s}', $partial_path, $entity_type)))
@@ -138,16 +129,6 @@ class Routes implements ContainerInjectionInterface {
       }
       $route_individual->addOptions($options);
       $collection->add($route_key . 'individual', $route_individual);
-
-      // Schema for /api/file/photos/123.
-      $route_individual_schema = (new Route(sprintf('%s/scheme', $partial_path)))
-        ->addDefaults([
-          '_controller' => '\Drupal\jsonapi\Controller\SchemaController::entitySchema',
-          'typed_data_id' => 'entity:' . $entity_type . (($entity_type_has_bundle) ? ':' . $bundle : ''),
-        ])
-        ->setRequirement('_permission', 'access content')
-        ->setMethods(['GET']);
-      $collection->add($route_key . 'individual.schema', $route_individual_schema);
 
       // Related resource, like /api/file/photo/123/comments.
       $route_related = (new Route(sprintf('%s/{%s}/{related}', $partial_path, $entity_type)))
@@ -181,6 +162,28 @@ class Routes implements ContainerInjectionInterface {
       }
       $route_relationship->addOptions($options);
       $collection->add($route_key . 'relationship', $route_relationship);
+
+      // Schema for /api/file/photo.
+      $route_collection_schema = (new Route($schema_partial_path))
+        ->addDefaults([
+          '_controller' => '\Drupal\jsonapi\Controller\SchemaController::entityCollectionSchema',
+          'typed_data_id' => 'entity:' . $entity_type . (($entity_type_has_bundle) ? ':' . $bundle : ''),
+        ])
+        ->setRequirement('_permission', 'access content')
+        ->setOption('_auth', $this->authProviderList())
+        ->setMethods(['GET']);
+      $collection->add($route_key . 'schema', $route_collection_schema);
+
+      // Schema for /api/file/photo/1234.
+      $route_individual_schema = (new Route(sprintf('%s/{%s}', $schema_partial_path, $entity_type)))
+        ->addDefaults([
+          '_controller' => '\Drupal\jsonapi\Controller\SchemaController::entitySchema',
+          'typed_data_id' => 'entity:' . $entity_type . (($entity_type_has_bundle) ? ':' . $bundle : ''),
+        ])
+        ->setRequirement('_permission', 'access content')
+        ->setOption('_auth', $this->authProviderList())
+        ->setMethods(['GET']);
+      $collection->add($route_key . 'individual.schema', $route_individual_schema);
     }
 
     return $collection;

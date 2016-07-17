@@ -3,11 +3,11 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Session\AccountProxyInterface;
-use Drupal\serialization\Normalizer\NormalizerBase as SerializationNormalizerBase;
+use Drupal\serialization\Normalizer\NormalizerBase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
-class HttpExceptionNormalizer extends SerializationNormalizerBase {
+class HttpExceptionNormalizer extends NormalizerBase {
 
 
   /**

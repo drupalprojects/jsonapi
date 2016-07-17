@@ -42,6 +42,7 @@ class RoutesTest extends UnitTestCase {
     $resource_config = $this->prophesize(ResourceConfigInterface::class);
     $global_config = $this->prophesize(ImmutableConfig::class);
     $global_config->get('prefix')->willReturn('api');
+    $global_config->get('schema_prefix')->willReturn('schema');
     $resource_config->getGlobalConfig()->willReturn($global_config->reveal());
     $resource_config->getEntityTypeId()->willReturn('entity_type_1');
     $resource_config->getBundleId()->willReturn('bundle_1_1');

@@ -4,6 +4,9 @@ jsonapi.resource_info:
     prefix:
       type: string
       label: 'Prefix'
+    schema_prefix:
+      type: string
+      label: 'Schema prefix'
     id_field:
       type: string
       label: 'API field'
