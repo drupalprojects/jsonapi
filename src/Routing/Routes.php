@@ -5,7 +5,7 @@ namespace Drupal\jsonapi\Routing;
 use Drupal\Core\Authentication\AuthenticationCollectorInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
-use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\Plugin\JsonApiResourceManager;
 use Drupal\jsonapi\Resource\DocumentWrapperInterface;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -29,9 +29,9 @@ class Routes implements ContainerInjectionInterface {
   /**
    * The resource manager interface.
    *
-   * @var \Drupal\jsonapi\Configuration\ResourceManagerInterface
+   * @var \Drupal\jsonapi\Plugin\JsonApiResourceManager
    */
-  protected $resourceManager;
+  protected $resourcePluginManager;
 
   /**
    * The authentication collector.
@@ -50,13 +50,13 @@ class Routes implements ContainerInjectionInterface {
   /**
    * Instantiates a Routes object.
    *
-   * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
+   * @param \Drupal\jsonapi\Plugin\JsonApiResourceManager $resource_plugin_manager
    *   The resource manager.
    * @param \Drupal\Core\Authentication\AuthenticationCollectorInterface $auth_collector
    *   The resource manager.
    */
-  public function __construct(ResourceManagerInterface $resource_manager, AuthenticationCollectorInterface $auth_collector) {
-    $this->resourceManager = $resource_manager;
+  public function __construct(JsonApiResourceManager $resource_plugin_manager, AuthenticationCollectorInterface $auth_collector) {
+    $this->resourcePluginManager = $resource_plugin_manager;
     $this->authCollector = $auth_collector;
   }
 
@@ -64,11 +64,11 @@ class Routes implements ContainerInjectionInterface {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    /* @var \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager */
-    $resource_manager = $container->get('jsonapi.resource.manager');
+    /* @var \Drupal\jsonapi\Plugin\JsonApiResourceManager $resource_plugin_manager */
+    $resource_plugin_manager = $container->get('plugin.manager.resource.processor');
     /* @var \Drupal\Core\Authentication\AuthenticationCollectorInterface $auth_collector */
     $auth_collector = $container->get('authentication_collector');
-    return new static($resource_manager, $auth_collector);
+    return new static($resource_plugin_manager, $auth_collector);
   }
 
   /**
@@ -76,20 +76,18 @@ class Routes implements ContainerInjectionInterface {
    */
   public function routes() {
     $collection = new RouteCollection();
-    foreach ($this->resourceManager->all() as $resource) {
-      $global_config = $resource->getGlobalConfig();
-      $prefix = $global_config->get('prefix') ?: 'api';
-      $schema_prefix = $global_config->get('schema_prefix') ?: 'schema';
-      $entity_type = $resource->getEntityTypeId();
+    foreach ($this->resourcePluginManager->getDefinitions() as $plugin_id => $plugin_definition) {
+      $entity_type = $plugin_definition['entityType'];
       // For the entity type resources the bundle is NULL.
-      $bundle = $resource->getBundleId();
-      $entity_type_has_bundle = $this->resourceManager->hasBundle($entity_type);
-      $partial_path = '/' . $prefix . $resource->getPath();
-      $schema_partial_path = '/' . $schema_prefix . $resource->getPath();
-      $route_key = sprintf('%s.dynamic.%s.', $prefix, $resource->getTypeName());
+      $bundle = $plugin_definition['bundle'];
+      $entity_type_has_bundle = $plugin_definition['hasBundle'];
+      $partial_path = $plugin_definition['data']['partialPath'];
+      $schema_partial_path = $plugin_definition['schema']['partialPath'];
+      $route_keys = explode(':', $plugin_id);
+      $route_key = end($route_keys) . '.';
       // Add the collection route.
       $defaults = [
-        RouteObjectInterface::CONTROLLER_NAME => static::FRONT_CONTROLLER,
+        RouteObjectInterface::CONTROLLER_NAME => $plugin_definition['controller'],
       ];
       // Options that apply to all routes.
       $options = [
@@ -101,7 +99,7 @@ class Routes implements ContainerInjectionInterface {
       $route_collection = (new Route($partial_path))
         ->addDefaults($defaults)
         ->setRequirement('_entity_type', $entity_type)
-        ->setRequirement('_permission', 'access content')
+        ->setRequirement('_permission', $plugin_definition['permission'])
         ->setRequirement('_format', 'api_json')
         ->setRequirement('_custom_parameter_names', 'TRUE')
         ->setOption('serialization_class', DocumentWrapperInterface::class)
@@ -117,7 +115,7 @@ class Routes implements ContainerInjectionInterface {
       $route_individual = (new Route(sprintf('%s/{%s}', $partial_path, $entity_type)))
         ->addDefaults($defaults)
         ->setRequirement('_entity_type', $entity_type)
-        ->setRequirement('_permission', 'access content')
+        ->setRequirement('_permission', $plugin_definition['permission'])
         ->setRequirement('_format', 'api_json')
         ->setRequirement('_custom_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
@@ -134,7 +132,7 @@ class Routes implements ContainerInjectionInterface {
       $route_related = (new Route(sprintf('%s/{%s}/{related}', $partial_path, $entity_type)))
         ->addDefaults($defaults)
         ->setRequirement('_entity_type', $entity_type)
-        ->setRequirement('_permission', 'access content')
+        ->setRequirement('_permission', $plugin_definition['permission'])
         ->setRequirement('_format', 'api_json')
         ->setRequirement('_custom_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
@@ -150,7 +148,7 @@ class Routes implements ContainerInjectionInterface {
       $route_relationship = (new Route(sprintf('%s/{%s}/relationships/{related}', $partial_path, $entity_type)))
         ->addDefaults($defaults + ['_on_relationship' => TRUE])
         ->setRequirement('_entity_type', $entity_type)
-        ->setRequirement('_permission', 'access content')
+        ->setRequirement('_permission', $plugin_definition['permission'])
         ->setRequirement('_format', 'api_json')
         ->setRequirement('_custom_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
@@ -169,7 +167,7 @@ class Routes implements ContainerInjectionInterface {
           '_controller' => '\Drupal\jsonapi\Controller\SchemaController::entityCollectionSchema',
           'typed_data_id' => 'entity:' . $entity_type . (($entity_type_has_bundle) ? ':' . $bundle : ''),
         ])
-        ->setRequirement('_permission', 'access content')
+        ->setRequirement('_permission', $plugin_definition['permission'])
         ->setOption('_auth', $this->authProviderList())
         ->setMethods(['GET']);
       $collection->add($route_key . 'schema', $route_collection_schema);
@@ -180,7 +178,7 @@ class Routes implements ContainerInjectionInterface {
           '_controller' => '\Drupal\jsonapi\Controller\SchemaController::entitySchema',
           'typed_data_id' => 'entity:' . $entity_type . (($entity_type_has_bundle) ? ':' . $bundle : ''),
         ])
-        ->setRequirement('_permission', 'access content')
+        ->setRequirement('_permission', $plugin_definition['permission'])
         ->setOption('_auth', $this->authProviderList())
         ->setMethods(['GET']);
       $collection->add($route_key . 'individual.schema', $route_individual_schema);

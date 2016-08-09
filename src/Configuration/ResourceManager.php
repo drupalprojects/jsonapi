@@ -1,11 +1,11 @@
 <?php
 
 namespace Drupal\jsonapi\Configuration;
+
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Symfony\Component\HttpKernel\Exception\PreconditionFailedHttpException;
-
 
 /**
  * Class ResourceManager.

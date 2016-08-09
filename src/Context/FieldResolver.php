@@ -62,18 +62,16 @@ class FieldResolver implements FieldResolverInterface {
     $parts = explode('.', $external_field_name);
     // The last part of the chain is the referenced field, not a relationship.
     $leave_field = array_pop($parts);
-    // Prepare the exception only once.
-    $exception = new BadRequestHttpException('Invalid nested filtering.');
     $entity_type_id = $this->currentContext->getResourceConfig()->getEntityTypeId();
     foreach ($parts as $field_name) {
       if (!$definitions = $this->fieldManager->getFieldStorageDefinitions($entity_type_id)) {
-        throw $exception;
+        throw new BadRequestHttpException(sprintf('Invalid nested filtering. There is no entity type "%s".', $entity_type_id));
       }
       if (
         empty($definitions[$field_name]) ||
         $definitions[$field_name]->getType() != 'entity_reference'
       ) {
-        throw $exception;
+        throw new BadRequestHttpException(sprintf('Invalid nested filtering. Invalid entity reference "%s".', $field_name));
       }
       // Update the entity type with the referenced type.
       $entity_type_id = $definitions[$field_name]->getSetting('target_type');

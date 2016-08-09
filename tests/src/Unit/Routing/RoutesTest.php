@@ -3,12 +3,9 @@
 namespace Drupal\Tests\jsonapi\Unit\Routing;
 
 use Drupal\Core\Authentication\AuthenticationCollectorInterface;
-use Drupal\Core\Config\ImmutableConfig;
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
-use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\Plugin\JsonApiResourceManager;
 use Drupal\jsonapi\Routing\Routes;
 use Drupal\Tests\UnitTestCase;
-use Prophecy\Argument;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -36,24 +33,28 @@ class RoutesTest extends UnitTestCase {
   protected function setUp() {
     parent::setUp();
     // Mock the resource manager to have some resources available.
-    $resource_manager = $this->prophesize(ResourceManagerInterface::class);
-
-    // Create some resource mocks for the manager.
-    $resource_config = $this->prophesize(ResourceConfigInterface::class);
-    $global_config = $this->prophesize(ImmutableConfig::class);
-    $global_config->get('prefix')->willReturn('api');
-    $global_config->get('schema_prefix')->willReturn('schema');
-    $resource_config->getGlobalConfig()->willReturn($global_config->reveal());
-    $resource_config->getEntityTypeId()->willReturn('entity_type_1');
-    $resource_config->getBundleId()->willReturn('bundle_1_1');
-    // Make sure that we're not coercing the bundle into the path, they can be
-    // different in the future.
-    $resource_config->getPath()->willReturn('/entity_type_1/bundle_path_1');
-    $resource_config->getTypeName()->willReturn('resource_type_1');
-    $resource_manager->all()->willReturn([$resource_config->reveal()]);
-    $resource_manager->hasBundle(Argument::type('string'))->willReturn(FALSE);
+    $resource_plugin_manager = $this->prophesize(JsonApiResourceManager::class);
+    $resource_plugin_manager->getDefinitions()->willReturn([
+      'bundle:api.dynamic.resource_type_1' => [
+        'id' => 'bundle:api.dynamic.resource_type_1',
+        'entityType' => 'entity_type_1',
+        'bundle' => 'bundle_1_1',
+        'hasBundle' => TRUE,
+        'type' => 'resource_type_1',
+        'data' => [
+          'prefix' => 'api',
+          'partialPath' => '/api/entity_type_1/bundle_path_1',
+        ],
+        'schema' => [
+          'prefix' => 'schema',
+          'partialPath' => '/schema/entity_type_1/bundle_path_1',
+        ],
+        'controller' => 'MyCustomController',
+        'permission' => 'access content'
+      ],
+    ]);
     $container = $this->prophesize(ContainerInterface::class);
-    $container->get('jsonapi.resource.manager')->willReturn($resource_manager->reveal());
+    $container->get('plugin.manager.resource.processor')->willReturn($resource_plugin_manager->reveal());
     $auth_collector = $this->prophesize(AuthenticationCollectorInterface::class);
     $auth_collector->getSortedProviders()->willReturn([
       'lorem' => [],
@@ -84,7 +85,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['GET', 'POST'], $route->getMethods());
-    $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
+    $this->assertSame('MyCustomController', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
     $this->assertSame('Drupal\jsonapi\Resource\DocumentWrapperInterface', $route->getOption('serialization_class'));
   }
 
@@ -102,7 +103,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame('entity_type_1', $route->getRequirement('_entity_type'));
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertEquals(['GET', 'PATCH', 'DELETE'], $route->getMethods());
-    $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
+    $this->assertSame('MyCustomController', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
     $this->assertSame('Drupal\jsonapi\Resource\DocumentWrapperInterface', $route->getOption('serialization_class'));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
@@ -122,7 +123,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame('entity_type_1', $route->getRequirement('_entity_type'));
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertEquals(['GET'], $route->getMethods());
-    $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
+    $this->assertSame('MyCustomController', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
   }
@@ -141,7 +142,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame('entity_type_1', $route->getRequirement('_entity_type'));
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertEquals(['GET', 'POST', 'PATCH', 'DELETE'], $route->getMethods());
-    $this->assertSame('\Drupal\jsonapi\RequestHandler::handle', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
+    $this->assertSame('MyCustomController', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
     $this->assertSame('Drupal\Core\Field\EntityReferenceFieldItemList', $route->getOption('serialization_class'));
