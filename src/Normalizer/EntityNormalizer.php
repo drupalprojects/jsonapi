@@ -86,9 +86,7 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
     /* @var Value\FieldNormalizerValueInterface[] $normalizer_values */
     $normalizer_values = [];
     foreach ($this->getFields($entity, $bundle_id) as $field_name => $field) {
-      // Relationships cannot be excluded by using sparse fieldsets.
-      $is_relationship = $this->isRelationship($field);
-      if (!$is_relationship && !in_array($field_name, $field_names)) {
+      if (!in_array($field_name, $field_names)) {
         continue;
       }
       $normalizer_values[$field_name] = $this->serializeField($field, $context, $format);
