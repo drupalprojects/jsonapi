@@ -77,6 +77,9 @@ class Routes implements ContainerInjectionInterface {
   public function routes() {
     $collection = new RouteCollection();
     foreach ($this->resourcePluginManager->getDefinitions() as $plugin_id => $plugin_definition) {
+      if (empty($plugin_definition['enabled'])) {
+        continue;
+      }
       $entity_type = $plugin_definition['entityType'];
       // For the entity type resources the bundle is NULL.
       $bundle = $plugin_definition['bundle'];

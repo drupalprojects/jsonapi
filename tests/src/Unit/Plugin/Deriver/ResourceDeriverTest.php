@@ -77,10 +77,12 @@ class ResourceDeriverTest extends UnitTestCase {
       ],
       'permission' => 'access content',
       'controller' => '\\Drupal\\jsonapi\\RequestHandler::handle',
+      'enabled' => TRUE,
     ]];
     $actual = $this->deriver->getDerivativeDefinitions([
       'permission' => 'access content',
       'controller' => '\Drupal\jsonapi\RequestHandler::handle',
+      'enabled' => TRUE,
     ]);
     $this->assertArrayEquals($expected, $actual);
   }

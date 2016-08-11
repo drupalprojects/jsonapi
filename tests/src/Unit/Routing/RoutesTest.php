@@ -50,7 +50,26 @@ class RoutesTest extends UnitTestCase {
           'partialPath' => '/schema/entity_type_1/bundle_path_1',
         ],
         'controller' => 'MyCustomController',
-        'permission' => 'access content'
+        'permission' => 'access content',
+        'enabled' => TRUE,
+      ],
+      'bundle:api.dynamic.resource_type_2' => [
+        'id' => 'bundle:api.dynamic.resource_type_2',
+        'entity_type' => 'entity_type_2',
+        'bundle' => 'bundle_2_2',
+        'has_bundle' => TRUE,
+        'type' => 'resource_type_2',
+        'data' => [
+          'prefix' => 'api',
+          'partial_path' => '/api/entity_type_2/bundle_path_2',
+        ],
+        'schema' => [
+          'prefix' => 'schema',
+          'partial_path' => '/schema/entity_type_2/bundle_path_2',
+        ],
+        'controller' => 'MyCustomController',
+        'permission' => 'access content',
+        'enabled' => FALSE,
       ],
     ]);
     $container = $this->prophesize(ContainerInterface::class);
@@ -87,6 +106,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertEquals(['GET', 'POST'], $route->getMethods());
     $this->assertSame('MyCustomController', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
     $this->assertSame('Drupal\jsonapi\Resource\DocumentWrapperInterface', $route->getOption('serialization_class'));
+    $this->assertFalse($iterator->offsetExists('api.dynamic.resource_type_2.collection'));
   }
 
   /**
@@ -107,6 +127,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame('Drupal\jsonapi\Resource\DocumentWrapperInterface', $route->getOption('serialization_class'));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
+    $this->assertFalse($iterator->offsetExists('api.dynamic.resource_type_2.individual'));
   }
 
   /**
@@ -126,6 +147,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame('MyCustomController', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
+    $this->assertFalse($iterator->offsetExists('api.dynamic.resource_type_2.related'));
   }
 
   /**
@@ -146,6 +168,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
     $this->assertSame('Drupal\Core\Field\EntityReferenceFieldItemList', $route->getOption('serialization_class'));
+    $this->assertFalse($iterator->offsetExists('api.dynamic.resource_type_2.relationship'));
   }
 
 }
