@@ -2,11 +2,12 @@
 
 namespace Drupal\jsonapi_docson\Controller;
 
+use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Link;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
-use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\rest\Plugin\Type\ResourcePluginManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -15,30 +16,30 @@ class DocsonController implements ContainerInjectionInterface {
   use StringTranslationTrait;
 
   /**
-   * The resource manager interface.
+   * The resource plugin manager interface.
    *
-   * @var \Drupal\jsonapi\Configuration\ResourceManagerInterface
+   * @var \Drupal\rest\Plugin\Type\ResourcePluginManager
    */
-  protected $resourceManager;
+  protected $resourcePluginManager;
 
   /**
    * Instantiates a Routes object.
    *
-   * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
+   * @param \Drupal\rest\Plugin\Type\ResourcePluginManager $resource_plugin_manager
    *   The resource manager.
    */
-  public function __construct(ResourceManagerInterface $resource_manager) {
-    $this->resourceManager = $resource_manager;
+  public function __construct(ResourcePluginManager $resource_plugin_manager) {
+    $this->resourcePluginManager = $resource_plugin_manager;
   }
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    /* @var \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager */
-    $resource_manager = $container->get('jsonapi.resource.manager');
+    /* @var \Drupal\rest\Plugin\Type\ResourcePluginManager $resource_plugin_manager */
+    $resource_plugin_manager = $container->get('plugin.manager.resource.processor');
 
-    return new static($resource_manager);
+    return new static($resource_plugin_manager);
   }
 
   public function listResources() {
@@ -47,27 +48,28 @@ class DocsonController implements ContainerInjectionInterface {
       '#header' => [$this->t('Resource'), $this->t('Schema')],
     ];
 
-    foreach ($this->resourceManager->all() as $resource_id => $resource) {
-      $global_config = $resource->getGlobalConfig();
-      $prefix = $global_config->get('prefix');
-      $schema_prefix = $global_config->get('schema_prefix');
-      $partial_path = '/' . $prefix . $resource->getPath();
-      $schema_partial_path = '/' . $schema_prefix . $resource->getPath();
-      $route_key = sprintf('%s.dynamic.%s.', $prefix, $resource->getTypeName());
-      $entity_type = $resource->getEntityTypeId();
+    foreach ($this->resourcePluginManager->getDefinitions() as $plugin_id => $plugin_definition) {
+      if (empty($plugin_definition['enabled'])) {
+        continue;
+      }
+      $partial_path = $plugin_definition['data']['partialPath'];
+      $schema_partial_path = $plugin_definition['schema']['partialPath'];
+      $route_key_parts = explode(':', $plugin_id, 2);
+      $route_key = end($route_key_parts) . '.';
+      $entity_type = $plugin_definition['entityType'];
 
       // @todo its sad that this module needs to know about the different kind
       //   of schemas we expose.
       $build[$partial_path] = [
         ['data' => ['#markup' => $partial_path]],
-        ['data' => Link::createFromRoute('Schema:' . $schema_partial_path, 'jsonapi_docson.schema_inspector', ['schema' => Url::fromRoute($route_key . 'schema')->toString(), 'resource_id' => $resource_id])->toRenderable()],
+        ['data' => Link::createFromRoute('Schema:' . $schema_partial_path, 'jsonapi_docson.schema_inspector', ['schema' => Url::fromRoute($route_key . 'schema')->toString(), 'resource_id' => $plugin_id])->toRenderable()],
       ];
 
       $individual_path = sprintf('%s/{%s}', $partial_path, $entity_type);
       $schema_individual_path = $schema_partial_path . '/individual';
       $build[$individual_path] = [
         ['data' => ['#markup' => $individual_path]],
-        ['data' => Link::createFromRoute('Schema:' . $schema_individual_path, 'jsonapi_docson.schema_inspector', ['schema' => Url::fromRoute($route_key . 'individual.schema', [$entity_type => 'individual'])->toString(), 'resource_id' => $resource_id])->toRenderable()],
+        ['data' => Link::createFromRoute('Schema:' . $schema_individual_path, 'jsonapi_docson.schema_inspector', ['schema' => Url::fromRoute($route_key . 'individual.schema', [$entity_type => 'individual'])->toString(), 'resource_id' => $plugin_id])->toRenderable()],
       ];
     }
 
@@ -77,10 +79,12 @@ class DocsonController implements ContainerInjectionInterface {
   public function inspectSchema(Request $request) {
     $schema = $request->query->get('schema');
     $resource_id = $request->query->get('resource_id');
-    /* @var \Drupal\jsonapi\Configuration\ResourceConfigInterface $resource_config */
-    $resource_config = empty($this->resourceManager->all()[$resource_id]) ?
-      NULL :
-      $this->resourceManager->all()[$resource_id];
+    try {
+      $plugin_definition = $this->resourcePluginManager->getDefinition($resource_id);
+    }
+    catch (PluginNotFoundException $e) {
+      return NULL;
+    }
 
     $build = [
       '#type' => 'html_tag',
@@ -90,10 +94,10 @@ class DocsonController implements ContainerInjectionInterface {
         'data-schema' => $schema,
       ],
     ];
-    if ($resource_config) {
+    if ($plugin_definition) {
       $build['#title'] = $this->t('Schema for "@entity_type/@bundle"', [
-        '@entity_type' => $resource_config->getEntityTypeId(),
-        '@bundle' => $resource_config->getBundleId(),
+        '@entity_type' => $plugin_definition['entityType'],
+        '@bundle' => $plugin_definition['bundle'],
       ]);
     }
 

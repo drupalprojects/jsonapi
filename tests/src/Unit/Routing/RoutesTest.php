@@ -55,17 +55,17 @@ class RoutesTest extends UnitTestCase {
       ],
       'bundle:api.dynamic.resource_type_2' => [
         'id' => 'bundle:api.dynamic.resource_type_2',
-        'entity_type' => 'entity_type_2',
+        'entityType' => 'entity_type_2',
         'bundle' => 'bundle_2_2',
-        'has_bundle' => TRUE,
+        'hasBundle' => TRUE,
         'type' => 'resource_type_2',
         'data' => [
           'prefix' => 'api',
-          'partial_path' => '/api/entity_type_2/bundle_path_2',
+          'partialPath' => '/api/entity_type_2/bundle_path_2',
         ],
         'schema' => [
           'prefix' => 'schema',
-          'partial_path' => '/schema/entity_type_2/bundle_path_2',
+          'partialPath' => '/schema/entity_type_2/bundle_path_2',
         ],
         'controller' => 'MyCustomController',
         'permission' => 'access content',

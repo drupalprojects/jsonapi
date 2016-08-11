@@ -1,7 +1,7 @@
 jsonapi_docson.listing:
   path: /admin/config/services/jsonapi-services
   defaults:
-    _title: 'Available JSON endpoints'
+    _title: 'Available JSON API endpoints'
     _controller: '\Drupal\jsonapi_docson\Controller\DocsonController::listResources'
   requirements:
     _permission: 'explore json api schemas'
