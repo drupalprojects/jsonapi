@@ -30,7 +30,7 @@ class EntityCollection implements EntityCollectionInterface {
    *   The entities for the collection.
    */
   public function __construct(array $entities) {
-    $this->entities = array_values($entities);
+    $this->entities = array_filter(array_values($entities));
   }
 
   /**
