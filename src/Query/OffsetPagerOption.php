@@ -53,6 +53,8 @@ class OffsetPagerOption implements QueryOptionInterface {
       $query->range($this->offset, $this->size + 1);
       $query->addMetaData('pager_size', (int) $this->size);
     }
+
+    return $query;
   }
 
 
