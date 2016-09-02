@@ -14,8 +14,8 @@ class ErrorHandler extends ErrorHandlerBase {
     _drupal_error_handler($error_level, $message, $filename, $line, $context);
     $types = drupal_error_levels();
     list($severity_msg, $severity_level) = $types[$error_level];
-    // Only halt execution if the error is more severe than a notice.
-    if ($severity_level < 5) {
+    // Only halt execution if the error is more severe than a warning.
+    if ($severity_level < 4) {
       throw new HttpException(500, sprintf('[%s] %s', $severity_msg, $message), NULL, [], $error_level);
     }
   }
