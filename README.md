@@ -5,6 +5,10 @@ The jsonapi module exposes a [JSON API](http://jsonapi.org/) implementation for 
 
 Install the module as every other module.
 
+## Compatibility
+
+This module is compatible with Drupal core 8.2.x and higher.
+
 ## Configuration
 
 Unlike the core REST module JSON API doesn't really require any kind of configuration by default.
