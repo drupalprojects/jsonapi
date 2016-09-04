@@ -185,7 +185,7 @@ class QueryBuilder implements QueryBuilderInterface {
   protected function configureSort(JsonApiParamInterface $param) {
     $extracted = [];
     foreach ($param->get() as $sort_index => $sort) {
-      $extracted[] = $this->newSortOption($sort_index, $sort);
+      $extracted[] = $this->newSortOption(sprintf('sort_%s', $sort_index), $sort);
     }
 
     $this->buildTree($extracted);
