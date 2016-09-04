@@ -6,3 +6,4 @@ package: REST
 dependencies:
   - drupal:system (>=8.2)
   - serialization
+  - rest
