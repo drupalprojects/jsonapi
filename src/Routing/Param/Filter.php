@@ -107,7 +107,7 @@ class Filter extends JsonApiParamBase {
         'condition' => $filter_item,
       ];
 
-      if (!isset($filter_item['operator'])) {
+      if (!isset($filter_item['condition']['operator'])) {
         $filter_item['condition']['operator'] = '=';
       }
     }
