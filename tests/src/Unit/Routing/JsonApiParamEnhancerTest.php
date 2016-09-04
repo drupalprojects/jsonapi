@@ -24,6 +24,7 @@ use Symfony\Component\Routing\Route;
  *
  * @coversDefaultClass \Drupal\jsonapi\Routing\JsonApiParamEnhancer
  * @group jsonapi
+ * @group jsonapi_param_enhancer
  */
 class JsonApiParamEnhancerTest extends UnitTestCase {
 
@@ -57,7 +58,7 @@ class JsonApiParamEnhancerTest extends UnitTestCase {
       RouteObjectInterface::ROUTE_OBJECT => $route->reveal()
     ], $request->reveal());
     $this->assertInstanceOf(Filter::class, $defaults['_json_api_params']['filter']);
-    $this->assertTrue(empty($defaults['_json_api_params']['page']));
+    $this->assertInstanceOf(OffsetPage::class, $defaults['_json_api_params']['page']);
     $this->assertTrue(empty($defaults['_json_api_params']['sort']));
   }
 
@@ -93,7 +94,7 @@ class JsonApiParamEnhancerTest extends UnitTestCase {
 
     $defaults = $object->enhance([], $request->reveal());
     $this->assertInstanceOf(Sort::class, $defaults['_json_api_params']['sort']);
-    $this->assertTrue(empty($defaults['_json_api_params']['page']));
+    $this->assertInstanceOf(OffsetPage::class, $defaults['_json_api_params']['page']);
     $this->assertTrue(empty($defaults['_json_api_params']['filter']));
   }
 
