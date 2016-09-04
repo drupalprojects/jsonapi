@@ -7,7 +7,7 @@ use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Link;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
-use Drupal\rest\Plugin\Type\ResourcePluginManager;
+use Drupal\jsonapi\Plugin\JsonApiResourceManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -25,10 +25,10 @@ class DocsonController implements ContainerInjectionInterface {
   /**
    * Instantiates a Routes object.
    *
-   * @param \Drupal\rest\Plugin\Type\ResourcePluginManager $resource_plugin_manager
+   * @param \Drupal\jsonapi\Plugin\JsonApiResourceManager $resource_plugin_manager
    *   The resource manager.
    */
-  public function __construct(ResourcePluginManager $resource_plugin_manager) {
+  public function __construct(JsonApiResourceManager $resource_plugin_manager) {
     $this->resourcePluginManager = $resource_plugin_manager;
   }
 
@@ -36,7 +36,7 @@ class DocsonController implements ContainerInjectionInterface {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    /* @var \Drupal\rest\Plugin\Type\ResourcePluginManager $resource_plugin_manager */
+    /* @var \Drupal\jsonapi\Plugin\JsonApiResourceManager $resource_plugin_manager */
     $resource_plugin_manager = $container->get('plugin.manager.resource.processor');
 
     return new static($resource_plugin_manager);
