@@ -49,7 +49,7 @@ class FieldNormalizer extends NormalizerBase {
    * @param array $context
    *   The context array.
    *
-   * @return array
+   * @return \Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue
    *   The array of normalized field items.
    */
   protected function normalizeFieldItems(FieldItemListInterface $field, $format, $context) {
