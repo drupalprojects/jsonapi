@@ -11,7 +11,7 @@ use Prophecy\Argument;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class RoutesTest.
+ * Class ResourceDeriverTest.
  *
  * @package Drupal\Tests\jsonapi\Unit\Plugin\Deriver
  *

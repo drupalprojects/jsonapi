@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * @file
+ * Module implementation file.
+ */
+
+use Drupal\Core\Field\BaseFieldDefinition;
+
+/**
+ * Implements hook_entity_base_field_info().
+ */
+function jsonapi_entity_base_field_info(\Drupal\Core\Entity\EntityTypeInterface $entity_type) {
+  $fields = [];
+  if ($entity_type->id() == 'file') {
+    $fields['url'] = BaseFieldDefinition::create('uri')
+      ->setLabel(t('Download URL'))
+      ->setDescription(t('The download URL of the file.'))
+      ->setComputed(TRUE)
+      ->setDefaultValue('')
+      ->setClass('\Drupal\jsonapi\Plugin\FileDownloadUrl')
+      ->setDisplayOptions('view', array(
+        'label' => 'above',
+        'weight' => -5,
+      ));
+  }
+  return $fields;
+}
