@@ -263,30 +263,6 @@ class QueryBuilder implements QueryBuilderInterface {
   }
 
   /**
-   * Returns a new ExistsOption.
-   *
-   * @param string $identifier
-   *   A unique id for the option.
-   * @param array $properties
-   *   The condition properties.
-   *
-   * @return \Drupal\jsonapi\Query\ExistsOption
-   *   The condition object.
-   */
-  protected function newExistsOptions($identifier, array $properties) {
-    $langcode_key = $this->getLangcodeKey();
-    $langcode = isset($properties[$langcode_key]) ? $properties[$langcode_key] : NULL;
-    $group = isset($properties[Filter::GROUP_KEY]) ? $properties[Filter::GROUP_KEY] : NULL;
-    return new ExistsOption(
-      $identifier,
-      $this->fieldResolver->resolveInternal($properties[Filter::FIELD_KEY]),
-      $properties[Filter::EXISTS_KEY],
-      $langcode,
-      $group
-    );
-  }
-
-  /**
    * Returns a new SortOption.
    *
    * @param array $properties

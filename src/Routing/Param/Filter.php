@@ -31,13 +31,6 @@ class Filter extends JsonApiParamBase {
   const GROUP_KEY = 'group';
 
   /**
-   * Key in the filter[<key>] parameter for exists conditions.
-   *
-   * @var string
-   */
-  const EXISTS_KEY = 'exists';
-
-  /**
    * The field key in the filter condition: filter[lorem][condition][<field>].
    *
    * @var string
