@@ -13,12 +13,9 @@ class RequestCacheabilityDependency implements CacheableDependencyInterface {
    * {@inheritdoc}
    */
   public function getCacheContexts() {
-    return [
-      'url.query_args:filter',
-      'url.query_args:sort',
-      'url.query_args:page',
-      'url.query_args:fields',
-    ];
+    return array_map(function ($param_name) {
+      return sprintf('url.query_args:%s', $param_name);
+    }, $this::getQueryParamCacheContextList());
   }
 
   /**
@@ -35,5 +32,14 @@ class RequestCacheabilityDependency implements CacheableDependencyInterface {
     return -1;
   }
 
+  /**
+   * Builds the list of URL query parameter names for the cache context.
+   *
+   * @return {string[]}
+   *   The list of parameter names that vary the cache entry.
+   */
+  protected static function getQueryParamCacheContextList() {
+    return ['filter', 'sort', 'page', 'fields', 'include'];
+  }
 
 }
