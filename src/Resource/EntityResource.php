@@ -3,7 +3,6 @@
 namespace Drupal\jsonapi\Resource;
 
 use Drupal\Component\Serialization\Json;
-use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -15,7 +14,6 @@ use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\EntityCollectionInterface;
-use Drupal\jsonapi\RequestCacheabilityDependency;
 use Drupal\jsonapi\Query\QueryBuilderInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\Routing\Param\JsonApiParamBase;

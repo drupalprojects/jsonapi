@@ -3,11 +3,14 @@
 namespace Drupal\jsonapi;
 
 use Drupal\Core\Cache\CacheableDependencyInterface;
+use Drupal\Core\Cache\UnchangingCacheableDependencyTrait;
 
 /**
  * Class RequestCacheabilityDependency.
  */
 class RequestCacheabilityDependency implements CacheableDependencyInterface {
+
+  use UnchangingCacheableDependencyTrait;
 
   /**
    * {@inheritdoc}
@@ -16,20 +19,6 @@ class RequestCacheabilityDependency implements CacheableDependencyInterface {
     return array_map(function ($param_name) {
       return sprintf('url.query_args:%s', $param_name);
     }, $this::getQueryParamCacheContextList());
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getCacheTags() {
-    return [];
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getCacheMaxAge() {
-    return -1;
   }
 
   /**

@@ -3,6 +3,7 @@
 namespace Drupal\Tests\jsonapi\Kernel\Normalizer;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Normalizer\DocumentRootNormalizerInterface;
@@ -189,6 +190,7 @@ class DocumentRootNormalizerTest extends KernelTestBase {
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
     $this->assertSame(['node:1', 'user:1'], $response->getCacheableMetadata()->getCacheTags());
+    $this->assertSame(Cache::PERMANENT, $response->getCacheableMetadata()->getCacheMaxAge());
   }
 
   /**

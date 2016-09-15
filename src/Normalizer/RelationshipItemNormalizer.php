@@ -76,6 +76,7 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
       $context = $this->buildSubContext($context, $target_entity, $host_field_name);
       $included_normalizer_value = $this->documentRootNormalizer->buildNormalizerValue($target_entity, $format, $context);
       $normalizer_value->setInclude($included_normalizer_value);
+      $normalizer_value->addCacheableDependency($included_normalizer_value);
       // Add the cacheable dependency of the included item directly to the
       // response cacheable metadata. This is similar to the flatten include
       // data structure, instead of a content graph.

@@ -1,6 +1,7 @@
 <?php
 
 namespace Drupal\jsonapi\Normalizer\Value;
+use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 
 /**
  * Class FieldItemNormalizerValue.
@@ -8,6 +9,8 @@ namespace Drupal\jsonapi\Normalizer\Value;
  * @package Drupal\jsonapi\Normalizer\Value
  */
 class RelationshipItemNormalizerValue extends FieldItemNormalizerValue implements RelationshipItemNormalizerValueInterface {
+
+  use RefinableCacheableDependencyTrait;
 
   /**
    * Resource path.
