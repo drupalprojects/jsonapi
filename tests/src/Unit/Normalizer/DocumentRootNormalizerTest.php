@@ -32,6 +32,13 @@ class DocumentRootNormalizerTest extends UnitTestCase {
   protected $normalizer;
 
   /**
+   * The resource config for the context.
+   *
+   * @var \Drupal\jsonapi\Configuration\ResourceConfigInterface
+   */
+  protected $resourceConfig;
+
+  /**
    * {@inheritdoc}
    */
   public function setUp() {
@@ -43,6 +50,11 @@ class DocumentRootNormalizerTest extends UnitTestCase {
 
     $current_context_manager->getCurrentRoute()->willReturn(
       $current_route->reveal()
+    );
+    $this->resourceConfig = $this->prophesize(ResourceConfigInterface::class);
+    $this->resourceConfig->getDeserializationTargetClass()->willReturn(FieldableEntityInterface::class);
+    $current_context_manager->getResourceConfig()->willReturn(
+      $this->resourceConfig->reveal()
     );
 
     $this->normalizer = new DocumentRootNormalizer(
@@ -67,10 +79,9 @@ class DocumentRootNormalizerTest extends UnitTestCase {
    * @dataProvider denormalizeProvider
    */
   public function testDenormalize($input, $expected) {
-    $resource_config = $this->prophesize(ResourceConfigInterface::class);
-    $resource_config->getDeserializationTargetClass()->willReturn(FieldableEntityInterface::class);
+    $this->resourceConfig->getIdKey()->willReturn('id');
     $context = [
-      'resource_config' => $resource_config->reveal(),
+      'resource_config' => $this->resourceConfig->reveal(),
     ];
     $denormalized = $this->normalizer->denormalize($input, NULL, 'api_json', $context);
     $this->assertSame($expected, $denormalized);

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\jsonapi\Kernel;
+namespace Drupal\Tests\jsonapi\Kernel\Schema;
 
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\simpletest\UserCreationTrait;

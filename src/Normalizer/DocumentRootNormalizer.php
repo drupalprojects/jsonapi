@@ -57,7 +57,8 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
    */
   public function denormalize($data, $class, $format = NULL, array $context = array()) {
     $context += [
-      'on_relationship' => (bool) $this->currentContext->getCurrentRoute()->getDefault('_on_relationship'),
+      'on_relationship' => (bool) $this->currentContext->getCurrentRoute()
+        ->getDefault('_on_relationship'),
     ];
     $normalized = [];
     if (!empty($data['data']['attributes'])) {
@@ -74,9 +75,31 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
         }
       }, $data['data']['relationships']);
 
+      $id_key = $this->currentContext->getResourceConfig()->getIdKey();
+
       // Get an array of ids for every relationship.
-      $relationships = array_map(function ($relationship) {
-        return array_column($relationship['data'], 'id');
+      $relationships = array_map(function ($relationship) use ($id_key) {
+        $id_list = array_column($relationship['data'], 'id');
+        if ($id_key == 'id') {
+          return $id_list;
+        }
+        list($entity_type_id,) = explode('--', $relationship['data'][0]['type']);
+        $entity_storage = $this->currentContext->getResourceManager()
+          ->getEntityTypeManager()
+          ->getStorage($entity_type_id);
+        // In order to maintain the order ($delta) of the relationships, we need
+        // to load the entities and explore the $id_key value.
+        $related_entities = array_values($entity_storage
+          ->loadByProperties([$id_key => $id_list]));
+        $map = [];
+        foreach ($related_entities as $related_entity) {
+          $map[$related_entity->get($id_key)->value] = $related_entity->id();
+        }
+        $canonical_ids = array_map(function ($input_value) use ($map) {
+          return empty($map[$input_value]) ? NULL : $map[$input_value];
+        }, $id_list);
+
+        return array_filter($canonical_ids);
       }, $relationships);
 
       // Add the relationship ids.
@@ -85,6 +108,7 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
     // Overwrite the serialization target class with the one in the resource
     // config.
     $class = $context['resource_config']->getDeserializationTargetClass();
+
     return $this->serializer
       ->denormalize($normalized, $class, $format, $context);
   }
@@ -103,6 +127,7 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
     if (!empty($included)) {
       $normalized['included'] = $included;
     }
+
     return $normalized;
   }
 
@@ -158,6 +183,7 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
         return explode(',', $item);
       }, $request->query->get('fields'));
     }
+
     return $context;
   }
 
