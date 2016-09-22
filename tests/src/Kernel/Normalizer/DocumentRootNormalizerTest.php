@@ -230,6 +230,46 @@ class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
   /**
    * @covers ::normalize
    */
+  public function testNormalizeRelated() {
+    list($request, $resource_config) = $this->generateProphecies('node', 'article', 'id', 'uid');
+    $query = $this->prophesize(ParameterBag::class);
+    $query->get('fields')->willReturn([
+      'user--user' => 'name,roles',
+    ]);
+    $query->get('include')->willReturn('roles');
+    $query->getIterator()->willReturn(new \ArrayIterator());
+    $request->query = $query->reveal();
+    $document_wrapper = $this->prophesize(DocumentWrapper::class);
+    $author = $this->node->get('uid')->entity;
+    $document_wrapper->getData()->willReturn($author);
+
+    $response = new ResourceResponse();
+    $normalized = $this
+      ->container
+      ->get('serializer.normalizer.document_root.jsonapi')
+      ->normalize(
+        $document_wrapper->reveal(),
+        'api_json',
+        [
+          'request' => $request->reveal(),
+          'resource_config' => $resource_config->reveal(),
+          'cacheable_metadata' => $response->getCacheableMetadata(),
+        ]
+      );
+    $this->assertSame($normalized['data']['attributes']['name'], 'user1');
+    $this->assertEquals($normalized['data']['id'], 1);
+    $this->assertEquals($normalized['data']['type'], 'user--user');
+    // Make sure that the cache tags for the includes and the requested entities
+    // are bubbling as expected.
+    $this->assertSame(['user:1'], $response->getCacheableMetadata()
+      ->getCacheTags());
+    $this->assertSame(Cache::PERMANENT, $response->getCacheableMetadata()
+      ->getCacheMaxAge());
+  }
+
+  /**
+   * @covers ::normalize
+   */
   public function testNormalizeUuid() {
     list($request, $resource_config) = $this->generateProphecies('node', 'article', 'uuid');
     $document_wrapper = $this->prophesize(DocumentWrapper::class);
@@ -490,11 +530,15 @@ class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
    * @return array
    *   A numeric array containing the request and the resource config mocks.
    */
-  protected function generateProphecies($entity_type_id, $bundle_id, $id_key) {
+  protected function generateProphecies($entity_type_id, $bundle_id, $id_key, $related_property = NULL) {
     $request = $this->prophesize(Request::class);
     $route = $this->prophesize(Route::class);
+    $path = sprintf('/%s/%s', $entity_type_id, $bundle_id);
+    $path = $related_property ?
+      sprintf('%s/%s', $path, $related_property) :
+      $path;
     $route->getPath()
-      ->willReturn(sprintf('/%s/%s', $entity_type_id, $bundle_id));
+      ->willReturn($path);
     $route->getRequirement('_entity_type')->willReturn($entity_type_id);
     $route->getRequirement('_bundle')->willReturn($bundle_id);
     $route->getDefault('_on_relationship')->willReturn(NULL);

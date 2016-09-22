@@ -10,6 +10,7 @@ use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\Normalizer\ScalarNormalizer;
 use Drupal\Tests\UnitTestCase;
+use Prophecy\Argument;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Serializer\Serializer;
 
@@ -45,7 +46,13 @@ class ConfigEntityNormalizerTest extends UnitTestCase {
       $current_route->reveal()
     );
 
+    $resource_config = $this->prophesize(ResourceConfigInterface::class);
+    $resource_config->getTypeName()->willReturn('dolor');
+    $resource_config->getBundleId()->willReturn('sid');
+
     $resource_manager = $this->prophesize(ResourceManagerInterface::class);
+    $resource_manager->get(Argument::type('string'), Argument::type('string'))
+      ->willReturn($resource_config->reveal());
     $current_context_manager->getResourceManager()->willReturn(
       $resource_manager->reveal()
     );
@@ -65,18 +72,14 @@ class ConfigEntityNormalizerTest extends UnitTestCase {
    * @dataProvider normalizeProvider
    */
   public function testNormalize($input, $expected) {
-    $resource_config = $this->prophesize(ResourceConfigInterface::class);
-    $resource_config->getTypeName()->willReturn('dolor');
-    $resource_config->getBundleId()->willReturn('sid');
-    $context = [
-      'resource_config' => $resource_config->reveal(),
-    ];
     $entity = $this->prophesize(ConfigEntityInterface::class);
     $entity->toArray()->willReturn(['amet' => $input]);
     $entity->getCacheContexts()->willReturn([]);
     $entity->getCacheTags()->willReturn([]);
     $entity->getCacheMaxAge()->willReturn(-1);
-    $normalized = $this->normalizer->normalize($entity->reveal(), 'api_json', $context);
+    $entity->getEntityTypeId()->willReturn('');
+    $entity->bundle()->willReturn('');
+    $normalized = $this->normalizer->normalize($entity->reveal(), 'api_json', []);
     $first = $normalized->getValues();
     $first = reset($first);
     $this->assertSame($expected, $first->rasterizeValue());

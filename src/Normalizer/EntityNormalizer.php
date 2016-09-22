@@ -73,6 +73,10 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
    */
   public function normalize($entity, $format = NULL, array $context = array()) {
     // If the fields to use were specified, only output those field values.
+    $context['resource_config'] = $this->resourceManager->get(
+      $entity->getEntityTypeId(),
+      $entity->bundle()
+    );
     $resource_type = $context['resource_config']->getTypeName();
     // Get the bundle ID of the requested resource. This is used to determine if
     // this is a bundle level resource or an entity level resource.
