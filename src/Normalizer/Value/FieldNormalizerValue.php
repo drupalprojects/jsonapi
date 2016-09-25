@@ -100,4 +100,29 @@ class FieldNormalizerValue implements FieldNormalizerValueInterface {
     $this->propertyType = $property_type;
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function setIncludes($includes) {
+    $this->includes = $includes;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getAllIncludes() {
+    $nested_includes = array_map(function ($include) {
+      return $include->getIncludes();
+    }, $this->getIncludes());
+    $includes = array_reduce(array_filter($nested_includes), function ($carry, $item) {
+      return array_merge($carry, $item);
+    }, $this->getIncludes());
+    // Make sure we don't output duplicate includes.
+    return array_values(array_reduce($includes, function ($unique_includes, $include) {
+      $rasterized_include = $include->rasterizeValue();
+      $unique_includes[$rasterized_include['data']['type'] . ':' . $rasterized_include['data']['id']] = $include;
+      return $unique_includes;
+    }, []));
+  }
+
 }

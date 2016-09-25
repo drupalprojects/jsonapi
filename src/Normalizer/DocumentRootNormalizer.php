@@ -138,14 +138,17 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
    *   The normalizer value.
    */
   public function buildNormalizerValue($data, $format = NULL, array $context = array()) {
+    $context += $this->expandContext($context['request']);
     if ($data instanceof EntityReferenceFieldItemListInterface) {
-      return $this->serializer->normalize($data, $format, $context);
+      $output = $this->serializer->normalize($data, $format, $context);
+      // The only normalizer value that computes nested includes automatically is the DocumentRootNormalizerValue
+      $output->setIncludes($output->getAllIncludes());
+      return $output;
     }
     else {
       $is_collection = $data instanceof EntityCollectionInterface;
       // To improve the logical workflow deal with an array at all times.
       $entities = $is_collection ? $data->toArray() : [$data];
-      $context += $this->expandContext($context['request']);
       $context['has_next_page'] = $is_collection ? $data->hasNextPage() : FALSE;
       $serializer = $this->serializer;
       $normalizer_values = array_map(function ($entity) use ($format, $context, $serializer) {
