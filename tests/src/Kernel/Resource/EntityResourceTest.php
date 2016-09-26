@@ -5,6 +5,7 @@ namespace Drupal\Tests\jsonapi\Kernel\Resource;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\EntityCollectionInterface;
 use Drupal\jsonapi\Resource\DocumentWrapper;
 use Drupal\jsonapi\Resource\EntityResource;
@@ -45,13 +46,6 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     'system',
     'user',
   ];
-
-  /**
-   * The entity resource under test.
-   *
-   * @var \Drupal\jsonapi\Resource\EntityResource
-   */
-  protected $entityResource;
 
   /**
    * The user.
@@ -131,20 +125,6 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ],
     ])->save();
 
-    $current_context = $this->container->get('jsonapi.current_context');
-    $route = $this->prophesize(Route::class);
-    $route->getRequirement('_entity_type')->willReturn('node');
-    $route->getRequirement('_bundle')->willReturn('article');
-    $current_context->setCurrentRoute($route->reveal());
-    $this->entityResource = new EntityResource(
-      $this->container->get('jsonapi.resource.manager')->get('node', 'article'),
-      $this->container->get('entity_type.manager'),
-      $this->container->get('jsonapi.query_builder'),
-      $this->container->get('entity_field.manager'),
-      $current_context,
-      $this->container->get('plugin.manager.field.field_type')
-    );
-
     $this->request = $this->prophesize(Request::class);
   }
 
@@ -153,7 +133,8 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    * @covers ::getIndividual
    */
   public function testGetIndividual() {
-    $response = $this->entityResource->getIndividual($this->node, $this->request->reveal());
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $response = $entity_resource->getIndividual($this->node, $this->request->reveal());
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
     $this->assertEquals(1, $response->getResponseData()->getData()->id());
   }
@@ -166,7 +147,8 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $role = Role::load(RoleInterface::ANONYMOUS_ID);
     $role->revokePermission('access content');
     $role->save();
-    $this->entityResource->getIndividual($this->node, $this->request->reveal());
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $entity_resource->getIndividual($this->node, $this->request->reveal());
   }
 
   /**
@@ -181,7 +163,8 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $params->get('_json_api_params')->willReturn([]);
 
     // Get the response.
-    $response = $this->entityResource->getCollection($request->reveal());
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $response = $entity_resource->getCollection($request->reveal());
 
     // Assertions.
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
@@ -348,7 +331,8 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $request->attributes = $params->reveal();
 
     // Get the response.
-    $response = $this->entityResource->getCollection($request->reveal());
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $response = $entity_resource->getCollection($request->reveal());
 
     // Assertions.
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
@@ -362,14 +346,15 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    */
   public function testGetRelated() {
     // to-one relationship.
-    $response = $this->entityResource->getRelated($this->node, 'uid', $this->request->reveal());
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $response = $entity_resource->getRelated($this->node, 'uid', $this->request->reveal());
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
     $this->assertInstanceOf(User::class, $response->getResponseData()
       ->getData());
     $this->assertEquals(1, $response->getResponseData()->getData()->id());
 
     // to-many relationship.
-    $response = $this->entityResource->getRelated($this->user, 'roles', $this->request->reveal());
+    $response = $entity_resource->getRelated($this->user, 'roles', $this->request->reveal());
     $this->assertInstanceOf(DocumentWrapper::class, $response
       ->getResponseData());
     $this->assertInstanceOf(EntityCollectionInterface::class, $response
@@ -385,7 +370,8 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    */
   public function testGetRelationship() {
     // to-one relationship.
-    $response = $this->entityResource->getRelationship($this->node, 'uid', $this->request->reveal());
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $response = $entity_resource->getRelationship($this->node, 'uid', $this->request->reveal());
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
     $this->assertInstanceOf(
       EntityReferenceFieldItemListInterface::class,
@@ -416,7 +402,8 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     Role::load(Role::ANONYMOUS_ID)
       ->grantPermission('create article content')
       ->save();
-    $response = $this->entityResource->createIndividual($node, $this->request->reveal());
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $response = $entity_resource->createIndividual($node, $this->request->reveal());
     // As a side effect, the node will also be saved.
     $this->assertNotEmpty($node->id());
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
@@ -437,7 +424,8 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ->save();
     $this->setExpectedException(HttpException::class, 'Unprocessable Entity: validation failed.
 title: This value should not be null.');
-    $this->entityResource->createIndividual($node, $this->request->reveal());
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $entity_resource->createIndividual($node, $this->request->reveal());
   }
 
   /**
@@ -452,7 +440,8 @@ title: This value should not be null.');
     Role::load(Role::ANONYMOUS_ID)
       ->grantPermission('administer content types')
       ->save();
-    $response = $this->entityResource->createIndividual($node_type, $this->request->reveal());
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $response = $entity_resource->createIndividual($node_type, $this->request->reveal());
     // As a side effect, the node type will also be saved.
     $this->assertNotEmpty($node_type->id());
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
@@ -472,7 +461,37 @@ title: This value should not be null.');
     $request = $this->prophesize(Request::class);
     $request->getContent()->willReturn('{"data":{"type":"article","id":1,"attributes":{"title": "","field_relationships":""}}}');
 
-    $response = $this->entityResource->patchIndividual($this->node, $parsed_node, $request->reveal());
+    // Create a new EntityResource that uses uuid.
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $response = $entity_resource->patchIndividual($this->node, $parsed_node, $request->reveal());
+
+    // As a side effect, the node will also be saved.
+    $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
+    $updated_node = $response->getResponseData()->getData();
+    $this->assertInstanceOf(Node::class, $updated_node);
+    $this->assertSame($values['title'], $this->node->getTitle());
+    $this->assertSame($values['field_relationships'], $this->node->get('field_relationships')->getValue());
+    $this->assertEquals(201, $response->getStatusCode());
+  }
+
+  /**
+   * @covers ::patchIndividual
+   * @dataProvider patchIndividualProvider
+   */
+  public function testPatchIndividualUuid($values) {
+    $parsed_node = Node::create($values);
+    Role::load(Role::ANONYMOUS_ID)
+      ->grantPermission('edit any article content')
+      ->save();
+    $uuid = $this->node->uuid();
+    $request = $this->prophesize(Request::class);
+    $request->getContent()->willReturn(sprintf(
+      '{"data":{"type":"article","id":"%s","attributes":{"title": "","field_relationships":""}}}',
+      $uuid
+    ));
+
+    $entity_resource = $this->buildEntityResource('node', 'article', 'uuid');
+    $response = $entity_resource->patchIndividual($this->node, $parsed_node, $request->reveal());
 
     // As a side effect, the node will also be saved.
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
@@ -532,7 +551,8 @@ title: This value should not be null.');
     ]);
     $request->getContent()->willReturn($payload);
 
-    $response = $this->entityResource->patchIndividual($node_type, $parsed_node_type, $request->reveal());
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $response = $entity_resource->patchIndividual($node_type, $parsed_node_type, $request->reveal());
 
     // As a side effect, the node will also be saved.
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
@@ -595,7 +615,8 @@ title: This value should not be null.');
     Role::load(Role::ANONYMOUS_ID)
       ->grantPermission('delete own article content')
       ->save();
-    $response = $this->entityResource->deleteIndividual($node, $this->request->reveal());
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $response = $entity_resource->deleteIndividual($node, $this->request->reveal());
     // As a side effect, the node will also be deleted.
     $count = $this->container->get('entity_type.manager')
       ->getStorage('node')
@@ -622,7 +643,8 @@ title: This value should not be null.');
     Role::load(Role::ANONYMOUS_ID)
       ->grantPermission('administer content types')
       ->save();
-    $response = $this->entityResource->deleteIndividual($node_type, $this->request->reveal());
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $response = $entity_resource->deleteIndividual($node_type, $this->request->reveal());
     // As a side effect, the node will also be deleted.
     $count = $this->container->get('entity_type.manager')
       ->getStorage('node_type')
@@ -648,7 +670,8 @@ title: This value should not be null.');
       ->grantPermission('edit any article content')
       ->save();
 
-    $response = $this->entityResource->createRelationship($this->node, 'field_relationships', $parsed_field_list, $this->request->reveal());
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $response = $entity_resource->createRelationship($this->node, 'field_relationships', $parsed_field_list, $this->request->reveal());
 
     // As a side effect, the node will also be saved.
     $this->assertNotEmpty($this->node->id());
@@ -674,7 +697,8 @@ title: This value should not be null.');
       ->grantPermission('edit any article content')
       ->save();
 
-    $response = $this->entityResource->patchRelationship($this->node, 'field_relationships', $parsed_field_list, $this->request->reveal());
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $response = $entity_resource->patchRelationship($this->node, 'field_relationships', $parsed_field_list, $this->request->reveal());
 
     // As a side effect, the node will also be saved.
     $this->assertNotEmpty($this->node->id());
@@ -716,7 +740,8 @@ title: This value should not be null.');
       ->grantPermission('edit any article content')
       ->save();
 
-    $response = $this->entityResource->deleteRelationship($this->node, 'field_relationships', $parsed_field_list, $this->request->reveal());
+    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $response = $entity_resource->deleteRelationship($this->node, 'field_relationships', $parsed_field_list, $this->request->reveal());
 
     // As a side effect, the node will also be saved.
     $this->assertInstanceOf(DocumentWrapper::class, $response->getResponseData());
@@ -744,4 +769,36 @@ title: This value should not be null.');
     ];
   }
 
+  /**
+   * Instantiates a test EntityResource.
+   *
+   * @param string $entity_type_id
+   *   The entity type ID.
+   * @param string $bundle_id
+   *   The bundle ID.
+   * @param string $id_field
+   *   The field used to ID the entity.
+   *
+   * @return \Drupal\jsonapi\Resource\EntityResourceInterface
+   *   The resource.
+   */
+  protected function buildEntityResource($entity_type_id, $bundle_id, $id_field) {
+    $current_context = $this->container->get('jsonapi.current_context');
+    $route = $this->prophesize(Route::class);
+    $route->getRequirement('_entity_type')->willReturn($entity_type_id);
+    $route->getRequirement('_bundle')->willReturn($bundle_id);
+    $current_context->setCurrentRoute($route->reveal());
+    $resource_config = $this->prophesize(ResourceConfigInterface::class);
+    $resource_config->getEntityTypeId()->willReturn($entity_type_id);
+    $resource_config->getBundleId()->willReturn($bundle_id);
+    $resource_config->getIdKey()->willReturn($id_field);
+    return new EntityResource(
+      $resource_config->reveal(),
+      $this->container->get('entity_type.manager'),
+      $this->container->get('jsonapi.query_builder'),
+      $this->container->get('entity_field.manager'),
+      $current_context,
+      $this->container->get('plugin.manager.field.field_type')
+    );
+  }
 }

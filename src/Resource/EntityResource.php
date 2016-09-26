@@ -170,10 +170,11 @@ class EntityResource implements EntityResourceInterface {
     }
     $body = Json::decode($request->getContent());
     $data = $body['data'];
-    if ($data['id'] != $entity->id()) {
+    $id_key = $this->resourceConfig->getIdKey();
+    if (!method_exists($entity, $id_key) || $data['id'] != $entity->{$id_key}()) {
       throw new BadRequestHttpException(sprintf(
         'The selected entity (%s) does not match the ID in the payload (%s).',
-        $entity->id(),
+        $entity->{$id_key}(),
         $data['id']
       ));
     }
@@ -214,10 +215,8 @@ class EntityResource implements EntityResourceInterface {
     $params = $request->attributes->get('_route_params');
     $query = $this->getCollectionQuery($entity_type_id, $params['_json_api_params']);
 
-    // TODO: Need to wrap in a try/catch and respond with useful error.
     $results = $query->execute();
 
-    // TODO: Make this method testable by removing the "new".
     $storage = $this->entityTypeManager->getStorage($entity_type_id);
     // We request N+1 items to find out if there is a next page for the pager. We may need to remove that extra item
     // before loading the entities.
