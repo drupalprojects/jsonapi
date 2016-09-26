@@ -44,6 +44,10 @@ class RequestHandler extends RestRequestHandler {
     /* @var \Drupal\jsonapi\Context\CurrentContextInterface $current_context */
     $current_context = $this->container->get('jsonapi.current_context');
     $unserialized = $this->deserializeBody($request, $serializer, $route->getOption('serialization_class'), $current_context);
+    $format = $request->getRequestFormat();
+    if ($unserialized instanceof Response && !$unserialized->isSuccessful()) {
+      return $unserialized;
+    }
 
     // Determine the request parameters that should be passed to the resource
     // plugin.
@@ -65,7 +69,6 @@ class RequestHandler extends RestRequestHandler {
     // All REST routes are restricted to exactly one format, so instead of
     // parsing it out of the Accept headers again, we can simply retrieve the
     // format requirement. If there is no format associated, just pick JSON.
-    $format = 'api_json';
     $action = $this->action($route_match, $method);
     $resource = $this->resourceFactory($route, $current_context);
 
@@ -119,9 +122,6 @@ class RequestHandler extends RestRequestHandler {
    *
    * @return \Drupal\rest\ResourceResponse
    *   The altered response.
-   *
-   * @todo Add test coverage for language negotiation contexts in
-   *   https://www.drupal.org/node/2135829.
    */
   protected function renderJsonApiResponse(Request $request, ResourceResponseInterface $response, SerializerInterface $serializer, $format, ErrorHandlerInterface $error_handler) {
     $data = $response->getResponseData();
@@ -161,9 +161,19 @@ class RequestHandler extends RestRequestHandler {
   /**
    * Deserializes the sent data.
    *
-   * @todo Add this docblock.
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request.
+   * @param \Symfony\Component\Serializer\SerializerInterface $serializer
+   *   The serializer for the deserialization of the input data.
+   * @param string $serialization_class
+   *   The class the input data needs to deserialize into.
+   * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
+   *   The current context
+   *
+   * @return mixed
+   *   The deserialized data or a Response object in case of error.
    */
-  protected function deserializeBody(Request $request, SerializerInterface $serializer, $serialization_class, CurrentContextInterface $current_context) {
+  public function deserializeBody(Request $request, SerializerInterface $serializer, $serialization_class, CurrentContextInterface $current_context) {
     $received = $request->getContent();
     $method = strtolower($request->getMethod());
     if (empty($received)) {
@@ -179,9 +189,16 @@ class RequestHandler extends RestRequestHandler {
       ]);
     }
     catch (UnexpectedValueException $e) {
-      $error['error'] = $e->getMessage();
-      $content = $serializer->serialize($error, $format);
-      return new Response($content, 400, array('Content-Type' => $request->getMimeType($format)));
+      $error_exception = new HttpException(
+        422,
+        sprintf('There was an error un-serializing the data. Message: %s.', $e->getMessage()),
+        $e
+      );
+      $content = $serializer->serialize($error_exception, $format);
+      // Add the default content type, but only if the headers from the
+      // exception have not specified it already.
+      $headers = $error_exception->getHeaders() + array('Content-Type' => $request->getMimeType($format));
+      return new Response($content, $error_exception->getStatusCode(), $headers);
     }
   }
 
