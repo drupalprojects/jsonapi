@@ -471,7 +471,7 @@ title: This value should not be null.');
     $this->assertInstanceOf(Node::class, $updated_node);
     $this->assertSame($values['title'], $this->node->getTitle());
     $this->assertSame($values['field_relationships'], $this->node->get('field_relationships')->getValue());
-    $this->assertEquals(201, $response->getStatusCode());
+    $this->assertEquals(200, $response->getStatusCode());
   }
 
   /**
@@ -499,7 +499,7 @@ title: This value should not be null.');
     $this->assertInstanceOf(Node::class, $updated_node);
     $this->assertSame($values['title'], $this->node->getTitle());
     $this->assertSame($values['field_relationships'], $this->node->get('field_relationships')->getValue());
-    $this->assertEquals(201, $response->getStatusCode());
+    $this->assertEquals(200, $response->getStatusCode());
   }
 
   /**
@@ -564,7 +564,7 @@ title: This value should not be null.');
         $this->assertNotSame($value, $node_type->get($field_name)) :
         $this->assertSame($value, $node_type->get($field_name));
     }
-    $this->assertEquals(201, $response->getStatusCode());
+    $this->assertEquals(200, $response->getStatusCode());
   }
 
   /**
@@ -707,7 +707,7 @@ title: This value should not be null.');
     $this->assertInstanceOf(EntityReferenceFieldItemListInterface::class, $field_list);
     $this->assertSame('field_relationships', $field_list->getName());
     $this->assertEquals($relationships, $field_list->getValue());
-    $this->assertEquals(201, $response->getStatusCode());
+    $this->assertEquals(200, $response->getStatusCode());
   }
 
   /**

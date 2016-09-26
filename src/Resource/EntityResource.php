@@ -187,7 +187,7 @@ class EntityResource implements EntityResourceInterface {
 
     $this->validate($entity);
     $entity->save();
-    return $this->getIndividual($entity, $request, 201);
+    return $this->getIndividual($entity, $request);
   }
 
   /**
@@ -322,7 +322,7 @@ class EntityResource implements EntityResourceInterface {
     $this->{$method}($entity, $parsed_field_list);
     $this->validate($entity);
     $entity->save();
-    return $this->getRelationship($entity, $related_field, $request, 201);
+    return $this->getRelationship($entity, $related_field, $request);
   }
 
   /**
