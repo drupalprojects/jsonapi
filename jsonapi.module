@@ -9,6 +9,12 @@ use Drupal\Core\Field\BaseFieldDefinition;
 
 /**
  * Implements hook_entity_base_field_info().
+ *
+ * @todo This should probably live in core, but for now we will keep it as a
+ * temporary solution. There are similar unresolved efforts already happening
+ * there.
+ *
+ * @see https://www.drupal.org/node/2517030
  */
 function jsonapi_entity_base_field_info(\Drupal\Core\Entity\EntityTypeInterface $entity_type) {
   $fields = [];
