@@ -11,6 +11,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
+use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\EntityCollectionInterface;
@@ -178,7 +179,7 @@ class EntityResource implements EntityResourceInterface {
         $data['id']
       ));
     }
-    $data += array('attributes' => [], 'relationships' => []);
+    $data += ['attributes' => [], 'relationships' => []];
     $field_names = array_merge(array_keys($data['attributes']), array_keys($data['relationships']));
     array_reduce($field_names, function (EntityInterface $destination, $field_name) use ($parsed_entity) {
       $this->updateEntityField($parsed_entity, $destination, $field_name);
@@ -235,7 +236,7 @@ class EntityResource implements EntityResourceInterface {
    */
   public function getRelated(EntityInterface $entity, $related_field, Request $request) {
     /* @var $field_list \Drupal\Core\Field\FieldItemListInterface */
-    if (!($field_list = $entity->get($related_field)) || $field_list->getDataDefinition()->getType() != 'entity_reference') {
+    if (!($field_list = $entity->get($related_field)) || !$this->isRelationshipField($field_list)) {
       throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
     }
     $data_definition = $field_list->getDataDefinition();
@@ -257,8 +258,7 @@ class EntityResource implements EntityResourceInterface {
    * {@inheritdoc}
    */
   public function getRelationship(EntityInterface $entity, $related_field, Request $request, $response_code = 200) {
-    /* @var $field_list \Drupal\Core\Field\FieldItemListInterface */
-    if (!($field_list = $entity->{$related_field}) || $field_list->getDataDefinition()->getType() != 'entity_reference') {
+    if (!($field_list = $entity->get($related_field)) || !$this->isRelationshipField($field_list)) {
       throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
     }
     $response = $this->buildWrappedResponse($field_list, $response_code);
@@ -381,7 +381,7 @@ class EntityResource implements EntityResourceInterface {
     // Compute the list of current values and remove the ones in the payload.
     $current_values = $field_list->getValue();
     $deleted_values = $parsed_field_list->getValue();
-    $keep_values = array_udiff($current_values, $deleted_values, function($first, $second) {
+    $keep_values = array_udiff($current_values, $deleted_values, function ($first, $second) {
       return reset($first) - reset($second);
     });
     // Replace the existing field with one containing the relationships to keep.
@@ -451,7 +451,7 @@ class EntityResource implements EntityResourceInterface {
    * @return \Drupal\rest\ResourceResponse
    *   The response.
    */
-  protected function buildWrappedResponse($data, $response_code = 200, array $headers = array()) {
+  protected function buildWrappedResponse($data, $response_code = 200, array $headers = []) {
     return new ResourceResponse(new DocumentWrapper($data), $response_code, $headers);
   }
 
@@ -491,11 +491,7 @@ class EntityResource implements EntityResourceInterface {
     if (!$entity_access->isAllowed()) {
       throw new AccessDeniedHttpException('The current user is not allowed to POST the selected resource.');
     }
-    /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $field_list */
-    if (
-      !($field_list = $entity->{$related_field}) ||
-      $field_list->getDataDefinition()->getType() != 'entity_reference'
-    ) {
+    if (!($field_list = $entity->get($related_field)) || !$this->isRelationshipField($field_list)) {
       throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
     }
   }
@@ -532,4 +528,18 @@ class EntityResource implements EntityResourceInterface {
     }
   }
 
+  /**
+   * Checks if is a relationship field.
+   *
+   * @param object $entity_field
+   *   Entity definition.
+   * @return bool
+   *   Returns TRUE, if entity field is EntityReferenceItem.
+   */
+  protected function isRelationshipField($entity_field) {
+    /** @var \Drupal\Core\Field\FieldTypePluginManager $field_type_manager */
+    $field_type_manager = \Drupal::service('plugin.manager.field.field_type');
+    $class = $field_type_manager->getPluginClass($entity_field->getDataDefinition()->getType());
+    return ($class == EntityReferenceItem::class || is_subclass_of($class, EntityReferenceItem::class));
+  }
 }
