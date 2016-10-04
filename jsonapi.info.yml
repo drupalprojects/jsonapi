@@ -2,7 +2,7 @@ name: JSON API
 type: module
 description: Provides a JSON API format for the REST resources.
 core: 8.x
-package: REST
+package: Web services
 dependencies:
   - drupal:system (>=8.2)
   - hal
