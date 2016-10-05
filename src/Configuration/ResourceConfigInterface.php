@@ -77,7 +77,7 @@ interface ResourceConfigInterface {
   /**
    * Gets the global configuration.
    *
-   * @return object
+   * @return \Drupal\Core\Config\Config
    *   The global configuration.
    */
   public function getGlobalConfig();

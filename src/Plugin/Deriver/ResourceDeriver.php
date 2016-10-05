@@ -60,8 +60,8 @@ class ResourceDeriver extends DeriverBase implements ContainerDeriverInterface {
     $resource_configs = $this->resourceManager->all();
     foreach ($resource_configs as $resource) {
       $global_config = $resource->getGlobalConfig();
-      $prefix = $global_config->get('prefix') ?: 'api';
-      $schema_prefix = $global_config->get('schema_prefix') ?: 'schema';
+      $prefix = $global_config->get('prefix');
+      $schema_prefix = $global_config->get('schema_prefix');
       $id = sprintf('%s.dynamic.%s', $prefix, $resource->getTypeName());
       $this->derivatives[$id] = [
         'id' => $id,
