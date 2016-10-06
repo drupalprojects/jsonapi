@@ -40,7 +40,7 @@ class RequestHandlerTest extends UnitTestCase  {
     $serializer = $this->prophesize(SerializerInterface::class);
     $serializer->deserialize(Argument::type('string'), Argument::type('string'), Argument::any(), Argument::type('array'))
       ->willThrow(new UnexpectedValueException('Foo'));
-    $serializer->serialize(Argument::any(), Argument::any())
+    $serializer->serialize(Argument::any(), Argument::any(), Argument::any())
       ->willReturn('{"errors":[{"status":422,"message":"Foo"}]}');
     $current_context = $this->prophesize(CurrentContextInterface::class);
     $resource_config = $this->prophesize(ResourceConfigInterface::class);

@@ -7,6 +7,7 @@
 
 namespace Drupal\jsonapi\Encoder;
 
+use Drupal\jsonapi\Normalizer\Value\ValueExtractorInterface;
 use Symfony\Component\Serializer\Encoder\JsonEncoder as SymfonyJsonEncoder;
 
 /**
@@ -36,5 +37,16 @@ class JsonEncoder extends SymfonyJsonEncoder {
   public function supportsDecoding($format) {
     return $format == $this->format;
   }
+
+  public function encode($data, $format, array $context = []) {
+    if ($data instanceof ValueExtractorInterface) {
+      $data = $data->rasterizeValue();
+    }
+    if (!empty($context['data_wrapper'])) {
+      $data = [$context['data_wrapper'] => $data];
+    }
+    return parent::encode($data, $format, $context);
+  }
+
 
 }

@@ -43,7 +43,7 @@ class FieldNormalizerValueTest extends UnitTestCase {
    */
   public function testRasterizeIncludes() {
     $value = $this->prophesize('\Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValueInterface');
-    $include = $this->prophesize('\Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValueInterface');
+    $include = $this->prophesize('\Drupal\jsonapi\Normalizer\Value\EntityNormalizerValueInterface');
     $include->rasterizeValue()->willReturn('Lorem');
     $value->getInclude()->willReturn($include->reveal());
     $object = new FieldNormalizerValue([$value->reveal()], 1);

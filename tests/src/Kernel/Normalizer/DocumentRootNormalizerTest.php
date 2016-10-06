@@ -326,15 +326,17 @@ class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
     $normalized = $this
       ->container
       ->get('serializer')
-      ->normalize(
+      ->serialize(
         new BadRequestHttpException('Lorem'),
         'api_json',
         [
           'request' => $request->reveal(),
           'resource_config' => $resource_config->reveal(),
           'cacheable_metadata' => $response->getCacheableMetadata(),
+          'data_wrapper' => 'errors',
         ]
       );
+    $normalized = Json::decode($normalized);
     $this->assertNotEmpty($normalized['errors']);
     $this->assertArrayNotHasKey('data', $normalized);
     $this->assertEquals(400, $normalized['errors'][0]['status']);

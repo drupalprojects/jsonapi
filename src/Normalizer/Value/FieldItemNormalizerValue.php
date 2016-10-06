@@ -19,7 +19,7 @@ class FieldItemNormalizerValue implements FieldItemNormalizerValueInterface {
   /**
    * Included entity objects.
    *
-   * @param ContentEntityNormalizerValueInterface
+   * @param EntityNormalizerValueInterface
    */
   protected $include;
 

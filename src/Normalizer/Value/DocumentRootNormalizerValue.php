@@ -2,6 +2,7 @@
 
 namespace Drupal\jsonapi\Normalizer\Value;
 
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 use Drupal\jsonapi\RequestCacheabilityDependency;
 
@@ -107,7 +108,14 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
     $rasterized = ['data' => []];
 
     foreach ($this->values as $normalizer_value) {
-      $rasterized['data'][] = $normalizer_value->rasterizeValue();
+      if ($normalizer_value instanceof HttpExceptionNormalizerValue) {
+        $previous_errors = NestedArray::getValue($rasterized, ['meta', 'errors']) ?: [];
+        // Add the errors to the pre-existing errors.
+        $rasterized['meta']['errors'] = array_merge($previous_errors, $normalizer_value->rasterizeValue());
+      }
+    else {
+        $rasterized['data'][] = $normalizer_value->rasterizeValue();
+      }
     }
     $rasterized['data'] = array_filter($rasterized['data']);
     // Deal with the single entity case.
@@ -133,7 +141,7 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
   /**
    * Gets a flattened list of includes in all the chain.
    *
-   * @return ContentEntityNormalizerValueInterface[]
+   * @return EntityNormalizerValueInterface[]
    *   The array of included relationships.
    */
   public function getIncludes() {

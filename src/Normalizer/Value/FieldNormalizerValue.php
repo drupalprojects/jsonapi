@@ -46,6 +46,8 @@ class FieldNormalizerValue implements FieldNormalizerValueInterface {
    *
    * @param FieldItemNormalizerValueInterface[] $values
    *   The normalized result.
+   * @param int $cardinality
+   *   The cardinality of the field list.
    */
   public function __construct(array $values, $cardinality) {
     $this->values = $values;

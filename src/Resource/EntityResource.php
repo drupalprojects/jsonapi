@@ -3,10 +3,12 @@
 namespace Drupal\jsonapi\Resource;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\Access\AccessibleInterface;
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
@@ -226,9 +228,19 @@ class EntityResource implements EntityResourceInterface {
       // Drop the last result.
       array_pop($results);
     }
-    $entity_collection = new EntityCollection($storage->loadMultiple($results));
+    // Each item of the collection data contains an array with 'entity' and
+    // 'access' elements.
+    $collection_data = $this->loadEntitiesWithAccess($storage, $results);
+    $entity_collection = new EntityCollection(array_column($collection_data, 'entity'));
     $entity_collection->setHasNextPage($has_next_page);
-    return $this->respondWithCollection($entity_collection, $entity_type_id);
+    $response = $this->respondWithCollection($entity_collection, $entity_type_id);
+
+    $access_info = array_column($collection_data, 'access');
+    array_walk($access_info, function ($access) use ($response) {
+      $response->addCacheableDependency($access);
+    });
+
+    return $response;
   }
 
   /**
@@ -240,6 +252,7 @@ class EntityResource implements EntityResourceInterface {
       throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
     }
     $data_definition = $field_list->getDataDefinition();
+    // TODO: Also check for access in the related.
     if (!$is_multiple = $data_definition->getFieldStorageDefinition()->isMultiple()) {
       return $this->getIndividual($field_list->entity, $request);
     }
@@ -542,4 +555,41 @@ class EntityResource implements EntityResourceInterface {
     $class = $field_type_manager->getPluginClass($entity_field->getDataDefinition()->getType());
     return ($class == EntityReferenceItem::class || is_subclass_of($class, EntityReferenceItem::class));
   }
+
+  /**
+   * Build a collection of the entities to respond with and access objects.
+   *
+   * @param \Drupal\Core\Entity\EntityStorageInterface $storage
+   *   The entity storage to load the entities from.
+   * @param int[] $ids
+   *   Array of entity IDs.
+   *
+   * @return array
+   *   An array keyed by entity ID containing the keys:
+   *     - entity: the loaded entity or an access exception.
+   *     - access: the access object.
+   */
+  protected function loadEntitiesWithAccess(EntityStorageInterface $storage, $ids) {
+    $collection_data = [];
+    foreach ($storage->loadMultiple($ids) as $entity) {
+      /* @var \Drupal\Core\Entity\EntityInterface $entity */
+      $access = $entity->access('view', NULL, TRUE);
+      // Accumulate the cacheability metadata for the access.
+      $collection_data[$entity->id()] = [
+        'access' => $access,
+        'entity' => $entity,
+      ];
+      if ($entity instanceof AccessibleInterface && !$access->isAllowed()) {
+        // Pass an exception to the list of things to normalize.
+        $collection_data[$entity->id()]['entity'] = new HttpException(403, sprintf(
+          'Access checks failed for entity %s:%s.',
+          $entity->getEntityTypeId(),
+          $entity->id()
+        ));
+      }
+    }
+
+    return $collection_data;
+  }
+
 }

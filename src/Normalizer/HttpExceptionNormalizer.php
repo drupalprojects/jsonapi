@@ -2,7 +2,11 @@
 
 namespace Drupal\jsonapi\Normalizer;
 
+use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Session\AccountProxyInterface;
+use Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValue;
+use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue;
+use Drupal\jsonapi\Normalizer\Value\HttpExceptionNormalizerValue;
 use Drupal\serialization\Normalizer\NormalizerBase as SerializationNormalizerBase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -40,14 +44,15 @@ class HttpExceptionNormalizer extends SerializationNormalizerBase {
   public function normalize($object, $format = null, array $context = []) {
     /** @var \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface */
     $error = [];
-    if (!empty(Response::$statusTexts[$object->getStatusCode()])) {
-      $error['title'] = Response::$statusTexts[$object->getStatusCode()];
+    $status_code = $object->getStatusCode();
+    if (!empty(Response::$statusTexts[$status_code])) {
+      $error['title'] = Response::$statusTexts[$status_code];
     }
     $error += [
-      'status' => $object->getStatusCode(),
+      'status' => $status_code,
       'detail' => $object->getMessage(),
       'links' => [
-        'info' => $this->getInfoUrl($object->getStatusCode()),
+        'info' => $this->getInfoUrl($status_code),
       ],
       'code' => $object->getCode(),
     ];
@@ -64,7 +69,10 @@ class HttpExceptionNormalizer extends SerializationNormalizerBase {
       ];
     }
 
-    return ['errors' => [$error]];
+    return new HttpExceptionNormalizerValue(
+      [new FieldItemNormalizerValue([$error])],
+      FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED
+    );
   }
 
   /**

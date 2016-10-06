@@ -31,5 +31,12 @@ class NullFieldNormalizerValue implements FieldNormalizerValueInterface {
     return [];
   }
 
+  public function setIncludes($includes) {
+    // Do nothing.
+  }
+
+  public function getAllIncludes() {
+    return NULL;
+  }
 
 }

@@ -20,7 +20,7 @@ interface FieldItemNormalizerValueInterface extends ValueExtractorInterface {
   /**
    * Gets the include.
    *
-   * @return ContentEntityNormalizerValueInterface
+   * @return EntityNormalizerValueInterface
    *   The include.
    */
   public function getInclude();

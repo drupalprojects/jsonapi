@@ -14,7 +14,7 @@ interface DocumentRootNormalizerValueInterface extends ValueExtractorInterface, 
   /**
    * Gets a flattened list of includes in all the chain.
    *
-   * @return ContentEntityNormalizerValueInterface[]
+   * @return EntityNormalizerValueInterface[]
    *   The array of included relationships.
    */
   public function getIncludes();

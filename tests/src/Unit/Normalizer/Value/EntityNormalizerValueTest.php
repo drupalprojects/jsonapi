@@ -8,8 +8,8 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Url;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
-use Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValue;
-use Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValueInterface;
+use Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue;
+use Drupal\jsonapi\Normalizer\Value\EntityNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValueInterface;
@@ -17,20 +17,20 @@ use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 
 /**
- * Class ContentEntityNormalizerValueTest.
+ * Class EntityNormalizerValueTest.
  *
  * @package Drupal\Tests\jsonapi\Unit\Normalizer\Value
  *
- * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\ContentEntityNormalizerValue
+ * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue
  *
  * @group jsonapi
  */
-class ContentEntityNormalizerValueTest extends UnitTestCase {
+class EntityNormalizerValueTest extends UnitTestCase {
 
   /**
-   * The ContentEntityNormalizerValue object.
+   * The EntityNormalizerValue object.
    *
-   * @var ContentEntityNormalizerValueInterface
+   * @var EntityNormalizerValueInterface
    */
   protected $object;
 
@@ -94,7 +94,7 @@ class ContentEntityNormalizerValueTest extends UnitTestCase {
 
     // Stub the addCacheableDependency on the SUT. We'll test the cacheable
     // metadata bubbling using Kernel tests.
-    $this->object = $this->getMockBuilder(ContentEntityNormalizerValue::class)
+    $this->object = $this->getMockBuilder(EntityNormalizerValue::class)
       ->setMethods(['addCacheableDependency'])
       ->setConstructorArgs([
         ['title' => $field1->reveal(), 'field_related' => $field2->reveal()],

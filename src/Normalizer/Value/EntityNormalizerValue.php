@@ -6,11 +6,11 @@ use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 use Drupal\Core\Entity\EntityInterface;
 
 /**
- * Class ContentEntityNormalizerValue.
+ * Class EntityNormalizerValue.
  *
  * @package Drupal\jsonapi\Normalizer\Value
  */
-class ContentEntityNormalizerValue implements ContentEntityNormalizerValueInterface {
+class EntityNormalizerValue implements EntityNormalizerValueInterface {
 
   use RefinableCacheableDependencyTrait;
 
@@ -50,7 +50,7 @@ class ContentEntityNormalizerValue implements ContentEntityNormalizerValueInterf
   protected $linkManager;
 
   /**
-   * Instantiate a ContentEntityNormalizerValue object.
+   * Instantiate a EntityNormalizerValue object.
    *
    * @param FieldNormalizerValueInterface[] $values
    *   The normalized result.
@@ -129,7 +129,7 @@ class ContentEntityNormalizerValue implements ContentEntityNormalizerValueInterf
   /**
    * Gets a flattened list of includes in all the chain.
    *
-   * @return ContentEntityNormalizerValueInterface
+   * @return EntityNormalizerValueInterface
    *   The array of included relationships.
    */
   public function getIncludes() {

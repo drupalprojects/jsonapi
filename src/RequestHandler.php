@@ -87,10 +87,10 @@ class RequestHandler extends RestRequestHandler {
         // exception and process it.
         $error_exception = new HttpException(500, $error_exception->getMessage(), $error_exception);
       }
-      $content = $serializer->serialize($error_exception, $format);
+      $content = $serializer->serialize($error_exception, $format, ['data_wrapper' => 'errors']);
       // Add the default content type, but only if the headers from the
       // exception have not specified it already.
-      $headers = $error_exception->getHeaders() + array('Content-Type' => $request->getMimeType($format));
+      $headers = $error_exception->getHeaders() + ['Content-Type' => $request->getMimeType($format)];
       $response = new Response($content, $error_exception->getStatusCode(), $headers);
     }
     $error_handler->restore();
@@ -139,8 +139,11 @@ class RequestHandler extends RestRequestHandler {
             // exception and process it.
             $error_exception = new HttpException(500, $error_exception->getMessage(), $error_exception);
           }
-          $content = $serializer->serialize($error_exception, $format);
-          $response->setStatusCode($error_exception->getStatusCode());
+          $content = $serializer->serialize($error_exception, $format, ['data_wrapper' => 'errors']);
+          // Add the default content type, but only if the headers from the
+          // exception have not specified it already.
+          $headers = $error_exception->getHeaders() + ['Content-Type' => $request->getMimeType($format)];
+          $response->setStatusCode($error_exception->getStatusCode(), $headers);
         }
         $error_handler->restore();
         return $content;
@@ -194,10 +197,10 @@ class RequestHandler extends RestRequestHandler {
         sprintf('There was an error un-serializing the data. Message: %s.', $e->getMessage()),
         $e
       );
-      $content = $serializer->serialize($error_exception, $format);
+      $content = $serializer->serialize($error_exception, $format, ['data_wrapper' => 'errors']);
       // Add the default content type, but only if the headers from the
       // exception have not specified it already.
-      $headers = $error_exception->getHeaders() + array('Content-Type' => $request->getMimeType($format));
+      $headers = $error_exception->getHeaders() + ['Content-Type' => $request->getMimeType($format)];
       return new Response($content, $error_exception->getStatusCode(), $headers);
     }
   }

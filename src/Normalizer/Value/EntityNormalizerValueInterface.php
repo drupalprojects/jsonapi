@@ -5,11 +5,11 @@ namespace Drupal\jsonapi\Normalizer\Value;
 use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 
 /**
- * Class ContentEntityNormalizerValueInterface.
+ * Class EntityNormalizerValueInterface.
  *
  * @package Drupal\jsonapi\Normalizer\Value
  */
-interface ContentEntityNormalizerValueInterface extends ValueExtractorInterface, RefinableCacheableDependencyInterface {
+interface EntityNormalizerValueInterface extends ValueExtractorInterface, RefinableCacheableDependencyInterface {
 
   /**
    * Gets the values.
