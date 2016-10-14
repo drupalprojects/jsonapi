@@ -78,7 +78,7 @@ class FieldResolverTest extends UnitTestCase {
    *
    * @covers ::resolveInternal
    *
-   * @expectedException \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+   * @expectedException \Drupal\jsonapi\Error\SerializableHttpException
    */
   public function testResolveInternalError() {
     $field_manager = $this->prophesize(EntityFieldManagerInterface::class);
@@ -104,7 +104,7 @@ class FieldResolverTest extends UnitTestCase {
    *
    * @covers ::resolveInternal
    *
-   * @expectedException \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+   * @expectedException \Drupal\jsonapi\Error\SerializableHttpException
    */
   public function testResolveInternalError2() {
     $field_manager = $this->prophesize(EntityFieldManagerInterface::class);

@@ -4,11 +4,11 @@ namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
-use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\EntityCollection;
+use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Relationship;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -95,7 +95,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
       $context['resource_config']->getBundleId()
     );
     if (empty($context['related']) || empty($field_definitions[$context['related']])) {
-      throw new BadRequestHttpException('Invalid or missing related field.');
+      throw new SerializableHttpException(400, 'Invalid or missing related field.');
     }
     /* @var \Drupal\field\Entity\FieldConfig $field_definition */
     $field_definition = $field_definitions[$context['related']];
@@ -110,7 +110,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
       // Make sure that the provided type is compatible with the targeted
       // resource.
       if (!in_array($value['type'], $target_resources)) {
-        throw new BadRequestHttpException(sprintf(
+        throw new SerializableHttpException(400, sprintf(
           'The provided type (%s) does not mach the destination resource types (%s).',
           $value['type'],
           implode(', ', $target_resources)
@@ -136,14 +136,14 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
   protected function massageRelationshipInput($data, $is_multiple) {
     if ($is_multiple) {
       if (!is_array($data['data'])) {
-        throw new BadRequestHttpException('Invalid body payload for the relationship.');
+        throw new SerializableHttpException(400, 'Invalid body payload for the relationship.');
       }
       // Leave the invalid elements.
       $invalid_elements = array_filter($data['data'], function ($element) {
         return empty($element['type']) || empty($element['id']);
       });
       if ($invalid_elements) {
-        throw new BadRequestHttpException('Invalid body payload for the relationship.');
+        throw new SerializableHttpException(400, 'Invalid body payload for the relationship.');
       }
     }
     else {
@@ -152,7 +152,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
         return ['data' => []];
       }
       if (empty($data['data']['type']) || empty($data['data']['id'])) {
-        throw new BadRequestHttpException('Invalid body payload for the relationship.');
+        throw new SerializableHttpException(400, 'Invalid body payload for the relationship.');
       }
       $data['data'] = [$data['data']];
     }

@@ -17,6 +17,7 @@ use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\EntityCollectionInterface;
+use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\Query\QueryBuilderInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\Routing\Param\JsonApiParamBase;
@@ -24,11 +25,6 @@ use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Drupal\rest\ResourceResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Class EntityResource.
@@ -110,7 +106,7 @@ class EntityResource implements EntityResourceInterface {
   public function getIndividual(EntityInterface $entity, Request $request, $response_code = 200) {
     $entity_access = $entity->access('view', NULL, TRUE);
     if (!$entity_access->isAllowed()) {
-      throw new AccessDeniedHttpException('The current user is not allowed to GET the selected resource.');
+      throw new SerializableHttpException(403, 'The current user is not allowed to GET the selected resource.');
     }
     $response = $this->buildWrappedResponse($entity, $response_code);
     return $response;
@@ -122,7 +118,7 @@ class EntityResource implements EntityResourceInterface {
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity object.
    *
-   * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+   * @throws \Drupal\jsonapi\Error\SerializableHttpException
    *   If validation errors are found.
    */
   protected function validate(EntityInterface $entity) {
@@ -145,7 +141,7 @@ class EntityResource implements EntityResourceInterface {
       // 422 Unprocessable Entity code from RFC 4918. That way clients can
       // distinguish between general syntax errors in bad serializations (code
       // 400) and semantic errors in well-formed requests (code 422).
-      throw new HttpException(422, $message);
+      throw new SerializableHttpException(422, $message);
     }
   }
 
@@ -156,7 +152,7 @@ class EntityResource implements EntityResourceInterface {
     $entity_access = $entity->access('create', NULL, TRUE);
 
     if (!$entity_access->isAllowed()) {
-      throw new AccessDeniedHttpException('The current user is not allowed to POST the selected resource.');
+      throw new SerializableHttpException(403, 'The current user is not allowed to POST the selected resource.');
     }
     $this->validate($entity);
     $entity->save();
@@ -169,13 +165,13 @@ class EntityResource implements EntityResourceInterface {
   public function patchIndividual(EntityInterface $entity, EntityInterface $parsed_entity, Request $request) {
     $entity_access = $entity->access('update', NULL, TRUE);
     if (!$entity_access->isAllowed()) {
-      throw new AccessDeniedHttpException('The current user is not allowed to GET the selected resource.');
+      throw new SerializableHttpException(403, 'The current user is not allowed to GET the selected resource.');
     }
     $body = Json::decode($request->getContent());
     $data = $body['data'];
     $id_key = $this->resourceConfig->getIdKey();
     if (!method_exists($entity, $id_key) || $data['id'] != $entity->{$id_key}()) {
-      throw new BadRequestHttpException(sprintf(
+      throw new SerializableHttpException(400, sprintf(
         'The selected entity (%s) does not match the ID in the payload (%s).',
         $entity->{$id_key}(),
         $data['id']
@@ -199,7 +195,7 @@ class EntityResource implements EntityResourceInterface {
   public function deleteIndividual(EntityInterface $entity, Request $request) {
     $entity_access = $entity->access('delete', NULL, TRUE);
     if (!$entity_access->isAllowed()) {
-      throw new AccessDeniedHttpException('The current user is not allowed to DELETE the selected resource.');
+      throw new SerializableHttpException(403, 'The current user is not allowed to DELETE the selected resource.');
     }
     $entity->delete();
     return new ResourceResponse(NULL, 204);
@@ -249,7 +245,7 @@ class EntityResource implements EntityResourceInterface {
   public function getRelated(EntityInterface $entity, $related_field, Request $request) {
     /* @var $field_list \Drupal\Core\Field\FieldItemListInterface */
     if (!($field_list = $entity->get($related_field)) || !$this->isRelationshipField($field_list)) {
-      throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
+      throw new SerializableHttpException(404, sprintf('The relationship %s is not present in this resource.', $related_field));
     }
     $data_definition = $field_list->getDataDefinition();
     // TODO: Also check for access in the related.
@@ -272,7 +268,7 @@ class EntityResource implements EntityResourceInterface {
    */
   public function getRelationship(EntityInterface $entity, $related_field, Request $request, $response_code = 200) {
     if (!($field_list = $entity->get($related_field)) || !$this->isRelationshipField($field_list)) {
-      throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
+      throw new SerializableHttpException(404, sprintf('The relationship %s is not present in this resource.', $related_field));
     }
     $response = $this->buildWrappedResponse($field_list, $response_code);
     return $response;
@@ -297,12 +293,12 @@ class EntityResource implements EntityResourceInterface {
       ->getFieldStorageDefinition()
       ->isMultiple();
     if (!$is_multiple) {
-      throw new ConflictHttpException(sprintf('You can only POST to to-many relationships. %s is a to-one relationship.', $related_field));
+      throw new SerializableHttpException(409, sprintf('You can only POST to to-many relationships. %s is a to-one relationship.', $related_field));
     }
 
     $field_access = $field_list->access('update', NULL, TRUE);
     if (!$field_access->isAllowed()) {
-      throw new AccessDeniedHttpException(sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_list->getName()));
+      throw new SerializableHttpException(403, sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_list->getName()));
     }
     // Time to save the relationship.
     foreach ($parsed_field_list as $field_item) {
@@ -349,7 +345,7 @@ class EntityResource implements EntityResourceInterface {
    */
   protected function doPatchIndividualRelationship(EntityInterface $entity, EntityReferenceFieldItemListInterface $parsed_field_list) {
     if ($parsed_field_list->count() > 1) {
-      throw new BadRequestHttpException(sprintf('Provide a single relationship so to-one relationship fields (%s).', $parsed_field_list->getName()));
+      throw new SerializableHttpException(400, sprintf('Provide a single relationship so to-one relationship fields (%s).', $parsed_field_list->getName()));
     }
     $this->doPatchMultipleRelationship($entity, $parsed_field_list);
   }
@@ -367,7 +363,7 @@ class EntityResource implements EntityResourceInterface {
     $field_name = $parsed_field_list->getName();
     $field_access = $parsed_field_list->access('update', NULL, TRUE);
     if (!$field_access->isAllowed()) {
-      throw new AccessDeniedHttpException(sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_name));
+      throw new SerializableHttpException(403, sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_name));
     }
     $entity->{$field_name} = $parsed_field_list;
   }
@@ -387,7 +383,7 @@ class EntityResource implements EntityResourceInterface {
     $field_name = $parsed_field_list->getName();
     $field_access = $parsed_field_list->access('delete', NULL, TRUE);
     if (!$field_access->isAllowed()) {
-      throw new AccessDeniedHttpException(sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_name));
+      throw new SerializableHttpException(403, sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_name));
     }
     /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $field_list */
     $field_list = $entity->{$related_field};
@@ -502,10 +498,10 @@ class EntityResource implements EntityResourceInterface {
     /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $parsed_field_list */
     $entity_access = $entity->access('update', NULL, TRUE);
     if (!$entity_access->isAllowed()) {
-      throw new AccessDeniedHttpException('The current user is not allowed to POST the selected resource.');
+      throw new SerializableHttpException(403, 'The current user is not allowed to POST the selected resource.');
     }
     if (!($field_list = $entity->get($related_field)) || !$this->isRelationshipField($field_list)) {
-      throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
+      throw new SerializableHttpException(404, sprintf('The relationship %s is not present in this resource.', $related_field));
     }
   }
 
@@ -524,11 +520,11 @@ class EntityResource implements EntityResourceInterface {
     if ($origin instanceof ContentEntityInterface && $destination instanceof ContentEntityInterface) {
       // First scenario: both are content entities.
       if (!$field_list = $destination->get($field_name)) {
-        throw new BadRequestHttpException(sprintf('The provided field (%s) does not exist in the entity with ID %d.', $field_name, $destination->id()));
+        throw new SerializableHttpException(400, sprintf('The provided field (%s) does not exist in the entity with ID %d.', $field_name, $destination->id()));
       }
       $field_access = $field_list->access('update', NULL, TRUE);
       if (!$field_access->isAllowed()) {
-        throw new AccessDeniedHttpException(sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_list->getName()));
+        throw new SerializableHttpException(403, sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_list->getName()));
       }
       $destination->{$field_name} = $origin->get($field_name);
     }
@@ -537,7 +533,7 @@ class EntityResource implements EntityResourceInterface {
       $destination->set($field_name, $origin->get($field_name));
     }
     else {
-      throw new BadRequestHttpException('The serialized entity and the destination entity are of different types.');
+      throw new SerializableHttpException(400, 'The serialized entity and the destination entity are of different types.');
     }
   }
 
@@ -581,7 +577,7 @@ class EntityResource implements EntityResourceInterface {
       ];
       if ($entity instanceof AccessibleInterface && !$access->isAllowed()) {
         // Pass an exception to the list of things to normalize.
-        $collection_data[$entity->id()]['entity'] = new HttpException(403, sprintf(
+        $collection_data[$entity->id()]['entity'] = new SerializableHttpException(403, sprintf(
           'Access checks failed for entity %s:%s.',
           $entity->getEntityTypeId(),
           $entity->id()

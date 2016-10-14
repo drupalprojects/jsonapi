@@ -5,14 +5,12 @@ namespace Drupal\jsonapi\Normalizer;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValue;
-use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\HttpExceptionNormalizerValue;
 use Drupal\serialization\Normalizer\NormalizerBase as SerializationNormalizerBase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class HttpExceptionNormalizer extends SerializationNormalizerBase {
-
 
   /**
    * The interface or class that this Normalizer supports.
@@ -42,7 +40,7 @@ class HttpExceptionNormalizer extends SerializationNormalizerBase {
    * {@inheritdoc}
    */
   public function normalize($object, $format = null, array $context = []) {
-    /** @var \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface */
+    /** @var $object \Symfony\Component\HttpKernel\Exception\HttpException */
     $error = [];
     $status_code = $object->getStatusCode();
     if (!empty(Response::$statusTexts[$status_code])) {

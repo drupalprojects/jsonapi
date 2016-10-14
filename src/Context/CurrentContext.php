@@ -2,12 +2,10 @@
 
 namespace Drupal\jsonapi\Context;
 
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\PreconditionRequiredHttpException;
 use Symfony\Component\Routing\Route;
 
 /**

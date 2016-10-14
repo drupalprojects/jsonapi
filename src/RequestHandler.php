@@ -6,14 +6,13 @@ use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\Error\ErrorHandlerInterface;
+use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\Resource\EntityResource;
 use Drupal\rest\RequestHandler as RestRequestHandler;
 use Drupal\rest\ResourceResponse;
 use Drupal\rest\ResourceResponseInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -163,7 +162,7 @@ class RequestHandler extends RestRequestHandler {
       ]);
     }
     catch (UnexpectedValueException $e) {
-      throw new HttpException(
+      throw new SerializableHttpException(
         422,
         sprintf('There was an error un-serializing the data. Message: %s.', $e->getMessage()),
         $e

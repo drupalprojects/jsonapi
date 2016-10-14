@@ -2,8 +2,6 @@
 
 namespace Drupal\jsonapi\Error;
 
-use Symfony\Component\HttpKernel\Exception\HttpException;
-
 class ErrorHandler extends ErrorHandlerBase {
 
   /**
@@ -16,7 +14,7 @@ class ErrorHandler extends ErrorHandlerBase {
     list($severity_msg, $severity_level) = $types[$error_level];
     // Only halt execution if the error is more severe than a warning.
     if ($severity_level < 4) {
-      throw new HttpException(500, sprintf('[%s] %s', $severity_msg, $message), NULL, [], $error_level);
+      throw new SerializableHttpException(500, sprintf('[%s] %s', $severity_msg, $message), NULL, [], $error_level);
     }
   }
 

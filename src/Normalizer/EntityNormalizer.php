@@ -8,10 +8,10 @@ use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
+use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Normalizer\Value\NullFieldNormalizerValue;
 use Drupal\jsonapi\RelationshipInterface;
-use Symfony\Component\HttpKernel\Exception\PreconditionFailedHttpException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
@@ -129,7 +129,7 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
    */
   public function denormalize($data, $class, $format = NULL, array $context = array()) {
     if (empty($context['resource_config']) || !$context['resource_config'] instanceof ResourceConfigInterface) {
-      throw new PreconditionFailedHttpException('Missing context during denormalization.');
+      throw new SerializableHttpException(412, 'Missing context during denormalization.');
     }
     /* @var \Drupal\jsonapi\Configuration\ResourceConfigInterface $resource_config */
     $resource_config = $context['resource_config'];

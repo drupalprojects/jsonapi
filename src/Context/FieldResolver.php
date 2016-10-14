@@ -3,7 +3,7 @@
 namespace Drupal\jsonapi\Context;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Drupal\jsonapi\Error\SerializableHttpException;
 
 /**
  * Contains FieldResolver.
@@ -65,13 +65,13 @@ class FieldResolver implements FieldResolverInterface {
     $entity_type_id = $this->currentContext->getResourceConfig()->getEntityTypeId();
     foreach ($parts as $field_name) {
       if (!$definitions = $this->fieldManager->getFieldStorageDefinitions($entity_type_id)) {
-        throw new BadRequestHttpException(sprintf('Invalid nested filtering. There is no entity type "%s".', $entity_type_id));
+        throw new SerializableHttpException(400, sprintf('Invalid nested filtering. There is no entity type "%s".', $entity_type_id));
       }
       if (
         empty($definitions[$field_name]) ||
         $definitions[$field_name]->getType() != 'entity_reference'
       ) {
-        throw new BadRequestHttpException(sprintf('Invalid nested filtering. Invalid entity reference "%s".', $field_name));
+        throw new SerializableHttpException(400, sprintf('Invalid nested filtering. Invalid entity reference "%s".', $field_name));
       }
       // Update the entity type with the referenced type.
       $entity_type_id = $definitions[$field_name]->getSetting('target_type');

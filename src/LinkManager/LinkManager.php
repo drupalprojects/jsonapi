@@ -4,11 +4,11 @@ namespace Drupal\jsonapi\LinkManager;
 
 use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Symfony\Cmf\Component\Routing\ChainRouterInterface;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * Class LinkManager.
@@ -86,7 +86,7 @@ class LinkManager implements LinkManagerInterface {
       $size = OffsetPage::$maxSize;
     }
     if ($size <= 0) {
-      throw new BadRequestHttpException(sprintf('The page size needs to be a positive integer.'));
+      throw new SerializableHttpException(400, sprintf('The page size needs to be a positive integer.'));
     }
     $query = (array) $request->query->getIterator();
     $links = [];

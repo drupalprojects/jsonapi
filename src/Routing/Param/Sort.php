@@ -1,8 +1,7 @@
 <?php
 
 namespace Drupal\jsonapi\Routing\Param;
-
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Drupal\jsonapi\Error\SerializableHttpException;
 
 /**
  * Class Sort.
@@ -50,7 +49,7 @@ class Sort extends JsonApiParamBase {
     $sort = $this->original;
 
     if (empty($sort)) {
-      throw new BadRequestHttpException('You need to provide a value for the sort parameter.');
+      throw new SerializableHttpException(400, 'You need to provide a value for the sort parameter.');
     }
 
     // Expand a JSON API compliant sort into a more expressive sort parameter.
@@ -111,7 +110,7 @@ class Sort extends JsonApiParamBase {
     ];
 
     if (!isset($sort_item[static::FIELD_KEY])) {
-      throw new BadRequestHttpException('You need to provide a field name for the sort parameter.');
+      throw new SerializableHttpException(400, 'You need to provide a field name for the sort parameter.');
     }
 
     $expected_keys = [
@@ -124,7 +123,7 @@ class Sort extends JsonApiParamBase {
 
     // Verify correct sort keys.
     if (count(array_diff($expected_keys, array_keys($expanded))) > 0) {
-      throw new BadRequestHttpException('You have provided an invalid set of sort keys.');
+      throw new SerializableHttpException(400, 'You have provided an invalid set of sort keys.');
     }
 
     return $expanded;

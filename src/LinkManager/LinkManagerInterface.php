@@ -53,7 +53,7 @@ interface LinkManagerInterface {
    * @param array
    *   An associative array with extra data to build the links.
    *
-   * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+   * @throws \Drupal\jsonapi\Error\SerializableHttpException
    *   When the offset and size are invalid.
    *
    * @return string

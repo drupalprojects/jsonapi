@@ -125,7 +125,7 @@ class LinkManagerTest extends UnitTestCase {
    * Test errors.
    *
    * @covers ::getPagerLinks
-   * @expectedException \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+   * @expectedException \Drupal\jsonapi\Error\SerializableHttpException
    * @dataProvider getPagerLinksErrorProvider
    */
   public function testGetPagerLinksError($offset, $size, $total, array $pages) {

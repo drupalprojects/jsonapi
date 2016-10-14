@@ -56,20 +56,22 @@ class SortTest extends UnitTestCase {
 
   /**
    * @covers ::get
+   * @dataProvider getFailProvider
+   * @expectedException \Drupal\jsonapi\Error\SerializableHttpException
    */
-  public function testGetFail() {
-    $sort = new Sort([['lorem']]);
-    $this->setExpectedException(BadRequestHttpException::class);
+  public function testGetFail($input) {
+    $sort = new Sort($input);
     $sort->get();
   }
 
   /**
-   * @covers ::get
+   * Data provider for testGetFail.
    */
-  public function testGetEmpty() {
-    $sort = new Sort('');
-    $this->setExpectedException(BadRequestHttpException::class);
-    $sort->get();
+  public function getFailProvider() {
+    return [
+      [[['lorem']]],
+      [''],
+    ];
   }
 
 }
