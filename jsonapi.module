@@ -15,7 +15,7 @@ use Drupal\Core\Link;
  */
 function jsonapi_help($route_name, RouteMatchInterface $route_match) {
   switch ($route_name) {
-      case 'help.page.jsonapi':
+    case 'help.page.jsonapi':
       $output = '<h3>' . t('About') . '</h3>';
       $youtube_url = Url::fromUri('https://www.youtube.com/playlist?list=PLZOQ_ZMpYrZsyO-3IstImK1okrpfAjuMZ', [
         'external' => TRUE,
@@ -24,9 +24,9 @@ function jsonapi_help($route_name, RouteMatchInterface $route_match) {
       $spec_url = Url::fromUri('http://jsonapi.org', ['external' => TRUE]);
       $spec_link = Link::fromTextAndUrl(t('JSON API Specification'), $spec_url);
       $output .= '<p>' . t('The JSON API module is a fully compliant implementation of the @spec. By following shared conventions, you can increase productivity, take advantage of generalized tooling, and focus on what matters: your application. Clients built around JSON API are able to take advantage of its features such as efficiently caching responses, sometimes eliminating network requests entirely. For more information, see the @online.', [
-        '@spec' => $spec_link->toString(),
-        '@online' => $youtube_link->toString(),
-      ]) . '</p>';
+          '@spec' => $spec_link->toString(),
+          '@online' => $youtube_link->toString(),
+        ]) . '</p>';
       $output .= '<dl>';
       $output .= '<dt>' . t('General') . '</dt>';
       $output .= '<dd>' . t('JSON API is a particular implementation of REST that provides conventions for resource relationships, collections, filters, pagination, and sorting, in addition to error handling and full test coverage. These conventions help developers build clients faster and encourages reuse of code.') . '</dd>';
@@ -53,7 +53,7 @@ function jsonapi_entity_base_field_info(\Drupal\Core\Entity\EntityTypeInterface 
       ->setLabel(t('Download URL'))
       ->setDescription(t('The download URL of the file.'))
       ->setComputed(TRUE)
-      ->setDefaultValue('')
+      ->setQueryable(FALSE)
       ->setClass('\Drupal\jsonapi\Plugin\FileDownloadUrl')
       ->setDisplayOptions('view', array(
         'label' => 'above',
