@@ -81,7 +81,7 @@ services:
   paramconverteruuid.entity:
     class: Drupal\jsonapi\ParamConverter\EntityConverterField
     tags:
-      - { name: paramconverter }
+      - { name: paramconverter, priority: 10 }
     arguments: ['@entity.manager']
   jsonapi.error_handler:
     class: Drupal\jsonapi\Error\ErrorHandler
