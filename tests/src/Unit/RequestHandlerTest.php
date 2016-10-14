@@ -11,6 +11,7 @@ use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -27,6 +28,8 @@ class RequestHandlerTest extends UnitTestCase  {
 
   /**
    * @covers ::deserializeBody
+   * @expectedException \Symfony\Component\HttpKernel\Exception\HttpException
+   * @expectedExceptionMessageRegExp "There was an error un-serializing the data\..*"
    */
   public function testDeserializeBodyFail() {
     $entity_storage = $this->prophesize(EntityStorageInterface::class);
@@ -46,18 +49,20 @@ class RequestHandlerTest extends UnitTestCase  {
     $resource_config = $this->prophesize(ResourceConfigInterface::class);
     $resource_config->getEntityTypeId()->willReturn(NULL);
     $current_context->getResourceConfig()->willReturn($resource_config->reveal());
-    /* @var Response $response */
-    $response = $request_handler->deserializeBody(
-      $request->reveal(),
-      $serializer->reveal(),
-      'invalid',
-      $current_context->reveal()
-    );
-    $this->assertInstanceOf(Response::class, $response);
-    $this->assertEquals(422, $response->getStatusCode());
-    $decoded_response = Json::decode($response->getContent());
-    $this->assertEquals('Foo', $decoded_response['errors'][0]['message']);
-    $this->assertEquals(422, $decoded_response['errors'][0]['status']);
+    try {
+      $request_handler->deserializeBody(
+        $request->reveal(),
+        $serializer->reveal(),
+        'invalid',
+        $current_context->reveal()
+      );
+      $this->fail('Expected exception.');
+    }
+    catch (HttpException $e) {
+      $this->assertEquals(422, $e->getStatusCode());
+      // Re-throw the exception so the test runner can catch it.
+      throw $e;
+    }
   }
 
 }

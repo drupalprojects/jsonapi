@@ -22,7 +22,16 @@ class EntityResourceSchemaTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['jsonapi', 'entity_test', 'user', 'system', 'node', 'field', 'text'];
+  public static $modules = [
+    'jsonapi',
+    'entity_test',
+    'user',
+    'system',
+    'node',
+    'field',
+    'text',
+    'serialization',
+  ];
 
   /**
    * {@inheritdoc}

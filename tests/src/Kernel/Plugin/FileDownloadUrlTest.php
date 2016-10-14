@@ -22,6 +22,7 @@ class FileDownloadUrlTest extends KernelTestBase  {
   public static $modules = [
     'jsonapi',
     'file',
+    'serialization',
     'user',
   ];
 

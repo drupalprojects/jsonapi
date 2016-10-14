@@ -78,21 +78,7 @@ class RequestHandler extends RestRequestHandler {
     /** @var \Drupal\jsonapi\Error\ErrorHandlerInterface $error_handler */
     $error_handler = $this->container->get('jsonapi.error_handler');
     $error_handler->register();
-    try {
-      $response = call_user_func_array([$resource, $action], array_merge($parameters, $extra_parameters));
-    }
-    catch (\Exception $error_exception) {
-      if (!$error_exception instanceof HttpExceptionInterface) {
-        // If this is a generic exception, generate a Server Exception HTTP
-        // exception and process it.
-        $error_exception = new HttpException(500, $error_exception->getMessage(), $error_exception);
-      }
-      $content = $serializer->serialize($error_exception, $format, ['data_wrapper' => 'errors']);
-      // Add the default content type, but only if the headers from the
-      // exception have not specified it already.
-      $headers = $error_exception->getHeaders() + ['Content-Type' => $request->getMimeType($format)];
-      $response = new Response($content, $error_exception->getStatusCode(), $headers);
-    }
+    $response = call_user_func_array([$resource, $action], array_merge($parameters, $extra_parameters));
     $error_handler->restore();
 
     return $response instanceof ResourceResponse ?
@@ -127,27 +113,12 @@ class RequestHandler extends RestRequestHandler {
     $data = $response->getResponseData();
     $context = new RenderContext();
     $cacheable_metadata = $response->getCacheableMetadata();
+    $error_handler->register();
     $output = $this->container->get('renderer')
       ->executeInRenderContext($context, function () use ($serializer, $data, $format, $request, $cacheable_metadata, $error_handler, $response) {
-        $error_handler->register();
-        try {
-          $content = $serializer->serialize($data, $format, ['request' => $request, 'cacheable_metadata' => $cacheable_metadata]);
-        }
-        catch (\Exception $error_exception) {
-          if (!$error_exception instanceof HttpExceptionInterface) {
-            // If this is a generic exception, generate a Server Exception HTTP
-            // exception and process it.
-            $error_exception = new HttpException(500, $error_exception->getMessage(), $error_exception);
-          }
-          $content = $serializer->serialize($error_exception, $format, ['data_wrapper' => 'errors']);
-          // Add the default content type, but only if the headers from the
-          // exception have not specified it already.
-          $headers = $error_exception->getHeaders() + ['Content-Type' => $request->getMimeType($format)];
-          $response->setStatusCode($error_exception->getStatusCode(), $headers);
-        }
-        $error_handler->restore();
-        return $content;
+        return $serializer->serialize($data, $format, ['request' => $request, 'cacheable_metadata' => $cacheable_metadata]);
       });
+    $error_handler->restore();
     $response->setContent($output);
     if (!$context->isEmpty()) {
       $response->addCacheableDependency($context->pop());
@@ -192,16 +163,11 @@ class RequestHandler extends RestRequestHandler {
       ]);
     }
     catch (UnexpectedValueException $e) {
-      $error_exception = new HttpException(
+      throw new HttpException(
         422,
         sprintf('There was an error un-serializing the data. Message: %s.', $e->getMessage()),
         $e
       );
-      $content = $serializer->serialize($error_exception, $format, ['data_wrapper' => 'errors']);
-      // Add the default content type, but only if the headers from the
-      // exception have not specified it already.
-      $headers = $error_exception->getHeaders() + ['Content-Type' => $request->getMimeType($format)];
-      return new Response($content, $error_exception->getStatusCode(), $headers);
     }
   }
 
