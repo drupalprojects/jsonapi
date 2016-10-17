@@ -22,6 +22,8 @@ use Symfony\Component\Serializer\SerializerInterface;
  */
 class RequestHandler extends RestRequestHandler {
 
+  protected static $requiredCacheContexts = ['user.permissions'];
+
   /**
    * Handles a web API request.
    *
@@ -111,7 +113,15 @@ class RequestHandler extends RestRequestHandler {
   protected function renderJsonApiResponse(Request $request, ResourceResponseInterface $response, SerializerInterface $serializer, $format, ErrorHandlerInterface $error_handler) {
     $data = $response->getResponseData();
     $context = new RenderContext();
+
     $cacheable_metadata = $response->getCacheableMetadata();
+    // Make sure to include the default cacheable metadata, since it won't be
+    // added if you don't user render arrays and the HtmlRenderer. We are not
+    // using the container variable '%renderer.config%' because is too tied to
+    // HTML generation.
+    $cacheable_metadata->addCacheContexts(static::$requiredCacheContexts);
+
+    // Make sure that any PHP error is surfaced as a serializable exception.
     $error_handler->register();
     $output = $this->container->get('renderer')
       ->executeInRenderContext($context, function () use ($serializer, $data, $format, $request, $cacheable_metadata, $error_handler, $response) {

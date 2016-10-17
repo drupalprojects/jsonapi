@@ -102,6 +102,7 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
     $output = new Value\EntityNormalizerValue($normalizer_values, $context, $entity, $link_context);
     // Add the entity level cacheability metadata.
     $output->addCacheableDependency($entity);
+    $output->addCacheableDependency($output);
     // Add the field level cacheability metadata.
     array_walk($normalizer_values, function ($normalizer_value) {
       if ($normalizer_value instanceof RefinableCacheableDependencyInterface) {
