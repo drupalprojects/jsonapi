@@ -26,7 +26,7 @@ class DefaultExceptionSubscriber extends SerializationDefaultExceptionSubscriber
       $status = $status ?: $exception->getStatusCode();
     }
     $format = $event->getRequest()->getRequestFormat();
-    $encoded_content = $this->serializer->serialize($exception, $format);
+    $encoded_content = $this->serializer->serialize($exception, $format, ['data_wrapper' => 'errors']);
     $response = new Response($encoded_content, $status);
     $event->setResponse($response);
   }
