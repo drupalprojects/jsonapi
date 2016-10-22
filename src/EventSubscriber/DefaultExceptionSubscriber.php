@@ -2,6 +2,7 @@
 
 namespace Drupal\jsonapi\EventSubscriber;
 
+use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\serialization\EventSubscriber\DefaultExceptionSubscriber as SerializationDefaultExceptionSubscriber;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
@@ -19,12 +20,30 @@ class DefaultExceptionSubscriber extends SerializationDefaultExceptionSubscriber
   /**
    * {@inheritdoc}
    */
+  protected function getHandledFormats() {
+    return ['api_json'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function onException(GetResponseForExceptionEvent $event) {
+    /** @var \Symfony\Component\HttpKernel\Exception\HttpException $exception */
+    $exception = $event->getException();
+    if (!$exception instanceof HttpException) {
+      $exception = new SerializableHttpException(500, $exception->getMessage(), $exception);
+      $event->setException($exception);
+    }
+
+    $this->setEventResponse($event, $exception->getStatusCode());
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   protected function setEventResponse(GetResponseForExceptionEvent $event, $status) {
     /** @var \Symfony\Component\HttpKernel\Exception\HttpException $exception */
     $exception = $event->getException();
-    if ($exception instanceof HttpException) {
-      $status = $status ?: $exception->getStatusCode();
-    }
     $format = $event->getRequest()->getRequestFormat();
     $encoded_content = $this->serializer->serialize($exception, $format, ['data_wrapper' => 'errors']);
     $response = new Response($encoded_content, $status);
