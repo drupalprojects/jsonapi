@@ -55,10 +55,6 @@ class RequestHandler extends RestRequestHandler {
     $route_parameters = $route_match->getParameters();
     $parameters = array();
 
-    if (!is_null($unserialized)) {
-      array_push($unserialized, $parameters);
-    }
-
     // Filter out all internal parameters starting with "_".
     foreach ($route_parameters as $key => $parameter) {
       if ($key{0} !== '_') {
