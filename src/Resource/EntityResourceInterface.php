@@ -23,7 +23,7 @@ interface EntityResourceInterface {
    * @param int $response_code
    *   The response code. Defaults to 200.
    *
-   * @return \Drupal\rest\ResourceResponse
+   * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    */
   public function getIndividual(EntityInterface $entity, Request $request, $response_code = 200);
@@ -36,7 +36,7 @@ interface EntityResourceInterface {
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
    *
-   * @return \Drupal\rest\ResourceResponse
+   * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    */
   public function createIndividual(EntityInterface $entity, Request $request);
@@ -51,7 +51,7 @@ interface EntityResourceInterface {
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
    *
-   * @return \Drupal\rest\ResourceResponse
+   * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    */
   public function patchIndividual(EntityInterface $entity, EntityInterface $parsed_entity, Request $request);
@@ -64,7 +64,7 @@ interface EntityResourceInterface {
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
    *
-   * @return \Drupal\rest\ResourceResponse
+   * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    */
   public function deleteIndividual(EntityInterface $entity, Request $request);
@@ -75,7 +75,7 @@ interface EntityResourceInterface {
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
    *
-   * @return \Drupal\rest\ResourceResponse
+   * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    */
   public function getCollection(Request $request);
@@ -90,7 +90,7 @@ interface EntityResourceInterface {
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
    *
-   * @return \Drupal\rest\ResourceResponse
+   * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    */
   public function getRelated(EntityInterface $entity, $related_field, Request $request);
@@ -107,7 +107,7 @@ interface EntityResourceInterface {
    * @param int $response_code
    *   The response code. Defaults to 200.
    *
-   * @return \Drupal\rest\ResourceResponse
+   * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    */
   public function getRelationship(EntityInterface $entity, $related_field, Request $request, $response_code = 200);
@@ -125,7 +125,7 @@ interface EntityResourceInterface {
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
    *
-   * @return \Drupal\rest\ResourceResponse
+   * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    */
   public function createRelationship(EntityInterface $entity, $related_field, $parsed_field_list, Request $request);
@@ -143,7 +143,7 @@ interface EntityResourceInterface {
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
    *
-   * @return \Drupal\rest\ResourceResponse
+   * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    */
   public function patchRelationship(EntityInterface $entity, $related_field, $parsed_field_list, Request $request);
@@ -161,7 +161,7 @@ interface EntityResourceInterface {
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
    *
-   * @return \Drupal\rest\ResourceResponse
+   * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    */
   public function deleteRelationship(EntityInterface $entity, $related_field, $parsed_field_list, Request $request);

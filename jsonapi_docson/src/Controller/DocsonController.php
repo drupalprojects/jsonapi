@@ -18,7 +18,7 @@ class DocsonController implements ContainerInjectionInterface {
   /**
    * The resource plugin manager interface.
    *
-   * @var \Drupal\rest\Plugin\Type\ResourcePluginManager
+   * @var \Drupal\jsonapi\Plugin\JsonApiResourceManager
    */
   protected $resourcePluginManager;
 

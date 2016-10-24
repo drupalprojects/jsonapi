@@ -24,7 +24,6 @@ class ResourceManagerTest extends KernelTestBase {
   public static $modules = [
     'node',
     'jsonapi',
-    'rest',
     'serialization',
     'system',
     'user',

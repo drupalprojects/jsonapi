@@ -29,6 +29,7 @@ class JsonApiFunctionalTest extends BrowserTestBase {
   public static $modules = [
     'basic_auth',
     'jsonapi',
+    'serialization',
     'node',
     'image',
     'taxonomy',

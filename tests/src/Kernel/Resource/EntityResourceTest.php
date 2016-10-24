@@ -41,7 +41,6 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     'node',
     'field',
     'jsonapi',
-    'rest',
     'serialization',
     'system',
     'user',

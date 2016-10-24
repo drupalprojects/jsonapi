@@ -20,9 +20,9 @@ use Drupal\jsonapi\EntityCollectionInterface;
 use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\Query\QueryBuilderInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
+use Drupal\jsonapi\ResourceResponse;
 use Drupal\jsonapi\Routing\Param\JsonApiParamBase;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
-use Drupal\rest\ResourceResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -457,7 +457,7 @@ class EntityResource implements EntityResourceInterface {
    * @param array $headers
    *   An array of response headers.
    *
-   * @return \Drupal\rest\ResourceResponse
+   * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    */
   protected function buildWrappedResponse($data, $response_code = 200, array $headers = []) {
@@ -472,7 +472,7 @@ class EntityResource implements EntityResourceInterface {
    * @param string $entity_type_id
    *   The entity type.
    *
-   * @return \Drupal\rest\ResourceResponse
+   * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    */
   protected function respondWithCollection(EntityCollectionInterface $entity_collection, $entity_type_id) {

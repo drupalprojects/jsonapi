@@ -11,7 +11,7 @@ use Drupal\jsonapi\Resource\DocumentWrapper;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
-use Drupal\rest\ResourceResponse;
+use Drupal\jsonapi\ResourceResponse;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\Tests\jsonapi\Kernel\JsonapiKernelTestBase;
@@ -41,7 +41,6 @@ class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
     'jsonapi',
     'field',
     'node',
-    'rest',
     'serialization',
     'system',
     'taxonomy',

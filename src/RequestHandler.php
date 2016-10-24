@@ -2,15 +2,16 @@
 
 namespace Drupal\jsonapi;
 
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\Error\ErrorHandlerInterface;
 use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\Resource\EntityResource;
-use Drupal\rest\RequestHandler as RestRequestHandler;
-use Drupal\rest\ResourceResponse;
-use Drupal\rest\ResourceResponseInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Route;
@@ -20,9 +21,18 @@ use Symfony\Component\Serializer\SerializerInterface;
 /**
  * Acts as intermediate request forwarder for resource plugins.
  */
-class RequestHandler extends RestRequestHandler {
+class RequestHandler implements ContainerAwareInterface, ContainerInjectionInterface {
+
+  use ContainerAwareTrait;
 
   protected static $requiredCacheContexts = ['user.permissions'];
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static($container->get('entity_type.manager')->getStorage('rest_resource_config'));
+  }
 
   /**
    * Handles a web API request.
@@ -78,9 +88,7 @@ class RequestHandler extends RestRequestHandler {
     $response = call_user_func_array([$resource, $action], array_merge($parameters, $extra_parameters));
     $error_handler->restore();
 
-    return $response instanceof ResourceResponse ?
-      $this->renderJsonApiResponse($request, $response, $serializer, $format, $error_handler) :
-      $response;
+    return $this->renderJsonApiResponse($request, $response, $serializer, $format, $error_handler);
   }
 
   /**
@@ -94,7 +102,7 @@ class RequestHandler extends RestRequestHandler {
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
-   * @param \Drupal\rest\ResourceResponseInterface $response
+   * @param ResourceResponse $response
    *   The response from the REST resource.
    * @param \Symfony\Component\Serializer\SerializerInterface $serializer
    *   The serializer to use.
@@ -103,10 +111,10 @@ class RequestHandler extends RestRequestHandler {
    * @param \Drupal\jsonapi\Error\ErrorHandlerInterface $error_handler
    *   The error handler service.
    *
-   * @return \Drupal\rest\ResourceResponse
+   * @return \Drupal\Core\Cache\CacheableResponse
    *   The altered response.
    */
-  protected function renderJsonApiResponse(Request $request, ResourceResponseInterface $response, SerializerInterface $serializer, $format, ErrorHandlerInterface $error_handler) {
+  protected function renderJsonApiResponse(Request $request, ResourceResponse $response, SerializerInterface $serializer, $format, ErrorHandlerInterface $error_handler) {
     $data = $response->getResponseData();
     $context = new RenderContext();
 
