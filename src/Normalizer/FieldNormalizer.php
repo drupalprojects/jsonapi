@@ -6,7 +6,7 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 
 /**
- * Converts the Drupal field structure to HAL array structure.
+ * Converts the Drupal field structure to a JSON API array structure.
  */
 class FieldNormalizer extends NormalizerBase {
 

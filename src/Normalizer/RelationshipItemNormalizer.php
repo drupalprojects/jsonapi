@@ -10,7 +10,7 @@ use Drupal\jsonapi\RelationshipItemInterface;
 use Drupal\serialization\EntityResolver\UuidReferenceInterface;
 
 /**
- * Converts the Drupal entity reference item object to HAL array structure.
+ * Converts the Drupal entity reference item object to a JSON API structure.
  */
 class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidReferenceInterface, RefinableCacheableDependencyInterface {
 

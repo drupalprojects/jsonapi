@@ -11,9 +11,9 @@ use Drupal\jsonapi\Normalizer\Value\ValueExtractorInterface;
 use Symfony\Component\Serializer\Encoder\JsonEncoder as SymfonyJsonEncoder;
 
 /**
- * Encodes HAL data in JSON.
+ * Encodes JSON API data.
  *
- * Simply respond to application/hal+json format requests using JSON encoder.
+ * Simply respond to application/vnd.api+json format requests using encoder.
  */
 class JsonEncoder extends SymfonyJsonEncoder {
 

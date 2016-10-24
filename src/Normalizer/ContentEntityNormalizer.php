@@ -3,6 +3,6 @@
 namespace Drupal\jsonapi\Normalizer;
 
 /**
- * Converts the Drupal content entity object structure to a HAL array structure.
+ * Converts the Drupal content entity object to a JSON API array structure.
  */
 class ContentEntityNormalizer extends EntityNormalizer {}
