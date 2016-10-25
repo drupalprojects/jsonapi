@@ -51,6 +51,9 @@ class FieldResolver implements FieldResolverInterface {
    * {@inheritdoc}
    */
   public function resolveInternal($external_field_name) {
+    if (empty($external_field_name)) {
+      throw new SerializableHttpException(400, 'No field name was provided for the filter.');
+    }
     // Right now we are exposing all the fields with the name they have in
     // the Drupal backend. But this may change in the future.
     if (strpos($external_field_name, '.') === FALSE) {

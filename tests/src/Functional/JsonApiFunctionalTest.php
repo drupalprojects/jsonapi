@@ -262,6 +262,54 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $this->assertEquals(403, $single_output['meta']['errors'][0]['status']);
     $this->nodes[1]->set('status', TRUE);
     $this->nodes[1]->save();
+    // 13. Test filtering when using short syntax.
+    $filter = [
+      'uid.uuid' => ['value' => $this->user->uuid()],
+      'field_tags.uuid' => ['value' => $this->tags[0]->uuid()],
+    ];
+    $single_output = Json::decode($this->drupalGet('api/node/article', [
+      'query' => ['filter' => $filter, 'include' => 'uid,field_tags'],
+    ]));
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertGreaterThan(0, count($single_output['data']));
+    // 14. Test filtering when using long syntax.
+    $filter = [
+      'and_group' => ['group' => ['conjunction' => 'AND']],
+      'filter_user' => [
+        'condition' => [
+          'field' => 'uid.uuid',
+          'value' => $this->user->uuid(),
+          'group' => 'and_group',
+        ],
+      ],
+      'filter_tags' => [
+        'condition' => [
+          'field' => 'field_tags.uuid',
+          'value' => $this->tags[0]->uuid(),
+          'group' => 'and_group',
+        ],
+      ],
+    ];
+    $single_output = Json::decode($this->drupalGet('api/node/article', [
+      'query' => ['filter' => $filter, 'include' => 'uid,field_tags'],
+    ]));
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertGreaterThan(0, count($single_output['data']));
+    // 15. Test filtering when using invalid syntax.
+    $filter = [
+      'and_group' => ['group' => ['conjunction' => 'AND']],
+      'filter_user' => [
+        'condition' => [
+          'name-with-a-typo' => 'uid.uuid',
+          'value' => $this->user->uuid(),
+          'group' => 'and_group',
+        ],
+      ],
+    ];
+    $single_output = Json::decode($this->drupalGet('api/node/article', [
+      'query' => ['filter' => $filter, 'include' => 'uid,field_tags'],
+    ]));
+    $this->assertSession()->statusCodeEquals(400);
   }
 
   /**
@@ -434,6 +482,7 @@ class JsonApiFunctionalTest extends BrowserTestBase {
         $tags = array_unique($tags);
       }
       $values = [
+        'uid' => ['target_id' => $this->user->id()],
         'type' => 'article',
         'field_tags' => array_map(function ($tag) {
           return ['target_id' => $tag];

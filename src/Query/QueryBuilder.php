@@ -162,9 +162,6 @@ class QueryBuilder implements QueryBuilderInterface {
             $extracted[] = $this->newGroupOption($filter_index, $properties);
             break;
 
-          case Filter::EXISTS_KEY:
-            break;
-
           default:
             throw new SerializableHttpException(
               400,
@@ -217,11 +214,14 @@ class QueryBuilder implements QueryBuilderInterface {
     $langcode_key = $this->getLangcodeKey();
     $langcode = isset($properties[$langcode_key]) ? $properties[$langcode_key] : NULL;
     $group = isset($properties[Filter::GROUP_KEY]) ? $properties[Filter::GROUP_KEY] : NULL;
+    $field = isset($properties[Filter::FIELD_KEY]) ? $properties[Filter::FIELD_KEY] : NULL;
+    $value = isset($properties[Filter::VALUE_KEY]) ? $properties[Filter::VALUE_KEY] : NULL;
+    $operator = isset($properties[Filter::OPERATOR_KEY]) ? $properties[Filter::OPERATOR_KEY] : NULL;
     return new ConditionOption(
       $condition_id,
-      $this->fieldResolver->resolveInternal($properties[Filter::FIELD_KEY]),
-      $properties[Filter::VALUE_KEY],
-      $properties[Filter::OPERATOR_KEY],
+      $this->fieldResolver->resolveInternal($field),
+      $value,
+      $operator,
       $langcode,
       $group
     );
@@ -240,7 +240,8 @@ class QueryBuilder implements QueryBuilderInterface {
    */
   protected function newGroupOption($identifier, array $properties) {
     $parent_group = isset($properties[Filter::GROUP_KEY]) ? $properties[Filter::GROUP_KEY] : NULL;
-    return new GroupOption($identifier, $properties[Filter::CONJUNCTION_KEY], $parent_group);
+    $conjunction = isset($properties[Filter::CONJUNCTION_KEY]) ? $properties[Filter::CONJUNCTION_KEY] : NULL;
+    return new GroupOption($identifier, $conjunction, $parent_group);
   }
 
   /**
@@ -255,11 +256,14 @@ class QueryBuilder implements QueryBuilderInterface {
    *   The sort object.
    */
   protected function newSortOption($identifier, array $properties) {
+    $field = isset($properties[Sort::FIELD_KEY]) ? $properties[Sort::FIELD_KEY] : NULL;
+    $direction = isset($properties[Sort::DIRECTION_KEY]) ? $properties[Sort::DIRECTION_KEY] : NULL;
+    $langcode = isset($properties[Sort::LANGUAGE_KEY]) ? $properties[Sort::LANGUAGE_KEY] : NULL;
     return new SortOption(
       $identifier,
-      $this->fieldResolver->resolveInternal($properties[Sort::FIELD_KEY]),
-      $properties[Sort::DIRECTION_KEY],
-      $properties[Sort::LANGUAGE_KEY]
+      $this->fieldResolver->resolveInternal($field),
+      $direction,
+      $langcode
     );
   }
 
