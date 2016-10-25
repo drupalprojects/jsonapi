@@ -157,7 +157,8 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $collection_output = Json::decode($this->drupalGet('api/node/article'));
     $this->assertSession()->statusCodeEquals(200);
     $this->assertEquals(50, count($collection_output['data']));
-    $this->assertSession()->responseHeaderEquals('Content-Type', 'application/vnd.api+json');
+    $this->assertSession()
+      ->responseHeaderEquals('Content-Type', 'application/vnd.api+json');
     // 2. Load all articles (Offset 3).
     $collection_output = Json::decode($this->drupalGet('api/node/article', [
       'query' => ['page' => ['offset' => 3]],
@@ -306,10 +307,33 @@ class JsonApiFunctionalTest extends BrowserTestBase {
         ],
       ],
     ];
-    $single_output = Json::decode($this->drupalGet('api/node/article', [
-      'query' => ['filter' => $filter, 'include' => 'uid,field_tags'],
-    ]));
+    $this->drupalGet('api/node/article', [
+      'query' => ['filter' => $filter],
+    ]);
     $this->assertSession()->statusCodeEquals(400);
+    // 16. Test filtering on the same field.
+    $filter = [
+      'or_group' => ['group' => ['conjunction' => 'OR']],
+      'filter_tags_1' => [
+        'condition' => [
+          'field' => 'field_tags.uuid',
+          'value' => $this->tags[0]->uuid(),
+          'group' => 'or_group',
+        ],
+      ],
+      'filter_tags_2' => [
+        'condition' => [
+          'field' => 'field_tags.uuid',
+          'value' => $this->tags[1]->uuid(),
+          'group' => 'or_group',
+        ],
+      ],
+    ];
+    $single_output = Json::decode($this->drupalGet('api/node/article', [
+      'query' => ['filter' => $filter, 'include' => 'field_tags'],
+    ]));
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertGreaterThanOrEqual(2, count($single_output['included']));
   }
 
   /**
@@ -425,13 +449,13 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $this->assertEquals(422, $response->getStatusCode());
     $this->assertNotEmpty($created_response['errors']);
     $this->assertEquals('Unprocessable Entity', $created_response['errors'][0]['title']);
-    // 6. Successful PATCH.
+    // 7. Successful PATCH.
     $body = [
       'data' => [
         'id' => $uuid,
         'type' => 'node--article',
         'attributes' => ['title' => 'My updated title'],
-      ]
+      ],
     ];
     $individual_url = Url::fromRoute('api.dynamic.node--article.individual', [
       'node' => $uuid,
