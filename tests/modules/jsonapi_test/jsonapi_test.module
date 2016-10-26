@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * Alter the resource definitions.
+ *
+ * @param \Drupal\jsonapi\Configuration\ResourceConfigInterface[] $resources
+ *   An array of plugin definitions.
+ */
+function jsonapi_test_jsonapi_resources_alter(&$resources) {
+  foreach ($resources as &$resource) {
+    // Disable node--page.
+    if ($resource->getEntityTypeId() == 'menu' && $resource->getBundleId() == 'menu') {
+      $resource->disable();
+    }
+  }
+}

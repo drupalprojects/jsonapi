@@ -78,13 +78,17 @@ class RelationshipNormalizer extends NormalizerBase {
    * @param array $context
    *   The context array.
    *
-   * @return array
+   * @return Value\RelationshipNormalizerValueInterface
    *   The array of normalized field items.
    */
   public function normalize($relationship, $format = NULL, array $context = array()) {
     /* @var \Drupal\jsonapi\RelationshipInterface $relationship */
     $normalizer_items = array();
     foreach ($relationship->getItems() as $relationship_item) {
+      /* @var \Drupal\jsonapi\RelationshipItemInterface $relationship_item */
+      if (!$relationship_item->resourceIsEnabled()) {
+        continue;
+      }
       $normalizer_items[] = $this->serializer->normalize($relationship_item, $format, $context);
     }
     $cardinality = $relationship->getCardinality();

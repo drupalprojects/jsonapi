@@ -21,8 +21,4 @@ use Drupal\jsonapi\Plugin\JsonApiResourceInterface;
  *
  * @package Drupal\jsonapi\Plugin\jsonapi
  */
-class BundleJsonApiResource extends ContextAwarePluginBase implements JsonApiResourceInterface {
-
-  // TODO: The plugin will contain a factory to a field mapper class.
-
-}
+class BundleJsonApiResource extends ContextAwarePluginBase implements JsonApiResourceInterface {}

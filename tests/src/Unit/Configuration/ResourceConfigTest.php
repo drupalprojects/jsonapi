@@ -50,6 +50,8 @@ class ResourceConfigTest extends UnitTestCase {
       ['setTypeName', 'getTypeName', $this->getRandomGenerator()->name()],
       ['setPath', 'getPath', $this->getRandomGenerator()->name()],
       ['setBundleId', 'getBundleId', $this->getRandomGenerator()->name()],
+      ['disable', 'isEnabled', FALSE],
+      ['enable', 'isEnabled', TRUE],
     ];
   }
 

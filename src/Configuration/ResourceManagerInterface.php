@@ -13,10 +13,13 @@ interface ResourceManagerInterface {
   /**
    * Get all the resource configuration objects.
    *
+   * @param bool $include_disabled
+   *   TRUE to return disabled resources as well.
+   *
    * @return ResourceConfigInterface[]
    *   The list of resource configs representing JSON API types.
    */
-  public function all();
+  public function all($include_disabled = FALSE);
 
   /**
    * Finds a resource config.

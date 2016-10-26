@@ -254,7 +254,14 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     $field_manager = $this->container->get('entity_field.manager');
     /* @var \Drupal\Core\Field\FieldTypePluginManagerInterface $plugin_manager */
     $plugin_manager = $this->container->get('plugin.manager.field.field_type');
-    $resource = new EntityResource($resource_manager->get($route->getRequirement('_entity_type'), $route->getRequirement('_bundle')), $entity_type_manager, $query_builder, $field_manager, $current_context, $plugin_manager);
+    $resource = new EntityResource(
+      $resource_manager->get($route->getRequirement('_entity_type'), $route->getRequirement('_bundle')),
+      $entity_type_manager,
+      $query_builder,
+      $field_manager,
+      $current_context,
+      $plugin_manager
+    );
     return $resource;
   }
 

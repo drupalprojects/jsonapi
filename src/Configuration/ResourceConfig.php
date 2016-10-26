@@ -19,51 +19,58 @@ class ResourceConfig implements ResourceConfigInterface {
   /**
    * Holds the configuration that is global to all the JSON API types.
    *
-   * @param object
+   * @var object
    */
   protected $globalConfig;
 
   /**
    * Holds the entity type manager.
    *
-   * @param EntityTypeManagerInterface
+   * @var EntityTypeManagerInterface
    */
   protected $entityTypeManager;
 
   /**
    * The entity type ID.
    *
-   * @param string
+   * @var string
    */
   protected $entityTypeId;
 
   /**
    * The bundle ID.
    *
-   * @param string
+   * @var string
    */
   protected $bundleId;
 
   /**
    * The type name.
    *
-   * @param string
+   * @var string
    */
   protected $typeName;
 
   /**
    * The base resource path.
    *
-   * @param string
+   * @var string
    */
   protected $path;
 
   /**
    * The class to which a payload converts to.
    *
-   * @param string
+   * @var string
    */
   protected $deserializationTargetClass;
+
+  /**
+   * Is enabled?
+   *
+   * @var bool
+   */
+  protected $isEnabled = TRUE;
 
   /**
    * {@inheritdoc}
@@ -150,6 +157,27 @@ class ResourceConfig implements ResourceConfigInterface {
    */
   public function getIdKey() {
     return $this->getGlobalConfig()->get('id_field');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function isEnabled() {
+    return $this->isEnabled;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function enable() {
+    $this->isEnabled = TRUE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function disable() {
+    $this->isEnabled = FALSE;
   }
 
   /**
