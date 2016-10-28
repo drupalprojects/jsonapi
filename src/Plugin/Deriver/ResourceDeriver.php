@@ -61,7 +61,6 @@ class ResourceDeriver extends DeriverBase implements ContainerDeriverInterface {
     foreach ($resource_configs as $resource) {
       $global_config = $resource->getGlobalConfig();
       $prefix = $global_config->get('prefix');
-      $schema_prefix = $global_config->get('schema_prefix');
       $id = sprintf('%s.dynamic.%s', $prefix, $resource->getTypeName());
       $this->derivatives[$id] = [
         'id' => $id,
@@ -72,10 +71,6 @@ class ResourceDeriver extends DeriverBase implements ContainerDeriverInterface {
         'data' => [
           'prefix' => $prefix,
           'partialPath' => '/' . $prefix . $resource->getPath()
-        ],
-        'schema' => [
-          'prefix' => $schema_prefix,
-          'partialPath' => '/' . $schema_prefix . $resource->getPath()
         ]
       ];
 

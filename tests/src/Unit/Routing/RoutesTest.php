@@ -45,10 +45,6 @@ class RoutesTest extends UnitTestCase {
           'prefix' => 'api',
           'partialPath' => '/api/entity_type_1/bundle_path_1',
         ],
-        'schema' => [
-          'prefix' => 'schema',
-          'partialPath' => '/schema/entity_type_1/bundle_path_1',
-        ],
         'controller' => 'MyCustomController',
         'permission' => 'access content',
         'enabled' => TRUE,
@@ -62,10 +58,6 @@ class RoutesTest extends UnitTestCase {
         'data' => [
           'prefix' => 'api',
           'partialPath' => '/api/entity_type_2/bundle_path_2',
-        ],
-        'schema' => [
-          'prefix' => 'schema',
-          'partialPath' => '/schema/entity_type_2/bundle_path_2',
         ],
         'controller' => 'MyCustomController',
         'permission' => 'access content',
@@ -93,7 +85,7 @@ class RoutesTest extends UnitTestCase {
     $routes = $this->routes['ok']->routes();
 
     // Make sure that there are 4 routes for each resource.
-    $this->assertEquals(6, $routes->count());
+    $this->assertEquals(4, $routes->count());
 
     $iterator = $routes->getIterator();
     // Check the collection route.

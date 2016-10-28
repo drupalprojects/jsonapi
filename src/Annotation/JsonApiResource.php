@@ -52,13 +52,6 @@ class JsonApiResource extends Plugin {
   public $data;
 
   /**
-   * Information about the data resources.
-   *
-   * @var array
-   */
-  public $schema;
-
-  /**
    * TRUE if the plugin is enabled.
    *
    * @var bool

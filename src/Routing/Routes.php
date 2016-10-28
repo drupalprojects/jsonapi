@@ -68,6 +68,7 @@ class Routes implements ContainerInjectionInterface {
     $resource_plugin_manager = $container->get('plugin.manager.resource.processor');
     /* @var \Drupal\Core\Authentication\AuthenticationCollectorInterface $auth_collector */
     $auth_collector = $container->get('authentication_collector');
+
     return new static($resource_plugin_manager, $auth_collector);
   }
 
@@ -83,9 +84,7 @@ class Routes implements ContainerInjectionInterface {
       $entity_type = $plugin_definition['entityType'];
       // For the entity type resources the bundle is NULL.
       $bundle = $plugin_definition['bundle'];
-      $entity_type_has_bundle = $plugin_definition['hasBundle'];
       $partial_path = $plugin_definition['data']['partialPath'];
-      $schema_partial_path = $plugin_definition['schema']['partialPath'];
       $route_keys = explode(':', $plugin_id);
       $route_key = end($route_keys) . '.';
       // Add the collection route.
@@ -163,28 +162,6 @@ class Routes implements ContainerInjectionInterface {
       }
       $route_relationship->addOptions($options);
       $collection->add($route_key . 'relationship', $route_relationship);
-
-      // Schema for /api/file/photo.
-      $route_collection_schema = (new Route($schema_partial_path))
-        ->addDefaults([
-          '_controller' => '\Drupal\jsonapi\Controller\SchemaController::entityCollectionSchema',
-          'typed_data_id' => 'entity:' . $entity_type . (($entity_type_has_bundle) ? ':' . $bundle : ''),
-        ])
-        ->setRequirement('_permission', $plugin_definition['permission'])
-        ->setOption('_auth', $this->authProviderList())
-        ->setMethods(['GET']);
-      $collection->add($route_key . 'schema', $route_collection_schema);
-
-      // Schema for /api/file/photo/1234.
-      $route_individual_schema = (new Route(sprintf('%s/{%s}', $schema_partial_path, $entity_type)))
-        ->addDefaults([
-          '_controller' => '\Drupal\jsonapi\Controller\SchemaController::entitySchema',
-          'typed_data_id' => 'entity:' . $entity_type . (($entity_type_has_bundle) ? ':' . $bundle : ''),
-        ])
-        ->setRequirement('_permission', $plugin_definition['permission'])
-        ->setOption('_auth', $this->authProviderList())
-        ->setMethods(['GET']);
-      $collection->add($route_key . 'individual.schema', $route_individual_schema);
     }
 
     return $collection;
@@ -201,6 +178,7 @@ class Routes implements ContainerInjectionInterface {
       return $this->providerIds;
     }
     $this->providerIds = array_keys($this->authCollector->getSortedProviders());
+
     return $this->providerIds;
   }
 
