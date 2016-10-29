@@ -6,9 +6,9 @@ use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
-use Symfony\Cmf\Component\Routing\ChainRouterInterface;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
 
 /**
  * Class LinkManager.
@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 class LinkManager implements LinkManagerInterface {
 
   /**
-   * @var \Symfony\Cmf\Component\Routing\ChainRouter
+   * @var \Symfony\Component\Routing\Matcher\RequestMatcherInterface
    */
   protected $router;
 
@@ -30,12 +30,12 @@ class LinkManager implements LinkManagerInterface {
   /**
    * Instantiates a LinkManager object.
    *
-   * @param \Symfony\Cmf\Component\Routing\ChainRouterInterface $router
+   * @param \Symfony\Component\Routing\Matcher\RequestMatcherInterface $router
    *   The router.
    * @param \Drupal\Core\Routing\UrlGeneratorInterface $url_generator
    *   The Url generator.
    */
-  public function __construct(ChainRouterInterface $router, UrlGeneratorInterface $url_generator) {
+  public function __construct(RequestMatcherInterface $router, UrlGeneratorInterface $url_generator) {
     $this->router = $router;
     $this->urlGenerator = $url_generator;
   }
