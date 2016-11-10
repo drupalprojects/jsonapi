@@ -35,6 +35,7 @@ class HttpExceptionNormalizerTest extends UnitTestCase {
     $this->assertEquals(403, $error['status']);
     $this->assertEquals('Forbidden', $error['title']);
     $this->assertEquals('lorem', $error['detail']);
+    $this->assertNull($error['meta']['trace'][1]['args'][0]);
 
     $current_user = $this->prophesize(AccountProxyInterface::class);
     $current_user->hasPermission('access site reports')->willReturn(FALSE);

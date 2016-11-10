@@ -33,6 +33,17 @@ class FieldItemNormalizerValueTest extends UnitTestCase {
       [['value' => 1, 'safe_value' => 1], ['value' => 1, 'safe_value' => 1]],
       [[], []],
       [[NULL], NULL],
+      [
+        [
+          'lorem' => [
+            'ipsum' => new FieldItemNormalizerValue([
+              'dolor' => 'sid',
+              'amet' => new FieldItemNormalizerValue(['value' => 'ra']),
+            ]),
+          ],
+        ],
+        ['ipsum' => ['dolor' => 'sid', 'amet' => 'ra']],
+      ],
     ];
   }
 

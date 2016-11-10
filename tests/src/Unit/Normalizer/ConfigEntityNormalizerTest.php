@@ -8,7 +8,9 @@ use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\Normalizer\ConfigEntityNormalizer;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
+use Drupal\jsonapi\Normalizer\FieldItemNormalizer;
 use Drupal\jsonapi\Normalizer\ScalarNormalizer;
+use Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValue;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Symfony\Component\Routing\Route;
@@ -99,6 +101,10 @@ class ConfigEntityNormalizerTest extends UnitTestCase {
         ['ipsum' => 'dolor', 'ra' => 'foo'],
       ],
       [['ipsum' => 'dolor'], 'dolor'],
+      [
+        ['lorem' => ['ipsum' => ['dolor' => 'sid', 'amet' => 'ra']]],
+        ['ipsum' => ['dolor' => 'sid', 'amet' => 'ra']],
+      ],
     ];
   }
 
