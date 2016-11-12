@@ -85,7 +85,17 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     /** @var \Drupal\jsonapi\Error\ErrorHandlerInterface $error_handler */
     $error_handler = $this->container->get('jsonapi.error_handler');
     $error_handler->register();
-    $response = call_user_func_array([$resource, $action], array_merge($parameters, $extra_parameters));
+    // Execute the request in context so the cacheable metadata from the entity
+    // grants system is caught and added to the response. This is surfaced when
+    // executing the underlying entity query.
+    $context = new RenderContext();
+    $response = $this->container->get('renderer')
+      ->executeInRenderContext($context, function () use ($resource, $action, $parameters, $extra_parameters) {
+        return call_user_func_array([$resource, $action], array_merge($parameters, $extra_parameters));
+      });
+    if (!$context->isEmpty()) {
+      $response->addCacheableDependency($context->pop());
+    }
     $error_handler->restore();
 
     return $this->renderJsonApiResponse($request, $response, $serializer, $format, $error_handler);
