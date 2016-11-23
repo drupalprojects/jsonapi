@@ -222,7 +222,7 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     );
     $this->assertEquals(
       'taxonomy_vocabulary--taxonomy_vocabulary',
-      $single_output['included'][0]['data']['type']
+      $single_output['included'][0]['type']
     );
     // 10. Single article with includes.
     $single_output = Json::decode($this->drupalGet('api/node/article/' . $uuid, [
@@ -233,12 +233,12 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $first_include = reset($single_output['included']);
     $this->assertEquals(
       'user--user',
-      $first_include['data']['type']
+      $first_include['type']
     );
     $last_include = end($single_output['included']);
     $this->assertEquals(
       'taxonomy_term--tags',
-      $last_include['data']['type']
+      $last_include['type']
     );
     // 11. Includes with relationships.
     $single_output = Json::decode($this->drupalGet('api/node/article/' . $uuid . '/relationships/uid', [

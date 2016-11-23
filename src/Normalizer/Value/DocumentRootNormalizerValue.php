@@ -165,7 +165,9 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
   public function rasterizeIncludes() {
     // First gather all the includes in the chain.
     return array_map(function ($include) {
-      return $include->rasterizeValue();
+      $value = $include->rasterizeValue();
+      // Included resources should only return their "data" elements
+      return $value['data'];
     }, $this->getIncludes());
   }
 

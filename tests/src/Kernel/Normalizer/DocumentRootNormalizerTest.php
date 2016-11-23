@@ -214,10 +214,10 @@ class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
         'related' => 'dummy_entity_link',
       ],
     ], $normalized['data']['relationships']['uid']);
-    $this->assertEquals($this->user->id(), $normalized['included'][0]['data']['id']);
-    $this->assertEquals('user--user', $normalized['included'][0]['data']['type']);
-    $this->assertEquals($this->user->label(), $normalized['included'][0]['data']['attributes']['name']);
-    $this->assertTrue(!isset($normalized['included'][0]['data']['attributes']['created']));
+    $this->assertEquals($this->user->id(), $normalized['included'][0]['id']);
+    $this->assertEquals('user--user', $normalized['included'][0]['type']);
+    $this->assertEquals($this->user->label(), $normalized['included'][0]['attributes']['name']);
+    $this->assertTrue(!isset($normalized['included'][0]['attributes']['created']));
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
     $this->assertSame(['node:1', 'user:1'], $response->getCacheableMetadata()
@@ -298,7 +298,7 @@ class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
     $this->assertStringMatchesFormat($this->node->uuid(), $normalized['data']['id']);
     $this->assertEquals($this->node->type->entity->uuid(), $normalized['data']['relationships']['type']['data']['id']);
     $this->assertEquals($this->user->uuid(), $normalized['data']['relationships']['uid']['data']['id']);
-    $this->assertEquals($this->user->uuid(), $normalized['included'][0]['data']['id']);
+    $this->assertEquals($this->user->uuid(), $normalized['included'][0]['id']);
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
     $this->assertSame(['node:1', 'user:1'], $response->getCacheableMetadata()
