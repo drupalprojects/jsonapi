@@ -140,9 +140,11 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $url->setOption('query', ['_format' => 'api_json']);
     try {
       $response = $this->httpClient->request($method, $url->toString(), $request_options);
-    } catch (ClientException $e) {
+    }
+    catch (ClientException $e) {
       $response = $e->getResponse();
-    } catch (ServerException $e) {
+    }
+    catch (ServerException $e) {
       $response = $e->getResponse();
     }
 

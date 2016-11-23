@@ -30,6 +30,10 @@ class DefaultExceptionSubscriber extends SerializationDefaultExceptionSubscriber
   public function onException(GetResponseForExceptionEvent $event) {
     /** @var \Symfony\Component\HttpKernel\Exception\HttpException $exception */
     $exception = $event->getException();
+    $format = $event->getRequest()->getRequestFormat();
+    if (!$this->serializer->supportsEncoding($format)) {
+      return;
+    }
     if (!$exception instanceof HttpException) {
       $exception = new SerializableHttpException(500, $exception->getMessage(), $exception);
       $event->setException($exception);
@@ -45,7 +49,7 @@ class DefaultExceptionSubscriber extends SerializationDefaultExceptionSubscriber
     /** @var \Symfony\Component\HttpKernel\Exception\HttpException $exception */
     $exception = $event->getException();
     $format = $event->getRequest()->getRequestFormat();
-    if (!$this->serializer->supportsEncoding($format) || !$this->serializer->supportsNormalization($exception, $format)) {
+    if (!$this->serializer->supportsNormalization($exception, $format)) {
       return;
     }
     $encoded_content = $this->serializer->serialize($exception, $format, ['data_wrapper' => 'errors']);
