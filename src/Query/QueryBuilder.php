@@ -213,8 +213,8 @@ class QueryBuilder implements QueryBuilderInterface {
   protected function newCondtionOption($condition_id, array $properties) {
     $langcode_key = $this->getLangcodeKey();
     $langcode = isset($properties[$langcode_key]) ? $properties[$langcode_key] : NULL;
-    $group = isset($properties[Filter::GROUP_KEY]) ? $properties[Filter::GROUP_KEY] : NULL;
-    $field = isset($properties[Filter::FIELD_KEY]) ? $properties[Filter::FIELD_KEY] : NULL;
+    $membership = isset($properties[Filter::MEMBER_KEY]) ? $properties[Filter::MEMBER_KEY] : NULL;
+    $field = isset($properties[Filter::PATH_KEY]) ? $properties[Filter::PATH_KEY] : NULL;
     $value = isset($properties[Filter::VALUE_KEY]) ? $properties[Filter::VALUE_KEY] : NULL;
     $operator = isset($properties[Filter::OPERATOR_KEY]) ? $properties[Filter::OPERATOR_KEY] : NULL;
     return new ConditionOption(
@@ -223,7 +223,7 @@ class QueryBuilder implements QueryBuilderInterface {
       $value,
       $operator,
       $langcode,
-      $group
+      $membership
     );
   }
 
@@ -239,7 +239,7 @@ class QueryBuilder implements QueryBuilderInterface {
    *   The group object.
    */
   protected function newGroupOption($identifier, array $properties) {
-    $parent_group = isset($properties[Filter::GROUP_KEY]) ? $properties[Filter::GROUP_KEY] : NULL;
+    $parent_group = isset($properties[Filter::MEMBER_KEY]) ? $properties[Filter::MEMBER_KEY] : NULL;
     $conjunction = isset($properties[Filter::CONJUNCTION_KEY]) ? $properties[Filter::CONJUNCTION_KEY] : NULL;
     return new GroupOption($identifier, $conjunction, $parent_group);
   }
@@ -273,16 +273,16 @@ class QueryBuilder implements QueryBuilderInterface {
    * @param array $properties
    *   The pager properties.
    *
-   * @return \Drupal\jsonapi\Query\SortOption
+   * @return \Drupal\jsonapi\Query\OffsetPagerOption
    *   The sort object.
    */
   protected function newPagerOption(array $properties) {
     // Add defaults to avoid unset warnings.
     $properties += [
-      'size' => NULL,
+      'limit' => NULL,
       'offset' => 0,
     ];
-    return new OffsetPagerOption($properties['size'], $properties['offset']);
+    return new OffsetPagerOption($properties['limit'], $properties['offset']);
   }
 
   /**

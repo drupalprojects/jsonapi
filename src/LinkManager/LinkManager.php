@@ -125,7 +125,7 @@ class LinkManager implements LinkManagerInterface {
         $extra_query = [
           'page' => [
             'offset' => $offset + $size,
-            'size' => $size,
+            'limit' => $size,
           ],
         ];
         break;
@@ -134,7 +134,7 @@ class LinkManager implements LinkManagerInterface {
         $extra_query = [
           'page' => [
             'offset' => 0,
-            'size' => $size,
+            'limit' => $size,
           ],
         ];
         break;
@@ -143,7 +143,7 @@ class LinkManager implements LinkManagerInterface {
         $extra_query = [
           'page' => [
             'offset' => max($offset - $size, 0),
-            'size' => $size,
+            'limit' => $size,
           ],
         ];
         break;

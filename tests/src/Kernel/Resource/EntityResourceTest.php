@@ -269,7 +269,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $request = $this->prophesize(Request::class);
     $params = $this->prophesize(ParameterBag::class);
     $field_manager = $this->container->get('entity_field.manager');
-    $pager = new OffsetPage(['offset' => 1, 'size' => 1]);
+    $pager = new OffsetPage(['offset' => 1, 'limit' => 1]);
     $params->get('_route_params')->willReturn([
       '_json_api_params' => [
         'page' => $pager,

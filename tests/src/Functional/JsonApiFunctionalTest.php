@@ -7,6 +7,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Url;
 use Drupal\field\Tests\EntityReference\EntityReferenceTestTrait;
 use Drupal\file\Entity\File;
+use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\Tests\BrowserTestBase;
@@ -159,7 +160,7 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     // 1. Load all articles (1st page).
     $collection_output = Json::decode($this->drupalGet('api/node/article'));
     $this->assertSession()->statusCodeEquals(200);
-    $this->assertEquals(50, count($collection_output['data']));
+    $this->assertEquals(OffsetPage::$maxSize, count($collection_output['data']));
     $this->assertSession()
       ->responseHeaderEquals('Content-Type', 'application/vnd.api+json');
     // 2. Load all articles (Offset 3).
@@ -167,11 +168,11 @@ class JsonApiFunctionalTest extends BrowserTestBase {
       'query' => ['page' => ['offset' => 3]],
     ]));
     $this->assertSession()->statusCodeEquals(200);
-    $this->assertEquals(50, count($collection_output['data']));
+    $this->assertEquals(OffsetPage::$maxSize, count($collection_output['data']));
     $this->assertContains('page[offset]=53', $collection_output['links']['next']);
     // 3. Load all articles (1st page, 2 items)
     $collection_output = Json::decode($this->drupalGet('api/node/article', [
-      'query' => ['page' => ['size' => 2]],
+      'query' => ['page' => ['limit' => 2]],
     ]));
     $this->assertSession()->statusCodeEquals(200);
     $this->assertEquals(2, count($collection_output['data']));
@@ -179,7 +180,7 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $collection_output = Json::decode($this->drupalGet('api/node/article', [
       'query' => [
         'page' => [
-          'size' => 2,
+          'limit' => 2,
           'offset' => 2,
         ],
       ],
@@ -258,7 +259,7 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $this->nodes[1]->set('status', FALSE);
     $this->nodes[1]->save();
     $single_output = Json::decode($this->drupalGet('api/node/article', [
-      'query' => ['page' => ['size' => 2]],
+      'query' => ['page' => ['limit' => 2]],
     ]));
     $this->assertSession()->statusCodeEquals(200);
     $this->assertEquals(1, count($single_output['data']));
@@ -281,16 +282,16 @@ class JsonApiFunctionalTest extends BrowserTestBase {
       'and_group' => ['group' => ['conjunction' => 'AND']],
       'filter_user' => [
         'condition' => [
-          'field' => 'uid.uuid',
+          'path' => 'uid.uuid',
           'value' => $this->user->uuid(),
-          'group' => 'and_group',
+          'memberOf' => 'and_group',
         ],
       ],
       'filter_tags' => [
         'condition' => [
-          'field' => 'field_tags.uuid',
+          'path' => 'field_tags.uuid',
           'value' => $this->tags[0]->uuid(),
-          'group' => 'and_group',
+          'memberOf' => 'and_group',
         ],
       ],
     ];
@@ -306,7 +307,7 @@ class JsonApiFunctionalTest extends BrowserTestBase {
         'condition' => [
           'name-with-a-typo' => 'uid.uuid',
           'value' => $this->user->uuid(),
-          'group' => 'and_group',
+          'memberOf' => 'and_group',
         ],
       ],
     ];
@@ -319,16 +320,16 @@ class JsonApiFunctionalTest extends BrowserTestBase {
       'or_group' => ['group' => ['conjunction' => 'OR']],
       'filter_tags_1' => [
         'condition' => [
-          'field' => 'field_tags.uuid',
+          'path' => 'field_tags.uuid',
           'value' => $this->tags[0]->uuid(),
-          'group' => 'or_group',
+          'memberOf' => 'or_group',
         ],
       ],
       'filter_tags_2' => [
         'condition' => [
-          'field' => 'field_tags.uuid',
+          'path' => 'field_tags.uuid',
           'value' => $this->tags[1]->uuid(),
-          'group' => 'or_group',
+          'memberOf' => 'or_group',
         ],
       ],
     ];

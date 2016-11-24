@@ -20,7 +20,7 @@ class Sort extends JsonApiParamBase {
    *
    * @var string
    */
-  const FIELD_KEY = 'field';
+  const FIELD_KEY = 'path';
 
   /**
    * The direction key in the sort parameter: sort[lorem][<direction>].

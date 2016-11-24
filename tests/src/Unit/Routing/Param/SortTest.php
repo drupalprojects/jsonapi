@@ -30,26 +30,26 @@ class SortTest extends UnitTestCase {
    */
   public function getProvider() {
     return [
-      ['lorem', [['field' => 'lorem', 'direction' => 'ASC', 'langcode' => NULL]]],
-      ['-lorem', [['field' => 'lorem', 'direction' => 'DESC', 'langcode' => NULL]]],
+      ['lorem', [['path' => 'lorem', 'direction' => 'ASC', 'langcode' => NULL]]],
+      ['-lorem', [['path' => 'lorem', 'direction' => 'DESC', 'langcode' => NULL]]],
       ['-lorem,ipsum', [
-        ['field' => 'lorem', 'direction' => 'DESC', 'langcode' => NULL],
-        ['field' => 'ipsum', 'direction' => 'ASC', 'langcode' => NULL]
+        ['path' => 'lorem', 'direction' => 'DESC', 'langcode' => NULL],
+        ['path' => 'ipsum', 'direction' => 'ASC', 'langcode' => NULL]
       ]],
       ['-lorem,-ipsum', [
-        ['field' => 'lorem', 'direction' => 'DESC', 'langcode' => NULL],
-        ['field' => 'ipsum', 'direction' => 'DESC', 'langcode' => NULL]
+        ['path' => 'lorem', 'direction' => 'DESC', 'langcode' => NULL],
+        ['path' => 'ipsum', 'direction' => 'DESC', 'langcode' => NULL]
       ]],
       [[
-        ['field' => 'lorem', 'langcode' => NULL],
-        ['field' => 'ipsum', 'langcode' => 'ca'],
-        ['field' => 'dolor', 'direction' => 'ASC', 'langcode' => 'ca'],
-        ['field' => 'sit', 'direction' => 'DESC', 'langcode' => 'ca'],
+        ['path' => 'lorem', 'langcode' => NULL],
+        ['path' => 'ipsum', 'langcode' => 'ca'],
+        ['path' => 'dolor', 'direction' => 'ASC', 'langcode' => 'ca'],
+        ['path' => 'sit', 'direction' => 'DESC', 'langcode' => 'ca'],
       ], [
-        ['field' => 'lorem', 'direction' => 'ASC', 'langcode' => NULL],
-        ['field' => 'ipsum', 'direction' => 'ASC', 'langcode' => 'ca'],
-        ['field' => 'dolor', 'direction' => 'ASC', 'langcode' => 'ca'],
-        ['field' => 'sit', 'direction' => 'DESC', 'langcode' => 'ca'],
+        ['path' => 'lorem', 'direction' => 'ASC', 'langcode' => NULL],
+        ['path' => 'ipsum', 'direction' => 'ASC', 'langcode' => 'ca'],
+        ['path' => 'dolor', 'direction' => 'ASC', 'langcode' => 'ca'],
+        ['path' => 'sit', 'direction' => 'DESC', 'langcode' => 'ca'],
       ]],
     ];
   }

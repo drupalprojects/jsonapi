@@ -79,34 +79,34 @@ class LinkManagerTest extends UnitTestCase {
   public function getPagerLinksProvider() {
     return [
       [1, 4, TRUE, [
-        'first' => ['offset' => 0, 'size' => 4],
-        'prev' => ['offset' => 0, 'size' => 4],
-        'next' => ['offset' => 5, 'size' => 4],
+        'first' => ['offset' => 0, 'limit' => 4],
+        'prev' => ['offset' => 0, 'limit' => 4],
+        'next' => ['offset' => 5, 'limit' => 4],
       ]],
       [6, 4, FALSE, [
-        'first' => ['offset' => 0, 'size' => 4],
-        'prev' => ['offset' => 2, 'size' => 4],
+        'first' => ['offset' => 0, 'limit' => 4],
+        'prev' => ['offset' => 2, 'limit' => 4],
         'next' => NULL,
       ]],
       [7, 4, FALSE, [
-        'first' => ['offset' => 0, 'size' => 4],
-        'prev' => ['offset' => 3, 'size' => 4],
+        'first' => ['offset' => 0, 'limit' => 4],
+        'prev' => ['offset' => 3, 'limit' => 4],
         'next' => NULL,
       ]],
       [10, 4, FALSE, [
-        'first' => ['offset' => 0, 'size' => 4],
-        'prev' => ['offset' => 6, 'size' => 4],
+        'first' => ['offset' => 0, 'limit' => 4],
+        'prev' => ['offset' => 6, 'limit' => 4],
         'next' => NULL,
       ]],
       [5, 4, TRUE, [
-        'first' => ['offset' => 0, 'size' => 4],
-        'prev' => ['offset' => 1, 'size' => 4],
-        'next' => ['offset' => 9, 'size' => 4],
+        'first' => ['offset' => 0, 'limit' => 4],
+        'prev' => ['offset' => 1, 'limit' => 4],
+        'next' => ['offset' => 9, 'limit' => 4],
       ]],
       [0, 4, TRUE, [
         'first' => NULL,
         'prev' => NULL,
-        'next' => ['offset' => 4, 'size' => 4],
+        'next' => ['offset' => 4, 'limit' => 4],
       ]],
       [0, 1, FALSE, [
         'first' => NULL,

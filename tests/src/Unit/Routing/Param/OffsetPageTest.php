@@ -30,11 +30,11 @@ class OffsetPageTest extends UnitTestCase {
    */
   public function getProvider() {
     return [
-      [['offset' => 12, 'size' => 20], 50, ['offset' => 12, 'size' => 20]],
-      [['offset' => 12, 'size' => 60], 50, ['offset' => 12, 'size' => 50]],
-      [['offset' => 12], 50, ['offset' => 12, 'size' => 50]],
-      [['offset' => 0], 50, ['offset' => 0, 'size' => 50]],
-      [[], 50, ['size' => 50]],
+      [['offset' => 12, 'limit' => 20], 50, ['offset' => 12, 'limit' => 20]],
+      [['offset' => 12, 'limit' => 60], 50, ['offset' => 12, 'limit' => 50]],
+      [['offset' => 12], 50, ['offset' => 12, 'limit' => 50]],
+      [['offset' => 0], 50, ['offset' => 0, 'limit' => 50]],
+      [[], 50, ['limit' => 50]],
     ];
   }
 

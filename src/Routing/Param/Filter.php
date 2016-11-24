@@ -30,11 +30,18 @@ class Filter extends JsonApiParamBase {
   const GROUP_KEY = 'group';
 
   /**
+   * Key in the filter[<id>][<key>] parameter for group membership.
+   *
+   * @var string
+   */
+  const MEMBER_KEY = 'memberOf';
+
+  /**
    * The field key in the filter condition: filter[lorem][condition][<field>].
    *
    * @var string
    */
-  const FIELD_KEY = 'field';
+  const PATH_KEY = 'path';
 
   /**
    * The value key in the filter condition: filter[lorem][condition][<value>].
@@ -91,16 +98,16 @@ class Filter extends JsonApiParamBase {
    *   The expanded filter item.
    */
   protected function expandItem($filter_index, array $filter_item) {
-    if (isset($filter_item['value'])) {
-      if (!isset($filter_item['field'])) {
-        $filter_item['field'] = $filter_index;
+    if (isset($filter_item[static::VALUE_KEY])) {
+      if (!isset($filter_item[static::PATH_KEY])) {
+        $filter_item[static::PATH_KEY] = $filter_index;
       }
       $filter_item = [
-        'condition' => $filter_item,
+        static::CONDITION_KEY => $filter_item,
       ];
 
-      if (!isset($filter_item['condition']['operator'])) {
-        $filter_item['condition']['operator'] = '=';
+      if (!isset($filter_item[static::CONDITION_KEY][static::OPERATOR_KEY])) {
+        $filter_item[static::CONDITION_KEY][static::OPERATOR_KEY] = '=';
       }
     }
 

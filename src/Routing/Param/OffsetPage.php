@@ -45,10 +45,10 @@ class OffsetPage extends JsonApiParamBase {
     if (!is_array($this->original)) {
       throw new SerializableHttpException(400, 'The page parameter needs to be an array.');
     }
-    $output = $this->original + ['size' => static::$maxSize];
-    $output['size'] = $output['size'] > static::$maxSize ?
+    $output = $this->original + ['limit' => static::$maxSize];
+    $output['limit'] = $output['limit'] > static::$maxSize ?
       static::$maxSize :
-      $output['size'];
+      $output['limit'];
     return $output;
   }
 
@@ -69,7 +69,7 @@ class OffsetPage extends JsonApiParamBase {
    */
   public function getSize() {
     $data = $this->get();
-    $size = isset($data['size']) ? $data['size'] : static::$maxSize;
+    $size = isset($data['limit']) ? $data['limit'] : static::$maxSize;
     return $size > static::$maxSize ? static::$maxSize : $size;
   }
 

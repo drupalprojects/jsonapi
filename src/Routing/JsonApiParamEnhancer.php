@@ -56,10 +56,10 @@ class JsonApiParamEnhancer implements RouteEnhancerInterface {
       $options['sort'] = new Sort($request->query->get('sort'));
     }
     if ($request->query->has('page')) {
-      $options['page'] = new OffsetPage($request->query->get('page'), 50);
+      $options['page'] = new OffsetPage($request->query->get('page'), OffsetPage::$maxSize);
     }
     else {
-      $options['page'] = new OffsetPage(['start' => 0, 'size' => 50], 50);
+      $options['page'] = new OffsetPage(['start' => 0, 'limit' => OffsetPage::$maxSize], OffsetPage::$maxSize);
     }
     $defaults['_json_api_params'] = $options;
     return $defaults;
