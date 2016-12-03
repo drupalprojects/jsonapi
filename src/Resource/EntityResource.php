@@ -296,7 +296,7 @@ class EntityResource implements EntityResourceInterface {
       throw new SerializableHttpException(409, sprintf('You can only POST to to-many relationships. %s is a to-one relationship.', $related_field));
     }
 
-    $field_access = $field_list->access('update', NULL, TRUE);
+    $field_access = $field_list->access('edit', NULL, TRUE);
     if (!$field_access->isAllowed()) {
       throw new SerializableHttpException(403, sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_list->getName()));
     }
@@ -361,7 +361,7 @@ class EntityResource implements EntityResourceInterface {
    */
   protected function doPatchMultipleRelationship(EntityInterface $entity, EntityReferenceFieldItemListInterface $parsed_field_list) {
     $field_name = $parsed_field_list->getName();
-    $field_access = $parsed_field_list->access('update', NULL, TRUE);
+    $field_access = $parsed_field_list->access('edit', NULL, TRUE);
     if (!$field_access->isAllowed()) {
       throw new SerializableHttpException(403, sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_name));
     }
@@ -519,17 +519,21 @@ class EntityResource implements EntityResourceInterface {
     // The update is different for configuration entities and content entities.
     if ($origin instanceof ContentEntityInterface && $destination instanceof ContentEntityInterface) {
       // First scenario: both are content entities.
-      if (!$field_list = $destination->get($field_name)) {
+      if (!$destination_field_list = $destination->get($field_name)) {
         throw new SerializableHttpException(400, sprintf('The provided field (%s) does not exist in the entity with ID %d.', $field_name, $destination->id()));
       }
-      $field_access = $field_list->access('update', NULL, TRUE);
-      if (!$field_access->isAllowed()) {
-        throw new SerializableHttpException(403, sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_list->getName()));
+
+      $origin_field_list = $origin->get($field_name);
+      if ($destination_field_list->getValue() != $origin_field_list->getValue()) {
+        $field_access = $destination_field_list->access('edit', NULL, TRUE);
+        if (!$field_access->isAllowed()) {
+          throw new SerializableHttpException(403, sprintf('The current user is not allowed to PATCH the selected field (%s).', $destination_field_list->getName()));
+        }
+        $destination->{$field_name} = $origin->get($field_name);
       }
-      $destination->{$field_name} = $origin->get($field_name);
     }
     elseif ($origin instanceof ConfigEntityInterface && $destination instanceof ConfigEntityInterface) {
-      // Second scenario: both are content entities.
+      // Second scenario: both are config entities.
       $destination->set($field_name, $origin->get($field_name));
     }
     else {

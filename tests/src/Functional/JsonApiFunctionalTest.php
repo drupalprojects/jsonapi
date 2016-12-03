@@ -8,6 +8,7 @@ use Drupal\Core\Url;
 use Drupal\field\Tests\EntityReference\EntityReferenceTestTrait;
 use Drupal\file\Entity\File;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
+use Drupal\node\Entity\Node;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\Tests\BrowserTestBase;
@@ -475,7 +476,28 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $updated_response = Json::decode($response->getBody()->__toString());
     $this->assertEquals(200, $response->getStatusCode());
     $this->assertEquals('My updated title', $updated_response['data']['attributes']['title']);
-    // 7. Successful DELETE.
+    // 8. Field access forbidden check.
+    $body = [
+      'data' => [
+        'id' => $uuid,
+        'type' => 'node--article',
+        'attributes' => [
+          'title' => 'My updated title',
+          'status' => 0,
+        ],
+      ],
+    ];
+    $response = $this->request('PATCH', $individual_url, [
+      'body' => Json::encode($body),
+      'auth' => [$this->user->getUsername(), $this->user->pass_raw],
+      'headers' => ['Content-Type' => 'application/vnd.api+json'],
+    ]);
+    $updated_response = Json::decode($response->getBody()->__toString());
+    $this->assertEquals(403, $response->getStatusCode());
+    $this->assertEquals('The current user is not allowed to PATCH the selected field (status).', $updated_response['errors'][0]['detail']);
+    $node = \Drupal::entityManager()->loadEntityByUuid('node', $uuid);
+    $this->assertEquals(1, $node->get('status')->value, 'Node status was not changed.');
+    // 9. Successful DELETE.
     $response = $this->request('DELETE', $individual_url, [
       'auth' => [$this->user->getUsername(), $this->user->pass_raw],
     ]);
