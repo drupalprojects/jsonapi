@@ -44,7 +44,7 @@ function jsonapi_help($route_name, RouteMatchInterface $route_match) {
  * temporary solution. There are similar unresolved efforts already happening
  * there.
  *
- * @see https://www.drupal.org/node/2517030
+ * @see https://www.drupal.org/node/2825487
  */
 function jsonapi_entity_base_field_info(\Drupal\Core\Entity\EntityTypeInterface $entity_type) {
   $fields = [];
@@ -54,7 +54,7 @@ function jsonapi_entity_base_field_info(\Drupal\Core\Entity\EntityTypeInterface 
       ->setDescription(t('The download URL of the file.'))
       ->setComputed(TRUE)
       ->setQueryable(FALSE)
-      ->setClass('\Drupal\jsonapi\Plugin\FileDownloadUrl')
+      ->setClass('\Drupal\jsonapi\Field\FileDownloadUrl')
       ->setDisplayOptions('view', array(
         'label' => 'above',
         'weight' => -5,

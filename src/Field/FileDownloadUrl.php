@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\jsonapi\Plugin;
+namespace Drupal\jsonapi\Field;
 
 use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Session\AccountInterface;
