@@ -91,6 +91,7 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
     $resource_config = $this->prophesize(ResourceConfigInterface::class);
     $resource_config->getEntityTypeId()->willReturn('fake_entity_type');
     $resource_config->getBundleId()->willReturn('dummy_bundle');
+    $resource_config->getIdKey()->willReturn('id');
     $entity = $this->prophesize(FieldableEntityInterface::class);
     $context = [
       'resource_config' => $resource_config->reveal(),
@@ -136,6 +137,7 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
     $resource_config = $this->prophesize(ResourceConfigInterface::class);
     $resource_config->getEntityTypeId()->willReturn('fake_entity_type');
     $resource_config->getBundleId()->willReturn('dummy_bundle');
+    $resource_config->getIdKey()->willReturn('id');
     $context = [
       'resource_config' => $resource_config->reveal(),
       'related' => $field_name,

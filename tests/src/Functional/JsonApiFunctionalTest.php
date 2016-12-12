@@ -8,7 +8,6 @@ use Drupal\Core\Url;
 use Drupal\field\Tests\EntityReference\EntityReferenceTestTrait;
 use Drupal\file\Entity\File;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
-use Drupal\node\Entity\Node;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\Tests\BrowserTestBase;
@@ -95,7 +94,12 @@ class JsonApiFunctionalTest extends BrowserTestBase {
         'Tags',
         'taxonomy_term',
         'default',
-        [],
+        [
+          'target_bundles' => [
+            'tags' => 'tags',
+          ],
+          'auto_create' => TRUE,
+        ],
         FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED
       );
       $this->createImageField('field_image', 'article');
@@ -348,7 +352,7 @@ class JsonApiFunctionalTest extends BrowserTestBase {
    * Test POST, PATCH and DELETE.
    */
   public function testWrite() {
-    $this->createDefaultContent(0, 2, FALSE);
+    $this->createDefaultContent(0, 3, FALSE);
     // 1. Successful post.
     $collection_url = Url::fromRoute('api.dynamic.node--article.collection');
     $body = [
@@ -497,7 +501,50 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $this->assertEquals('The current user is not allowed to PATCH the selected field (status).', $updated_response['errors'][0]['detail']);
     $node = \Drupal::entityManager()->loadEntityByUuid('node', $uuid);
     $this->assertEquals(1, $node->get('status')->value, 'Node status was not changed.');
-    // 9. Successful DELETE.
+    // 9. Successful POST to related endpoint.
+    $body = [
+      'data' => [
+        [
+          'id' => $this->tags[2]->uuid(),
+          'type' => 'taxonomy_term--tags',
+        ],
+      ],
+    ];
+    $relationship_url = Url::fromRoute('api.dynamic.node--article.relationship', [
+      'node' => $uuid,
+      'related' => 'field_tags',
+    ]);
+    $response = $this->request('POST', $relationship_url, [
+      'body' => Json::encode($body),
+      'auth' => [$this->user->getUsername(), $this->user->pass_raw],
+      'headers' => ['Content-Type' => 'application/vnd.api+json'],
+    ]);
+    $updated_response = Json::decode($response->getBody()->__toString());
+    $this->assertEquals(201, $response->getStatusCode());
+    $this->assertEquals(3, count($updated_response['data']));
+    $this->assertEquals('taxonomy_term--tags', $updated_response['data'][2]['type']);
+    $this->assertEquals($this->tags[2]->uuid(), $updated_response['data'][2]['id']);
+    // 10. Successful PATCH to related endpoint.
+    $body = [
+      'data' => [
+        [
+          'id' => $this->tags[1]->uuid(),
+          'type' => 'taxonomy_term--tags',
+        ],
+      ],
+    ];
+    $response = $this->request('PATCH', $relationship_url, [
+      'body' => Json::encode($body),
+      'auth' => [$this->user->getUsername(), $this->user->pass_raw],
+      'headers' => ['Content-Type' => 'application/vnd.api+json'],
+    ]);
+    $updated_response = Json::decode($response->getBody()->__toString());
+    $this->assertEquals(200, $response->getStatusCode());
+    $this->assertCount(1, $updated_response['data']);
+    $this->assertEquals('taxonomy_term--tags', $updated_response['data'][0]['type']);
+    $this->assertEquals($this->tags[1]->uuid(), $updated_response['data'][0]['id']);
+    // TODO: Successful DELETE to related endpoint.
+    // 11. Successful DELETE.
     $response = $this->request('DELETE', $individual_url, [
       'auth' => [$this->user->getUsername(), $this->user->pass_raw],
     ]);

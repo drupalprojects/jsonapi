@@ -90,8 +90,9 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
    */
   public function denormalize($data, $class, $format = NULL, array $context = array()) {
     // If we get to here is through a write method on a relationship operation.
+    $entity_type_id = $context['resource_config']->getEntityTypeId();
     $field_definitions = $this->fieldManager->getFieldDefinitions(
-      $context['resource_config']->getEntityTypeId(),
+      $entity_type_id,
       $context['resource_config']->getBundleId()
     );
     if (empty($context['related']) || empty($field_definitions[$context['related']])) {
@@ -106,7 +107,8 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
 
     $is_multiple = $field_definition->getFieldStorageDefinition()->isMultiple();
     $data = $this->massageRelationshipInput($data, $is_multiple);
-    $values = array_map(function ($value) use ($property_key, $target_resources) {
+    $id_key = $context['resource_config']->getIdKey();
+    $values = array_map(function ($value) use ($property_key, $target_resources, $id_key) {
       // Make sure that the provided type is compatible with the targeted
       // resource.
       if (!in_array($value['type'], $target_resources)) {
@@ -116,6 +118,18 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
           implode(', ', $target_resources)
         ));
       }
+
+      // Load the entity to fetch the entity id based on the $id_key property.
+      if ($id_key !== 'id') {
+        // Load the entity by the selected property.
+        list($entity_type_id,) = explode('--', $value['type']);
+        $storage = $this->resourceManager->getEntityTypeManager()
+          ->getStorage($entity_type_id);
+        $entities = $storage->loadByProperties([$id_key => $value['id']]);
+        $entity = reset($entities);
+        $value['id'] = $entity ? $entity->id() : NULL;
+      }
+
       return [$property_key => $value['id']];
     }, $data['data']);
     return $this->pluginManager
@@ -172,11 +186,14 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
     // Build the list of allowed resources.
     $target_entity_id = $item_definition->getSetting('target_type');
     $handler_settings = $item_definition->getSetting('handler_settings');
+    $target_bundles = empty($handler_settings['target_bundles']) ?
+      [] :
+      $handler_settings['target_bundles'];
     return array_map(function ($target_bundle_id) use ($target_entity_id) {
       return $this->resourceManager
         ->get($target_entity_id, $target_bundle_id)
         ->getTypeName();
-    }, $handler_settings['target_bundles']);
+    }, $target_bundles);
   }
 
 }
