@@ -381,7 +381,7 @@ class EntityResource implements EntityResourceInterface {
     $this->relationshipAccess($entity, $related_field);
 
     $field_name = $parsed_field_list->getName();
-    $field_access = $parsed_field_list->access('delete', NULL, TRUE);
+    $field_access = $parsed_field_list->access('edit', NULL, TRUE);
     if (!$field_access->isAllowed()) {
       throw new SerializableHttpException(403, sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_name));
     }
