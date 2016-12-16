@@ -181,7 +181,7 @@ class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInter
     if (isset($this->currentContext)) {
       $context['resource_config'] = $this->currentContext->getResourceConfig();
     }
-    if ($fields_param = $request->query->get('fields')) {
+    if ($request->query->get('fields')) {
       $context['sparse_fieldset'] = array_map(function ($item) {
         return explode(',', $item);
       }, $request->query->get('fields'));
