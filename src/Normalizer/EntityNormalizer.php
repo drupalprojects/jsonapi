@@ -193,7 +193,7 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
     /* @var \Drupal\Core\Field\FieldItemListInterface|\Drupal\jsonapi\RelationshipInterface $field */
     // Continue if the current user does not have access to view this field.
     $access = $field->access('view', $context['account'], TRUE);
-    if ($field instanceof AccessibleInterface && !$access) {
+    if ($field instanceof AccessibleInterface && !$access->isAllowed()) {
       return (new NullFieldNormalizerValue())->addCacheableDependency($access);
     }
     /** @var \Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue $output */

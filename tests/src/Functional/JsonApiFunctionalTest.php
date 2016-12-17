@@ -43,6 +43,11 @@ class JsonApiFunctionalTest extends BrowserTestBase {
   protected $user;
 
   /**
+   * @var \Drupal\user\Entity\User
+   */
+  protected $userCanViewProfiles;
+
+  /**
    * @var \Drupal\node\Entity\Node[]
    */
   protected $nodes = [];
@@ -109,6 +114,11 @@ class JsonApiFunctionalTest extends BrowserTestBase {
       'create article content',
       'edit any article content',
       'delete any article content',
+    ]);
+
+    // Create a user that can
+    $this->userCanViewProfiles = $this->drupalCreateUser([
+      'access user profiles',
     ]);
 
     drupal_flush_all_caches();
@@ -260,6 +270,8 @@ class JsonApiFunctionalTest extends BrowserTestBase {
       'user--user',
       $first_include['data']['type']
     );
+    $this->assertTrue(empty($first_include['data']['attributes']['mail']));
+    $this->assertTrue(empty($first_include['data']['attributes']['pass']));
     // 12. Collection with one access denied
     $this->nodes[1]->set('status', FALSE);
     $this->nodes[1]->save();
@@ -346,6 +358,22 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     // 17. Test filtering on the same field.
     Json::decode($this->drupalGet('api/menu/menu'));
     $this->assertSession()->statusCodeEquals(404);
+    // 18. Single user (check fields lacking 'view' access).
+    $user_url = Url::fromRoute('api.dynamic.user--user.individual', [
+      'user' => $this->user->uuid(),
+    ]);
+    $response = $this->request('GET', $user_url, [
+      'auth' => [
+        $this->userCanViewProfiles->getUsername(),
+        $this->userCanViewProfiles->pass_raw,
+      ],
+    ]);
+    $single_output = Json::decode($response->getBody()->__toString());
+    $this->assertEquals(200, $response->getStatusCode());
+    $this->assertEquals('user--user', $single_output['data']['type']);
+    $this->assertEquals($this->user->get('name')->value, $single_output['data']['attributes']['name']);
+    $this->assertTrue(empty($single_output['data']['attributes']['mail']));
+    $this->assertTrue(empty($single_output['data']['attributes']['pass']));
   }
 
   /**
