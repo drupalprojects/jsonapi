@@ -421,8 +421,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     Role::load(Role::ANONYMOUS_ID)
       ->grantPermission('create article content')
       ->save();
-    $this->setExpectedException(HttpException::class, 'Unprocessable Entity: validation failed.
-title: This value should not be null.');
+    $this->setExpectedException(HttpException::class, 'Unprocessable Entity: validation failed.');
     $entity_resource = $this->buildEntityResource('node', 'article', 'id');
     $entity_resource->createIndividual($node, $this->request->reveal());
   }

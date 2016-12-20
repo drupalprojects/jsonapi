@@ -572,7 +572,39 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $this->assertEquals('taxonomy_term--tags', $updated_response['data'][0]['type']);
     $this->assertEquals($this->tags[1]->uuid(), $updated_response['data'][0]['id']);
     // TODO: Successful DELETE to related endpoint.
-    // 11. Successful DELETE.
+    // 11. PATCH with invalid title and body format.
+    $body = [
+      'data' => [
+        'id' => $uuid,
+        'type' => 'node--article',
+        'attributes' => [
+          'title' => '',
+          'body' => [
+            'value' => 'Custom value',
+            'format' => 'invalid_format',
+            'summary' => 'Custom summary',
+          ],
+        ],
+      ],
+    ];
+    $response = $this->request('PATCH', $individual_url, [
+      'body' => Json::encode($body),
+      'auth' => [$this->user->getUsername(), $this->user->pass_raw],
+      'headers' => ['Content-Type' => 'application/vnd.api+json'],
+    ]);
+    $updated_response = Json::decode($response->getBody()->__toString());
+    $this->assertEquals(422, $response->getStatusCode());
+    $this->assertCount(2, $updated_response['errors']);
+    for ($i = 0; $i < 2; $i++) {
+      $this->assertEquals("Unprocessable Entity", $updated_response['errors'][$i]['title']);
+      $this->assertEquals(422, $updated_response['errors'][$i]['status']);
+      $this->assertEquals(0, $updated_response['errors'][$i]['code']);
+    }
+    $this->assertEquals("title: This value should not be null.", $updated_response['errors'][0]['detail']);
+    $this->assertEquals("body.0.format: The value you selected is not a valid choice.", $updated_response['errors'][1]['detail']);
+    $this->assertEquals("/data/attributes/title", $updated_response['errors'][0]['source']['pointer']);
+    $this->assertEquals("/data/attributes/body/format", $updated_response['errors'][1]['source']['pointer']);
+    // 12. Successful DELETE.
     $response = $this->request('DELETE', $individual_url, [
       'auth' => [$this->user->getUsername(), $this->user->pass_raw],
     ]);

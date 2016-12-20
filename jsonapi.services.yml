@@ -46,6 +46,11 @@ services:
     arguments: ['@current_user']
     tags:
       - { name: normalizer, priority: 1 }
+  serializer.normalizer.unprocessable_entity_exception.jsonapi:
+    class: Drupal\jsonapi\Normalizer\UnprocessableHttpEntityExceptionNormalizer
+    arguments: ['@current_user']
+    tags:
+      - { name: normalizer, priority: 2 }
   serializer.encoder.jsonapi:
     class: Drupal\jsonapi\Encoder\JsonEncoder
     tags:

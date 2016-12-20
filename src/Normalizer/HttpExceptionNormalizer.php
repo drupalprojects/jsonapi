@@ -8,8 +8,18 @@ use Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\HttpExceptionNormalizerValue;
 use Drupal\serialization\Normalizer\NormalizerBase as SerializationNormalizerBase;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
+/**
+ * Class HttpExceptionNormalizer.
+ *
+ * Normalizes an HttpException object for JSON output which complies with the
+ * JSON API specification.
+ *
+ * @see http://jsonapi.org/format/#error-objects
+ *
+ * @package Drupal\jsonapi\Normalizer
+ */
 class HttpExceptionNormalizer extends SerializationNormalizerBase {
 
   /**
@@ -17,7 +27,7 @@ class HttpExceptionNormalizer extends SerializationNormalizerBase {
    *
    * @var string
    */
-  protected $supportedInterfaceOrClass = HttpExceptionInterface::class;
+  protected $supportedInterfaceOrClass = HttpException::class;
 
   /**
    * The current user making the request.
@@ -40,37 +50,55 @@ class HttpExceptionNormalizer extends SerializationNormalizerBase {
    * {@inheritdoc}
    */
   public function normalize($object, $format = null, array $context = []) {
-    /** @var $object \Symfony\Component\HttpKernel\Exception\HttpException */
+    $errors = $this->buildErrorObjects($object);
+
+    $errors = array_map(function($error) {
+      return new FieldItemNormalizerValue([$error]);
+    }, $errors);
+
+    return new HttpExceptionNormalizerValue(
+      $errors,
+      FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED
+    );
+  }
+
+  /**
+   * Builds the normalized JSON API error objects for the response.
+   *
+   * @param \Symfony\Component\HttpKernel\Exception\HttpException $exception
+   *  The Exception.
+   *
+   * @return array
+   *  The error objects to include in the response.
+   */
+  protected function buildErrorObjects(HttpException $exception) {
     $error = [];
-    $status_code = $object->getStatusCode();
+    $status_code = $exception->getStatusCode();
     if (!empty(Response::$statusTexts[$status_code])) {
       $error['title'] = Response::$statusTexts[$status_code];
     }
     $error += [
       'status' => $status_code,
-      'detail' => $object->getMessage(),
+      'detail' => $exception->getMessage(),
       'links' => [
         'info' => $this->getInfoUrl($status_code),
       ],
-      'code' => $object->getCode(),
+      'code' => $exception->getCode(),
     ];
     if ($this->currentUser->hasPermission('access site reports')) {
       // The following information may contain sensitive information. Only show
       // it to authorized users.
       $error['source'] = [
-        'file' => $object->getFile(),
-        'line' => $object->getLine(),
+        'file' => $exception->getFile(),
+        'line' => $exception->getLine(),
       ];
       $error['meta'] = [
-        'exception' => (string) $object,
-        'trace' => $object->getTrace(),
+        'exception' => (string) $exception,
+        'trace' => $exception->getTrace(),
       ];
     }
 
-    return new HttpExceptionNormalizerValue(
-      [new FieldItemNormalizerValue([$error])],
-      FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED
-    );
+    return [ $error ];
   }
 
   /**

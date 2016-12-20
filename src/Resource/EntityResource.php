@@ -18,6 +18,7 @@ use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\EntityCollection;
 use Drupal\jsonapi\EntityCollectionInterface;
 use Drupal\jsonapi\Error\SerializableHttpException;
+use Drupal\jsonapi\Error\UnprocessableHttpEntityException;
 use Drupal\jsonapi\Query\QueryBuilderInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\ResourceResponse;
@@ -133,15 +134,13 @@ class EntityResource implements EntityResourceInterface {
     $violations->filterByFieldAccess();
 
     if (count($violations) > 0) {
-      $message = "Unprocessable Entity: validation failed.\n";
-      foreach ($violations as $violation) {
-        $message .= $violation->getPropertyPath() . ': ' . $violation->getMessage() . "\n";
-      }
       // Instead of returning a generic 400 response we use the more specific
       // 422 Unprocessable Entity code from RFC 4918. That way clients can
       // distinguish between general syntax errors in bad serializations (code
       // 400) and semantic errors in well-formed requests (code 422).
-      throw new SerializableHttpException(422, $message);
+      $exception = new UnprocessableHttpEntityException();
+      $exception->setViolations($violations);
+      throw $exception;
     }
   }
 
