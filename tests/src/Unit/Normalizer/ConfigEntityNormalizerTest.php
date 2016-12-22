@@ -21,7 +21,7 @@ use Symfony\Component\Serializer\Serializer;
  *
  * @package Drupal\Tests\serialization\Unit\Normalizer
  *
- * @coversDefaultClass \Drupal\jsonapi\Normalizer\DocumentRootNormalizer
+ * @coversDefaultClass \Drupal\jsonapi\Normalizer\ConfigEntityNormalizer
  *
  * @group jsonapi
  */
@@ -30,7 +30,7 @@ class ConfigEntityNormalizerTest extends UnitTestCase {
   /**
    * The normalizer under test.
    *
-   * @var \Drupal\jsonapi\Normalizer\DocumentRootNormalizer
+   * @var \Drupal\jsonapi\Normalizer\ConfigEntityNormalizer
    */
   protected $normalizer;
 

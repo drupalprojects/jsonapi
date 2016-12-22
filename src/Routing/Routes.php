@@ -6,7 +6,7 @@ use Drupal\Core\Authentication\AuthenticationCollectorInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\jsonapi\Plugin\JsonApiResourceManager;
-use Drupal\jsonapi\Resource\DocumentWrapperInterface;
+use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Routing\Route;
@@ -104,7 +104,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_permission', $plugin_definition['permission'])
         ->setRequirement('_format', 'api_json')
         ->setRequirement('_custom_parameter_names', 'TRUE')
-        ->setOption('serialization_class', DocumentWrapperInterface::class)
+        ->setOption('serialization_class', JsonApiDocumentTopLevel::class)
         ->setMethods(['GET', 'POST']);
       if ($bundle) {
         $route_collection->setRequirement('_bundle', $bundle);
@@ -122,7 +122,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_custom_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
-        ->setOption('serialization_class', DocumentWrapperInterface::class)
+        ->setOption('serialization_class', JsonApiDocumentTopLevel::class)
         ->setMethods(['GET', 'PATCH', 'DELETE']);
       if ($bundle) {
         $route_individual->setRequirement('_bundle', $bundle);

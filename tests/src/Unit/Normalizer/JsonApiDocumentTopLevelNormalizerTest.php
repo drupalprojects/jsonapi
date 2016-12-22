@@ -4,7 +4,7 @@ namespace Drupal\Tests\jsonapi\Unit\Normalizer;
 
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
-use Drupal\jsonapi\Normalizer\DocumentRootNormalizer;
+use Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\Tests\UnitTestCase;
@@ -14,20 +14,15 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
- * Class DocumentRootNormalizerTest.
- *
- * @package Drupal\Tests\serialization\Unit\Normalizer
- *
- * @coversDefaultClass \Drupal\jsonapi\Normalizer\DocumentRootNormalizer
- *
+ * @coversDefaultClass \Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer
  * @group jsonapi
  */
-class DocumentRootNormalizerTest extends UnitTestCase {
+class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
 
   /**
    * The normalizer under test.
    *
-   * @var \Drupal\jsonapi\Normalizer\DocumentRootNormalizer
+   * @var \Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer
    */
   protected $normalizer;
 
@@ -57,7 +52,7 @@ class DocumentRootNormalizerTest extends UnitTestCase {
       $this->resourceConfig->reveal()
     );
 
-    $this->normalizer = new DocumentRootNormalizer(
+    $this->normalizer = new JsonApiDocumentTopLevelNormalizer(
       $link_manager->reveal(),
       $current_context_manager->reveal()
     );

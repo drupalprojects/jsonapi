@@ -97,7 +97,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['GET', 'POST'], $route->getMethods());
     $this->assertSame('MyCustomController', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
-    $this->assertSame('Drupal\jsonapi\Resource\DocumentWrapperInterface', $route->getOption('serialization_class'));
+    $this->assertSame('Drupal\jsonapi\Resource\JsonApiDocumentTopLevel', $route->getOption('serialization_class'));
     $this->assertFalse($iterator->offsetExists('api.dynamic.resource_type_2.collection'));
   }
 
@@ -116,7 +116,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertEquals(['GET', 'PATCH', 'DELETE'], $route->getMethods());
     $this->assertSame('MyCustomController', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
-    $this->assertSame('Drupal\jsonapi\Resource\DocumentWrapperInterface', $route->getOption('serialization_class'));
+    $this->assertSame('Drupal\jsonapi\Resource\JsonApiDocumentTopLevel', $route->getOption('serialization_class'));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
     $this->assertFalse($iterator->offsetExists('api.dynamic.resource_type_2.individual'));

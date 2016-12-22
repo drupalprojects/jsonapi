@@ -5,25 +5,23 @@ namespace Drupal\jsonapi\Normalizer;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\EntityCollectionInterface;
-use Drupal\jsonapi\Resource\DocumentWrapperInterface;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
+use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
- * Class DocumentRootNormalizer.
+ * @see \Drupal\jsonapi\Resource\JsonApiDocumentTopLevel
  *
- * @package Drupal\jsonapi\Normalizer
+ * @internal
  */
-class DocumentRootNormalizer extends NormalizerBase implements DenormalizerInterface, NormalizerInterface, DocumentRootNormalizerInterface {
+class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements DenormalizerInterface, NormalizerInterface {
 
   /**
-   * The interface or class that this Normalizer supports.
-   *
-   * @var string
+   * {@inheritdoc}
    */
-  protected $supportedInterfaceOrClass = DocumentWrapperInterface::class;
+  protected $supportedInterfaceOrClass = JsonApiDocumentTopLevel::class;
 
   /**
    * The link manager to get the links.

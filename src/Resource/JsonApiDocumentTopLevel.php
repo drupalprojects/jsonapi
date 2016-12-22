@@ -2,13 +2,17 @@
 
 namespace Drupal\jsonapi\Resource;
 
-
 /**
- * Class DocumentWrapper.
+ * Represents a JSON API document's "top level".
  *
- * @package Drupal\jsonapi\Resource
+ * @see http://jsonapi.org/format/#document-top-level
+ *
+ * @internal
+ *
+ * @todo Add the missing required members: 'error' and 'meta' or document why not.
+ * @todo Add support for the missing optional members: 'jsonapi', 'links' and 'included' or document why not.
  */
-class DocumentWrapper implements DocumentWrapperInterface {
+class JsonApiDocumentTopLevel {
 
   /**
    * The data to normalize.
@@ -18,7 +22,7 @@ class DocumentWrapper implements DocumentWrapperInterface {
   protected $data;
 
   /**
-   * Instantiates a DocumentRootNormalizerValue object.
+   * Instantiates a JsonApiDocumentTopLevel object.
    *
    * @param \Drupal\Core\Entity\EntityInterface|\Drupal\jsonapi\EntityCollectionInterface $data
    *   The data to normalize. It can be either a straight up entity or a
@@ -29,7 +33,10 @@ class DocumentWrapper implements DocumentWrapperInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the data.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\jsonapi\EntityCollectionInterface
+   *   The data.
    */
   public function getData() {
     return $this->data;

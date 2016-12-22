@@ -11,6 +11,8 @@ use Drupal\serialization\EntityResolver\UuidReferenceInterface;
 
 /**
  * Converts the Drupal entity reference item object to a JSON API structure.
+ *
+ * @todo Remove the dependency on \Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer
  */
 class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidReferenceInterface, RefinableCacheableDependencyInterface {
 
@@ -31,23 +33,23 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
   protected $resourceManager;
 
   /**
-   * The document normalizer.
+   * The JSON API document top level normalizer.
    *
-   * @var \Drupal\jsonapi\Normalizer\DocumentRootNormalizerInterface
+   * @var \Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer
    */
-  protected $documentRootNormalizer;
+  protected $jsonapiDocumentToplevelNormalizer;
 
   /**
-   * Instantiates a EntityReferenceItemNormalizer object.
+   * Instantiates a RelationshipItemNormalizer object.
    *
    * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
    *   The resource manager.
-   * @param \Drupal\jsonapi\Normalizer\DocumentRootNormalizerInterface $document_root_normalizer
+   * @param \Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer $jsonapi_document_toplevel_normalizer
    *   The document root normalizer for the include.
    */
-  public function __construct(ResourceManagerInterface $resource_manager, DocumentRootNormalizerInterface $document_root_normalizer) {
+  public function __construct(ResourceManagerInterface $resource_manager, JsonApiDocumentTopLevelNormalizer $jsonapi_document_toplevel_normalizer) {
     $this->resourceManager = $resource_manager;
-    $this->documentRootNormalizer = $document_root_normalizer;
+    $this->jsonapiDocumentToplevelNormalizer = $jsonapi_document_toplevel_normalizer;
   }
 
   /**
@@ -74,7 +76,7 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
     // TODO Only include if the target entity type has the resource enabled.
     if (!empty($context['include']) && in_array($host_field_name, $context['include'])) {
       $context = $this->buildSubContext($context, $target_entity, $host_field_name);
-      $included_normalizer_value = $this->documentRootNormalizer->buildNormalizerValue($target_entity, $format, $context);
+      $included_normalizer_value = $this->jsonapiDocumentToplevelNormalizer->buildNormalizerValue($target_entity, $format, $context);
       $normalizer_value->setInclude($included_normalizer_value);
       $normalizer_value->addCacheableDependency($included_normalizer_value);
       // Add the cacheable dependency of the included item directly to the

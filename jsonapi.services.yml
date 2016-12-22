@@ -1,7 +1,7 @@
 services:
   serializer.normalizer.entity_reference_item.jsonapi:
     class: Drupal\jsonapi\Normalizer\RelationshipItemNormalizer
-    arguments: ['@jsonapi.resource.manager', '@serializer.normalizer.document_root.jsonapi',]
+    arguments: ['@jsonapi.resource.manager', '@serializer.normalizer.jsonapi_document_toplevel.jsonapi',]
     tags:
       - { name: normalizer, priority: 21 }
   serializer.normalizer.field_item.jsonapi:
@@ -23,7 +23,7 @@ services:
       - { name: normalizer, priority: 31 }
   serializer.normalizer.relationship.jsonapi:
     class: Drupal\jsonapi\Normalizer\RelationshipNormalizer
-    arguments: ['@jsonapi.resource.manager', '@serializer.normalizer.document_root.jsonapi', '@jsonapi.link_manager']
+    arguments: ['@jsonapi.resource.manager', '@jsonapi.link_manager']
     tags:
       - { name: normalizer, priority: 21 }
   serializer.normalizer.entity.jsonapi:
@@ -36,8 +36,8 @@ services:
     arguments: ['@jsonapi.link_manager', '@jsonapi.current_context']
     tags:
       - { name: normalizer, priority: 21 }
-  serializer.normalizer.document_root.jsonapi:
-    class: Drupal\jsonapi\Normalizer\DocumentRootNormalizer
+  serializer.normalizer.jsonapi_document_toplevel.jsonapi:
+    class: Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer
     arguments: ['@jsonapi.link_manager', '@jsonapi.current_context']
     tags:
       - { name: normalizer, priority: 22 }

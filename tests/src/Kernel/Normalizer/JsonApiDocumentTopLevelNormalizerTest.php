@@ -6,8 +6,8 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
-use Drupal\jsonapi\Normalizer\DocumentRootNormalizerInterface;
-use Drupal\jsonapi\Resource\DocumentWrapper;
+use Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer;
+use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
@@ -24,15 +24,10 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Route;
 
 /**
- * Class DocumentRootNormalizerTest.
- *
- * @package Drupal\jsonapi\Normalizer
- *
- * @coversDefaultClass \Drupal\jsonapi\Normalizer\ContentEntityNormalizer
- *
+ * @coversDefaultClass \Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer
  * @group jsonapi
  */
-class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
+class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
 
   /**
    * {@inheritdoc}
@@ -174,13 +169,13 @@ class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
     $query->get('include')->willReturn('uid');
     $query->getIterator()->willReturn(new \ArrayIterator());
     $request->query = $query->reveal();
-    $document_wrapper = $this->prophesize(DocumentWrapper::class);
+    $document_wrapper = $this->prophesize(JsonApiDocumentTopLevel::class);
     $document_wrapper->getData()->willReturn($this->node);
 
     $response = new ResourceResponse();
     $normalized = $this
       ->container
-      ->get('serializer.normalizer.document_root.jsonapi')
+      ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
       ->normalize(
         $document_wrapper->reveal(),
         'api_json',
@@ -238,14 +233,14 @@ class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
     $query->get('include')->willReturn('roles');
     $query->getIterator()->willReturn(new \ArrayIterator());
     $request->query = $query->reveal();
-    $document_wrapper = $this->prophesize(DocumentWrapper::class);
+    $document_wrapper = $this->prophesize(JsonApiDocumentTopLevel::class);
     $author = $this->node->get('uid')->entity;
     $document_wrapper->getData()->willReturn($author);
 
     $response = new ResourceResponse();
     $normalized = $this
       ->container
-      ->get('serializer.normalizer.document_root.jsonapi')
+      ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
       ->normalize(
         $document_wrapper->reveal(),
         'api_json',
@@ -271,7 +266,7 @@ class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
    */
   public function testNormalizeUuid() {
     list($request, $resource_config) = $this->generateProphecies('node', 'article', 'uuid');
-    $document_wrapper = $this->prophesize(DocumentWrapper::class);
+    $document_wrapper = $this->prophesize(JsonApiDocumentTopLevel::class);
     $document_wrapper->getData()->willReturn($this->node);
     $query = $this->prophesize(ParameterBag::class);
     $query->get('fields')->willReturn([
@@ -285,7 +280,7 @@ class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
     $response = new ResourceResponse();
     $normalized = $this
       ->container
-      ->get('serializer.normalizer.document_root.jsonapi')
+      ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
       ->normalize(
         $document_wrapper->reveal(),
         'api_json',
@@ -310,7 +305,7 @@ class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
    */
   public function testNormalizeException() {
     list($request, $resource_config) = $this->generateProphecies('node', 'article', 'id');
-    $document_wrapper = $this->prophesize(DocumentWrapper::class);
+    $document_wrapper = $this->prophesize(JsonApiDocumentTopLevel::class);
     $document_wrapper->getData()->willReturn($this->node);
     $query = $this->prophesize(ParameterBag::class);
     $query->get('fields')->willReturn([
@@ -348,7 +343,7 @@ class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
    */
   public function testNormalizeConfig() {
     list($request, $resource_config) = $this->generateProphecies('node_type', 'node_type', 'id');
-    $document_wrapper = $this->prophesize(DocumentWrapper::class);
+    $document_wrapper = $this->prophesize(JsonApiDocumentTopLevel::class);
     $document_wrapper->getData()->willReturn($this->nodeType);
     $query = $this->prophesize(ParameterBag::class);
     $query->get('fields')->willReturn([
@@ -361,7 +356,7 @@ class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
     $response = new ResourceResponse();
     $normalized = $this
       ->container
-      ->get('serializer.normalizer.document_root.jsonapi')
+      ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
       ->normalize($document_wrapper->reveal(), 'api_json', [
         'request' => $request->reveal(),
         'resource_config' => $resource_config->reveal(),
@@ -389,8 +384,8 @@ class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
     list($request, $resource_config) = $this->generateProphecies('node', 'article', 'id');
     $node = $this
       ->container
-      ->get('serializer.normalizer.document_root.jsonapi')
-      ->denormalize(Json::decode($payload), DocumentRootNormalizerInterface::class, 'api_json', [
+      ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
+      ->denormalize(Json::decode($payload), JsonApiDocumentTopLevelNormalizer::class, 'api_json', [
         'request' => $request->reveal(),
         'resource_config' => $resource_config->reveal(),
       ]);
@@ -447,8 +442,8 @@ class DocumentRootNormalizerTest extends JsonapiKernelTestBase {
       list($request, $resource_config) = $this->generateProphecies('node', 'article', 'uuid');
       $node = $this
         ->container
-        ->get('serializer.normalizer.document_root.jsonapi')
-        ->denormalize(Json::decode($payload), DocumentRootNormalizerInterface::class, 'api_json', [
+        ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
+        ->denormalize(Json::decode($payload), JsonApiDocumentTopLevelNormalizer::class, 'api_json', [
           'request' => $request->reveal(),
           'resource_config' => $resource_config->reveal(),
         ]);

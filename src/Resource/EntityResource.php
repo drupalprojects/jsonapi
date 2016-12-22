@@ -460,7 +460,7 @@ class EntityResource implements EntityResourceInterface {
    *   The response.
    */
   protected function buildWrappedResponse($data, $response_code = 200, array $headers = []) {
-    return new ResourceResponse(new DocumentWrapper($data), $response_code, $headers);
+    return new ResourceResponse(new JsonApiDocumentTopLevel($data), $response_code, $headers);
   }
 
   /**

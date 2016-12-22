@@ -39,25 +39,15 @@ class RelationshipNormalizer extends NormalizerBase {
   protected $linkManager;
 
   /**
-   * The document normalizer.
-   *
-   * @var \Drupal\jsonapi\Normalizer\DocumentRootNormalizerInterface
-   */
-  protected $documentRootNormalizer;
-
-  /**
    * RelationshipNormalizer constructor.
    *
    * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
    *   The resource manager.
-   * @param \Drupal\jsonapi\Normalizer\DocumentRootNormalizerInterface $document_root_normalizer
-   *   The document root normalizer for the include.
    * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface $link_manager
    *   The link manager.
    */
-  public function __construct(ResourceManagerInterface $resource_manager, DocumentRootNormalizerInterface $document_root_normalizer, LinkManagerInterface $link_manager) {
+  public function __construct(ResourceManagerInterface $resource_manager, LinkManagerInterface $link_manager) {
     $this->resourceManager = $resource_manager;
-    $this->documentRootNormalizer = $document_root_normalizer;
     $this->linkManager = $link_manager;
   }
 
