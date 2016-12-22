@@ -179,7 +179,6 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     $format = $request->getContentType();
     try {
       return $serializer->deserialize($received, $serialization_class, $format, [
-        'request_method' => $method,
         'related' => $request->get('related'),
         'target_entity' => $request->get($current_context->getResourceConfig()->getEntityTypeId()),
         'resource_config' => $current_context->getResourceConfig(),
