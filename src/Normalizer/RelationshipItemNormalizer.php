@@ -72,7 +72,6 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
     );
 
     $host_field_name = $relationship_item->getParent()->getPropertyName();
-    // TODO Only include if the target entity type has the resource enabled.
     if (!empty($context['include']) && in_array($host_field_name, $context['include'])) {
       $context = $this->buildSubContext($context, $target_entity, $host_field_name);
       $included_normalizer_value = $this->jsonapiDocumentToplevelNormalizer->buildNormalizerValue($target_entity, $format, $context);

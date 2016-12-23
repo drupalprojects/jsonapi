@@ -74,10 +74,6 @@ class RelationshipNormalizer extends NormalizerBase {
     /* @var \Drupal\jsonapi\Normalizer\RelationshipInterface $relationship */
     $normalizer_items = array();
     foreach ($relationship->getItems() as $relationship_item) {
-      /* @var \Drupal\jsonapi\Normalizer\RelationshipItemInterface $relationship_item */
-      if (!$relationship_item->resourceIsEnabled()) {
-        continue;
-      }
       $normalizer_items[] = $this->serializer->normalize($relationship_item, $format, $context);
     }
     $cardinality = $relationship->getCardinality();

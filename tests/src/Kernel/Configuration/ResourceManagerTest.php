@@ -24,7 +24,6 @@ class ResourceManagerTest extends KernelTestBase {
   public static $modules = [
     'node',
     'jsonapi',
-    'jsonapi_test',
     'serialization',
     'system',
     'user',
@@ -77,18 +76,13 @@ class ResourceManagerTest extends KernelTestBase {
       }
       $this->assertNotEmpty($path);
     });
-    // Make sure that the menu--menu resource is not present.
-    $disabled_resource = array_filter($all, function ($resource) {
-      return $resource->getEntityTypeId() == 'menu' && $resource->getBundleId() == 'menu';
-    });
-    $this->assertEmpty($disabled_resource);
   }
 
   /**
    * @covers ::get
    * @dataProvider getProvider
    */
-  public function testGet($entity_type_id, $bundle_id, $entity_class, $enabled) {
+  public function testGet($entity_type_id, $bundle_id, $entity_class) {
     // Make sure that there are resources being created.
     $resource_config = $this->resourceManager->get($entity_type_id, $bundle_id);
     $this->assertInstanceOf(ResourceConfigInterface::class, $resource_config);
@@ -98,7 +92,6 @@ class ResourceManagerTest extends KernelTestBase {
     $this->assertNotEmpty($resource_config->getGlobalConfig());
     $this->assertSame('/' . $entity_type_id . '/' . $bundle_id, $resource_config->getPath());
     $this->assertSame($entity_type_id . '--' . $bundle_id, $resource_config->getTypeName());
-    $this->assertSame($enabled, $resource_config->isEnabled());
   }
 
   /**
@@ -109,9 +102,9 @@ class ResourceManagerTest extends KernelTestBase {
    */
   public function getProvider() {
     return [
-      ['node', 'article', 'Drupal\node\Entity\Node', TRUE],
-      ['node_type', 'node_type', 'Drupal\node\Entity\NodeType', TRUE],
-      ['menu', 'menu', 'Drupal\system\Entity\Menu', FALSE],
+      ['node', 'article', 'Drupal\node\Entity\Node'],
+      ['node_type', 'node_type', 'Drupal\node\Entity\NodeType'],
+      ['menu', 'menu', 'Drupal\system\Entity\Menu'],
     ];
   }
 

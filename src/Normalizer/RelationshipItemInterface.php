@@ -34,12 +34,4 @@ interface RelationshipItemInterface {
    */
   public function getParent();
 
-  /**
-   * Is the target resource enabled?
-   *
-   * @return bool
-   *   TRUE if the resource is enabled. FALSE otherwise.
-   */
-  public function resourceIsEnabled();
-
 }

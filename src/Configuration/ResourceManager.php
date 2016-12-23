@@ -72,7 +72,7 @@ class ResourceManager implements ResourceManagerInterface {
   /**
    * {@inheritdoc}
    */
-  public function all($include_disabled = FALSE) {
+  public function all() {
     if (!$this->all) {
       $entity_type_ids = array_keys($this->entityTypeManager->getDefinitions());
       foreach ($entity_type_ids as $entity_type_id) {
@@ -86,17 +86,8 @@ class ResourceManager implements ResourceManagerInterface {
           return $resource_config;
         }, array_keys($this->bundleManager->getBundleInfo($entity_type_id))));
       }
-      // Allow altering the resource configuration. This is used, among other, to
-      // disable resources.
-      $this->moduleHandler->alter('jsonapi_resources', $this->all);
     }
-    // Filter out the disabled resources if necessary.
-    return $include_disabled ?
-      $this->all :
-      array_filter($this->all, function ($resource) {
-        /* @var \Drupal\jsonapi\Configuration\ResourceConfigInterface $resource */
-        return $resource->isEnabled();
-      });
+    return $this->all;
   }
 
   /**

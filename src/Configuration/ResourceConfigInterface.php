@@ -98,22 +98,4 @@ interface ResourceConfigInterface {
    */
   public function getDeserializationTargetClass();
 
-  /**
-   * Is the resource enabled?
-   *
-   * @return bool
-   *   TRUE if the resource is enabled. FALSE otherwise.
-   */
-  public function isEnabled();
-
-  /**
-   * Enable the resource.
-   */
-  public function enable();
-
-  /**
-   * Disable the resource.
-   */
-  public function disable();
-
 }

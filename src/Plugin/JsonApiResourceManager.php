@@ -20,7 +20,6 @@ class JsonApiResourceManager extends DefaultPluginManager {
   protected $defaults = [
     'permission' => 'access content',
     'controller' => Routes::FRONT_CONTROLLER,
-    'enabled' => TRUE,
   ];
 
   /**

@@ -66,13 +66,6 @@ class ResourceConfig implements ResourceConfigInterface {
   protected $deserializationTargetClass;
 
   /**
-   * Is enabled?
-   *
-   * @var bool
-   */
-  protected $isEnabled = TRUE;
-
-  /**
    * {@inheritdoc}
    */
   public function getGlobalConfig() {
@@ -150,27 +143,6 @@ class ResourceConfig implements ResourceConfigInterface {
    */
   public function getDeserializationTargetClass() {
     return $this->deserializationTargetClass;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function isEnabled() {
-    return $this->isEnabled;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function enable() {
-    $this->isEnabled = TRUE;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function disable() {
-    $this->isEnabled = FALSE;
   }
 
   /**

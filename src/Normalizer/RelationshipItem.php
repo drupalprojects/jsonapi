@@ -85,11 +85,4 @@ class RelationshipItem implements RelationshipItemInterface {
     return $this->parent;
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function resourceIsEnabled() {
-    return $this->getTargetResourceConfig()->isEnabled();
-  }
-
 }

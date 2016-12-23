@@ -30,7 +30,6 @@ class JsonApiFunctionalTest extends BrowserTestBase {
   public static $modules = [
     'basic_auth',
     'jsonapi',
-    'jsonapi_test',
     'serialization',
     'node',
     'image',
@@ -355,9 +354,6 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     ]));
     $this->assertSession()->statusCodeEquals(200);
     $this->assertGreaterThanOrEqual(2, count($single_output['included']));
-    // 17. Test filtering on the same field.
-    Json::decode($this->drupalGet('/jsonapi/menu/menu'));
-    $this->assertSession()->statusCodeEquals(404);
     // 17. Single user (check fields lacking 'view' access).
     $user_url = Url::fromRoute('jsonapi.user--user.individual', [
       'user' => $this->user->uuid(),

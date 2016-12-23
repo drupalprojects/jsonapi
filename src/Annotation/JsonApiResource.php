@@ -51,11 +51,4 @@ class JsonApiResource extends Plugin {
    */
   public $data;
 
-  /**
-   * TRUE if the plugin is enabled.
-   *
-   * @var bool
-   */
-  public $enabled;
-
 }
