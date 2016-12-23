@@ -11,7 +11,6 @@ use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Normalizer\Value\NullFieldNormalizerValue;
-use Drupal\jsonapi\RelationshipInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
@@ -190,7 +189,7 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
    *   The normalized value.
    */
   protected function serializeField($field, $context, $format) {
-    /* @var \Drupal\Core\Field\FieldItemListInterface|\Drupal\jsonapi\RelationshipInterface $field */
+    /* @var \Drupal\Core\Field\FieldItemListInterface|\Drupal\jsonapi\Normalizer\RelationshipInterface $field */
     // Continue if the current user does not have access to view this field.
     $access = $field->access('view', $context['account'], TRUE);
     if ($field instanceof AccessibleInterface && !$access->isAllowed()) {

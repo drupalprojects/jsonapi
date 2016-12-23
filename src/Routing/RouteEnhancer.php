@@ -12,6 +12,8 @@ use Symfony\Component\Routing\Route;
  * Class RouteEnhancer.
  *
  * @package Drupal\jsonapi\Routing
+ *
+ * @internal
  */
 class RouteEnhancer implements RouteEnhancerInterface {
 

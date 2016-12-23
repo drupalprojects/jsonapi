@@ -6,6 +6,8 @@ namespace Drupal\jsonapi\Query;
  * Interface QueryOptionInterface.
  *
  * @package Drupal\jsonapi\Query
+ *
+ * @internal
  */
 interface QueryOptionInterface {
 

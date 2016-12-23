@@ -8,6 +8,8 @@ namespace Drupal\jsonapi\Context;
  * An interface for accessing contextual information for the current request.
  *
  * @package \Drupal\jsonapi\Context
+ *
+ * @internal
  */
 interface CurrentContextInterface {
 

@@ -14,6 +14,8 @@ use Symfony\Component\Routing\RouteCollection;
 
 /**
  * Defines dynamic routes.
+ *
+ * @internal
  */
 class Routes implements ContainerInjectionInterface {
 

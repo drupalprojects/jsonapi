@@ -5,7 +5,6 @@ namespace Drupal\jsonapi\Normalizer;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
-use Drupal\jsonapi\Relationship;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 
 class RelationshipNormalizer extends NormalizerBase {
@@ -61,7 +60,7 @@ class RelationshipNormalizer extends NormalizerBase {
   /**
    * Helper function to normalize field items.
    *
-   * @param \Drupal\jsonapi\RelationshipInterface $relationship
+   * @param \Drupal\jsonapi\Normalizer\RelationshipInterface $relationship
    *   The field object.
    * @param string $format
    *   The format.
@@ -72,10 +71,10 @@ class RelationshipNormalizer extends NormalizerBase {
    *   The array of normalized field items.
    */
   public function normalize($relationship, $format = NULL, array $context = array()) {
-    /* @var \Drupal\jsonapi\RelationshipInterface $relationship */
+    /* @var \Drupal\jsonapi\Normalizer\RelationshipInterface $relationship */
     $normalizer_items = array();
     foreach ($relationship->getItems() as $relationship_item) {
-      /* @var \Drupal\jsonapi\RelationshipItemInterface $relationship_item */
+      /* @var \Drupal\jsonapi\Normalizer\RelationshipItemInterface $relationship_item */
       if (!$relationship_item->resourceIsEnabled()) {
         continue;
       }

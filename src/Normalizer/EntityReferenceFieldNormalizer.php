@@ -7,11 +7,9 @@ use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
-use Drupal\jsonapi\EntityCollection;
+use Drupal\jsonapi\Resource\EntityCollection;
 use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
-use Drupal\jsonapi\Relationship;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**

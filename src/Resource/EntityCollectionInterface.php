@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Drupal\jsonapi;
+namespace Drupal\jsonapi\Resource;
 
 /**
  * Class EntityCollectionInterface.

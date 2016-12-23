@@ -15,8 +15,6 @@ use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
-use Drupal\jsonapi\EntityCollection;
-use Drupal\jsonapi\EntityCollectionInterface;
 use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\Error\UnprocessableHttpEntityException;
 use Drupal\jsonapi\Query\QueryBuilderInterface;

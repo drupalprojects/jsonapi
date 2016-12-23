@@ -1,17 +1,20 @@
 <?php
 
-namespace Drupal\jsonapi;
+namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Access\AccessibleInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\Resource\EntityCollectionInterface;
 
 /**
  * Class Relationship.
  *
- * Use this class to create a relationship in your normalizer without having an entity reference field.
+ * Use this class to create a relationship in your normalizer without having an
+ * entity reference field: allows for "virtual" relationships that are not
+ * backed by a stored entity reference.
  *
  * @package Drupal\jsonapi
  */
@@ -61,7 +64,7 @@ class Relationship implements RelationshipInterface, AccessibleInterface {
    *   The name of the relationship.
    * @param int $cardinality
    *   The relationship cardinality.
-   * @param \Drupal\jsonapi\EntityCollectionInterface $entities
+   * @param \Drupal\jsonapi\Resource\EntityCollectionInterface $entities
    *   A collection of entities.
    * @param \Drupal\Core\Entity\EntityInterface $host_entity
    *   The host entity.

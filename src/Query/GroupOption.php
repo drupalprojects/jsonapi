@@ -8,6 +8,8 @@ namespace Drupal\jsonapi\Query;
  * A GroupOption can group other options before applying them to a query.
  *
  * @package \Drupal\jsonapi\Query\GroupOption
+ *
+ * @internal
  */
 class GroupOption implements QueryOptionInterface, QueryOptionTreeItemInterface {
 

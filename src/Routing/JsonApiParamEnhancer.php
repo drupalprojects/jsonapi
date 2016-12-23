@@ -15,6 +15,8 @@ use Symfony\Component\Routing\Route;
  * Class JsonApiParamEnhancer.
  *
  * @package Drupal\jsonapi\Routing
+ *
+ * @internal
  */
 class JsonApiParamEnhancer implements RouteEnhancerInterface {
 

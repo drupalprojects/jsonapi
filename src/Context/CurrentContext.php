@@ -12,6 +12,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
  * Service for accessing information about the current JSON API request.
  *
  * @package \Drupal\jsonapi\Context
+ *
+ * @internal
  */
 class CurrentContext implements CurrentContextInterface {
 

@@ -6,7 +6,6 @@ use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
-use Drupal\jsonapi\RelationshipItemInterface;
 use Drupal\serialization\EntityResolver\UuidReferenceInterface;
 
 /**
@@ -56,7 +55,7 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
    * {@inheritdoc}
    */
   public function normalize($relationship_item, $format = NULL, array $context = array()) {
-    /* @var $relationship_item \Drupal\jsonapi\RelationshipItemInterface */
+    /* @var $relationship_item \Drupal\jsonapi\Normalizer\RelationshipItemInterface */
     // TODO: We are always loading the referenced entity. Even if it is not
     // going to be included. That may be a performance issue. We do it because
     // we need to know the entity type and bundle to load the resource config to

@@ -8,6 +8,8 @@ use Drupal\Core\Entity\EntityTypeInterface;
  * Interface QueryBuilderInterface.
  *
  * @package Drupal\jsonapi\Query
+ *
+ * @internal
  */
 interface QueryBuilderInterface {
 

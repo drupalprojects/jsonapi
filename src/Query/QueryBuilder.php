@@ -16,6 +16,8 @@ use Drupal\jsonapi\Routing\Param\Sort;
  * Class QueryBuilder.
  *
  * @package Drupal\jsonapi\Query
+ *
+ * @internal
  */
 class QueryBuilder implements QueryBuilderInterface {
 

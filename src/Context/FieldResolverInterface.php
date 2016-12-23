@@ -6,6 +6,8 @@ namespace Drupal\jsonapi\Context;
  * Contains FieldResolverInterface.
  *
  * Interface for mapping public field names to Drupal field names.
+ *
+ * @internal
  */
 interface FieldResolverInterface {
 

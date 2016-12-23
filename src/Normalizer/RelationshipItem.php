@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\jsonapi;
+namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;

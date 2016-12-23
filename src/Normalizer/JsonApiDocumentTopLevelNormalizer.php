@@ -4,7 +4,8 @@ namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
-use Drupal\jsonapi\EntityCollectionInterface;
+use Drupal\jsonapi\Resource\EntityCollectionInterface;
+use Drupal\jsonapi\Resource\DocumentWrapperInterface;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Symfony\Component\HttpFoundation\Request;

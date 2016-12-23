@@ -8,6 +8,8 @@ namespace Drupal\jsonapi\Query;
  * A ConditionOption represents an option which can be applied to a query.
  *
  * @package \Drupal\jsonapi\Query\ConditionOption
+ *
+ * @internal
  */
 class ConditionOption implements QueryOptionInterface {
 

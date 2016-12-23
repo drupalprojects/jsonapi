@@ -6,6 +6,8 @@ namespace Drupal\jsonapi\Routing\Param;
  * Class JsonApiParamBase.
  *
  * @package Drupal\jsonapi\Routing\Param
+ *
+ * @internal
  */
 class JsonApiParamBase implements JsonApiParamInterface {
 

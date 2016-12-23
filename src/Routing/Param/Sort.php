@@ -7,6 +7,8 @@ use Drupal\jsonapi\Error\SerializableHttpException;
  * Class Sort.
  *
  * @package Drupal\jsonapi\Routing\Param
+ *
+ * @internal
  */
 class Sort extends JsonApiParamBase {
 

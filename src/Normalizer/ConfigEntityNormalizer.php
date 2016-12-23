@@ -3,7 +3,6 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
-use Drupal\jsonapi\RelationshipInterface;
 
 /**
  * Class ConfigEntityNormalizer.
