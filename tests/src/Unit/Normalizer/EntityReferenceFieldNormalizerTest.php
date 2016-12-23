@@ -80,8 +80,7 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
       ->willReturn($resource_config->reveal());
 
     $entity_storage = $this->prophesize(EntityStorageInterface::class);
-    $self = $this;
-    $entity = $self->prophesize(EntityInterface::class);
+    $entity = $this->prophesize(EntityInterface::class);
     $entity->uuid()->willReturn('4e6cb61d-4f04-437f-99fe-42c002393658');
     $entity->id()->willReturn(42);
     $entity_storage->loadByProperties(Argument::type('array'))

@@ -12,6 +12,8 @@ use Symfony\Component\Routing\Route;
  *
  * @see \Drupal\Core\ParamConverter\EntityConverter
  *
+ * @todo Remove when https://www.drupal.org/node/2353611 lands.
+ *
  * @internal
  */
 class EntityUuidConverter extends EntityConverter {
