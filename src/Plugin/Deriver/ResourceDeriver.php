@@ -59,9 +59,7 @@ class ResourceDeriver extends DeriverBase implements ContainerDeriverInterface {
     /* @var \Drupal\jsonapi\Configuration\ResourceConfigInterface[] $resource_configs */
     $resource_configs = $this->resourceManager->all();
     foreach ($resource_configs as $resource) {
-      $global_config = $resource->getGlobalConfig();
-      $prefix = $global_config->get('prefix');
-      $id = sprintf('%s.dynamic.%s', $prefix, $resource->getTypeName());
+      $id = sprintf('jsonapi.%s', $resource->getTypeName());
       $this->derivatives[$id] = [
         'id' => $id,
         'entityType' => $resource->getEntityTypeId(),
@@ -69,8 +67,7 @@ class ResourceDeriver extends DeriverBase implements ContainerDeriverInterface {
         'hasBundle' => $this->resourceManager->hasBundle($resource->getEntityTypeId()),
         'type' => $resource->getTypeName(),
         'data' => [
-          'prefix' => $prefix,
-          'partialPath' => '/' . $prefix . $resource->getPath()
+          'partialPath' => $resource->getPath()
         ]
       ];
 

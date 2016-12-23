@@ -39,7 +39,6 @@ class ResourceDeriverTest extends UnitTestCase {
     // Create some resource mocks for the manager.
     $resource_config = $this->prophesize(ResourceConfigInterface::class);
     $global_config = $this->prophesize(ImmutableConfig::class);
-    $global_config->get('prefix')->willReturn('api');
     $resource_config->getGlobalConfig()->willReturn($global_config->reveal());
     $resource_config->getEntityTypeId()->willReturn('entity_type_1');
     $resource_config->getBundleId()->willReturn('bundle_1_1');
@@ -60,15 +59,14 @@ class ResourceDeriverTest extends UnitTestCase {
    * @covers ::getDerivativeDefinitions
    */
   public function testGetDerivativeDefinitions() {
-    $expected = ['api.dynamic.resource_type_1' => [
-      'id' => 'api.dynamic.resource_type_1',
+    $expected = ['jsonapi.resource_type_1' => [
+      'id' => 'jsonapi.resource_type_1',
       'entityType' => 'entity_type_1',
       'bundle' => 'bundle_1_1',
       'hasBundle' => FALSE,
       'type' => 'resource_type_1',
       'data' => [
-        'prefix' => 'api',
-        'partialPath' => '/api/entity_type_1/bundle_path_1',
+        'partialPath' => '/entity_type_1/bundle_path_1',
       ],
       'permission' => 'access content',
       'controller' => '\\Drupal\\jsonapi\\RequestHandler::handle',

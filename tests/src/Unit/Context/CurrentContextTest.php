@@ -68,7 +68,7 @@ class CurrentContextTest extends UnitTestCase {
 
     // Create a mock for the current route match.
     $this->currentRoute = new Route(
-      '/api/articles',
+      '/jsonapi/articles',
       [],
       ['_entity_type' => 'node', '_bundle' => 'article']
     );

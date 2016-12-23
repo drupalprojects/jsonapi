@@ -48,8 +48,7 @@ class LinkManager implements LinkManagerInterface {
       $resource_config->getEntityTypeId() => $entity_id,
       '_format' => 'api_json',
     ];
-    $prefix = $resource_config->getGlobalConfig()->get('prefix');
-    $route_key = sprintf('%s.dynamic.%s.%s', $prefix, $resource_config->getTypeName(), $key);
+    $route_key = sprintf('jsonapi.%s.%s', $resource_config->getTypeName(), $key);
     return $this->urlGenerator->generateFromRoute($route_key, $route_parameters, ['absolute' => TRUE]);
   }
 

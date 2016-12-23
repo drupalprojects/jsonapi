@@ -35,29 +35,27 @@ class RoutesTest extends UnitTestCase {
     // Mock the resource manager to have some resources available.
     $resource_plugin_manager = $this->prophesize(JsonApiResourceManager::class);
     $resource_plugin_manager->getDefinitions()->willReturn([
-      'bundle:api.dynamic.resource_type_1' => [
-        'id' => 'bundle:api.dynamic.resource_type_1',
+      'bundle:jsonapi.resource_type_1' => [
+        'id' => 'bundle:jsonapi.resource_type_1',
         'entityType' => 'entity_type_1',
         'bundle' => 'bundle_1_1',
         'hasBundle' => TRUE,
         'type' => 'resource_type_1',
         'data' => [
-          'prefix' => 'api',
-          'partialPath' => '/api/entity_type_1/bundle_path_1',
+          'partialPath' => '/entity_type_1/bundle_path_1',
         ],
         'controller' => 'MyCustomController',
         'permission' => 'access content',
         'enabled' => TRUE,
       ],
-      'bundle:api.dynamic.resource_type_2' => [
-        'id' => 'bundle:api.dynamic.resource_type_2',
+      'bundle:jsonapi.resource_type_2' => [
+        'id' => 'bundle:jsonapi.resource_type_2',
         'entityType' => 'entity_type_2',
         'bundle' => 'bundle_2_2',
         'hasBundle' => TRUE,
         'type' => 'resource_type_2',
         'data' => [
-          'prefix' => 'api',
-          'partialPath' => '/api/entity_type_2/bundle_path_2',
+          'partialPath' => '/entity_type_2/bundle_path_2',
         ],
         'controller' => 'MyCustomController',
         'permission' => 'access content',
@@ -90,15 +88,15 @@ class RoutesTest extends UnitTestCase {
     $iterator = $routes->getIterator();
     // Check the collection route.
     /** @var \Symfony\Component\Routing\Route $route */
-    $route = $iterator->offsetGet('api.dynamic.resource_type_1.collection');
-    $this->assertSame('/api/entity_type_1/bundle_path_1', $route->getPath());
+    $route = $iterator->offsetGet('jsonapi.resource_type_1.collection');
+    $this->assertSame('/jsonapi/entity_type_1/bundle_path_1', $route->getPath());
     $this->assertSame('entity_type_1', $route->getRequirement('_entity_type'));
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['GET', 'POST'], $route->getMethods());
     $this->assertSame('MyCustomController', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
     $this->assertSame('Drupal\jsonapi\Resource\JsonApiDocumentTopLevel', $route->getOption('serialization_class'));
-    $this->assertFalse($iterator->offsetExists('api.dynamic.resource_type_2.collection'));
+    $this->assertFalse($iterator->offsetExists('jsonapi.resource_type_2.collection'));
   }
 
   /**
@@ -110,8 +108,8 @@ class RoutesTest extends UnitTestCase {
 
     // Check the individual route.
     /** @var \Symfony\Component\Routing\Route $route */
-    $route = $iterator->offsetGet('api.dynamic.resource_type_1.individual');
-    $this->assertSame('/api/entity_type_1/bundle_path_1/{entity_type_1}', $route->getPath());
+    $route = $iterator->offsetGet('jsonapi.resource_type_1.individual');
+    $this->assertSame('/jsonapi/entity_type_1/bundle_path_1/{entity_type_1}', $route->getPath());
     $this->assertSame('entity_type_1', $route->getRequirement('_entity_type'));
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertEquals(['GET', 'PATCH', 'DELETE'], $route->getMethods());
@@ -119,7 +117,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame('Drupal\jsonapi\Resource\JsonApiDocumentTopLevel', $route->getOption('serialization_class'));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
-    $this->assertFalse($iterator->offsetExists('api.dynamic.resource_type_2.individual'));
+    $this->assertFalse($iterator->offsetExists('jsonapi.resource_type_2.individual'));
   }
 
   /**
@@ -131,15 +129,15 @@ class RoutesTest extends UnitTestCase {
 
     // Check the related route.
     /** @var \Symfony\Component\Routing\Route $route */
-    $route = $iterator->offsetGet('api.dynamic.resource_type_1.related');
-    $this->assertSame('/api/entity_type_1/bundle_path_1/{entity_type_1}/{related}', $route->getPath());
+    $route = $iterator->offsetGet('jsonapi.resource_type_1.related');
+    $this->assertSame('/jsonapi/entity_type_1/bundle_path_1/{entity_type_1}/{related}', $route->getPath());
     $this->assertSame('entity_type_1', $route->getRequirement('_entity_type'));
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertEquals(['GET'], $route->getMethods());
     $this->assertSame('MyCustomController', $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
-    $this->assertFalse($iterator->offsetExists('api.dynamic.resource_type_2.related'));
+    $this->assertFalse($iterator->offsetExists('jsonapi.resource_type_2.related'));
   }
 
   /**
@@ -151,8 +149,8 @@ class RoutesTest extends UnitTestCase {
 
     // Check the relationships route.
     /** @var \Symfony\Component\Routing\Route $route */
-    $route = $iterator->offsetGet('api.dynamic.resource_type_1.relationship');
-    $this->assertSame('/api/entity_type_1/bundle_path_1/{entity_type_1}/relationships/{related}', $route->getPath());
+    $route = $iterator->offsetGet('jsonapi.resource_type_1.relationship');
+    $this->assertSame('/jsonapi/entity_type_1/bundle_path_1/{entity_type_1}/relationships/{related}', $route->getPath());
     $this->assertSame('entity_type_1', $route->getRequirement('_entity_type'));
     $this->assertSame('bundle_1_1', $route->getRequirement('_bundle'));
     $this->assertEquals(['GET', 'POST', 'PATCH', 'DELETE'], $route->getMethods());
@@ -160,7 +158,7 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
     $this->assertSame('Drupal\Core\Field\EntityReferenceFieldItemList', $route->getOption('serialization_class'));
-    $this->assertFalse($iterator->offsetExists('api.dynamic.resource_type_2.relationship'));
+    $this->assertFalse($iterator->offsetExists('jsonapi.resource_type_2.relationship'));
   }
 
 }
