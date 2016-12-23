@@ -99,14 +99,6 @@ interface ResourceConfigInterface {
   public function getDeserializationTargetClass();
 
   /**
-   * Get the entity key used for the ID.
-   *
-   * @return string
-   *   The key.
-   */
-  public function getIdKey();
-
-  /**
    * Is the resource enabled?
    *
    * @return bool

@@ -83,9 +83,10 @@ services:
     class: Drupal\jsonapi\Access\CustomParameterNames
     tags:
       - { name: access_check, applies_to: _custom_parameter_names }
-  paramconverteruuid.entity:
-    class: Drupal\jsonapi\ParamConverter\EntityConverterField
+  paramconverter.jsonapi.entity_uuid:
+    class: Drupal\jsonapi\ParamConverter\EntityUuidConverter
     tags:
+      # Priority 10, to ensure it runs before @paramconverter.entity.
       - { name: paramconverter, priority: 10 }
     arguments: ['@entity.manager']
   jsonapi.error_handler:

@@ -3,6 +3,9 @@
 namespace Drupal\Tests\jsonapi\Unit\Normalizer;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
@@ -75,6 +78,19 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
     $resource_config->getTypeName()->willReturn('lorem');
     $resource_manager->get('fake_entity_type', 'dummy_bundle')
       ->willReturn($resource_config->reveal());
+
+    $entity_storage = $this->prophesize(EntityStorageInterface::class);
+    $self = $this;
+    $entity = $self->prophesize(EntityInterface::class);
+    $entity->uuid()->willReturn('4e6cb61d-4f04-437f-99fe-42c002393658');
+    $entity->id()->willReturn(42);
+    $entity_storage->loadByProperties(Argument::type('array'))
+      ->willReturn([$entity->reveal()]);
+    $entity_type_manager = $this->prophesize(EntityTypeManagerInterface::class);
+    $entity_type_manager->getStorage('lorem')
+      ->willReturn($entity_storage->reveal());
+    $resource_manager->getEntityTypeManager()->willReturn($entity_type_manager->reveal());
+
     $this->normalizer = new EntityReferenceFieldNormalizer(
       $link_manager->reveal(),
       $field_manager->reveal(),
@@ -91,7 +107,6 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
     $resource_config = $this->prophesize(ResourceConfigInterface::class);
     $resource_config->getEntityTypeId()->willReturn('fake_entity_type');
     $resource_config->getBundleId()->willReturn('dummy_bundle');
-    $resource_config->getIdKey()->willReturn('id');
     $entity = $this->prophesize(FieldableEntityInterface::class);
     $context = [
       'resource_config' => $resource_config->reveal(),
@@ -111,7 +126,7 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
   public function denormalizeProvider() {
     return [
       [
-        ['data' => [['type' => 'lorem', 'id' => 42]]],
+        ['data' => [['type' => 'lorem', 'id' => '4e6cb61d-4f04-437f-99fe-42c002393658']]],
         'field_dummy',
         [['bunny' => 42]],
       ],
@@ -137,7 +152,6 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
     $resource_config = $this->prophesize(ResourceConfigInterface::class);
     $resource_config->getEntityTypeId()->willReturn('fake_entity_type');
     $resource_config->getBundleId()->willReturn('dummy_bundle');
-    $resource_config->getIdKey()->willReturn('id');
     $context = [
       'resource_config' => $resource_config->reveal(),
       'related' => $field_name,
@@ -154,9 +168,9 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
    */
   public function denormalizeInvalidResourceProvider() {
     return [
-      [['data' => [['type' => 'invalid', 'id' => 42]]], 'field_dummy'],
-      [['data' => ['type' => 'lorem', 'id' => 42]], 'field_dummy'],
-      [['data' => [['type' => 'lorem', 'id' => 42]]], 'field_dummy_single'],
+      [['data' => [['type' => 'invalid', 'id' => '4e6cb61d-4f04-437f-99fe-42c002393658']]], 'field_dummy'],
+      [['data' => ['type' => 'lorem', 'id' => '4e6cb61d-4f04-437f-99fe-42c002393658']], 'field_dummy'],
+      [['data' => [['type' => 'lorem', 'id' => '4e6cb61d-4f04-437f-99fe-42c002393658']]], 'field_dummy_single'],
     ];
   }
 

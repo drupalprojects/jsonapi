@@ -457,38 +457,20 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ->grantPermission('edit any article content')
       ->save();
     $request = $this->prophesize(Request::class);
-    $request->getContent()->willReturn('{"data":{"type":"article","id":1,"attributes":{"title": "","field_relationships":""}}}');
+    $payload = Json::encode([
+      'data' => [
+        'type' => 'article',
+        'id' => $this->node->uuid(),
+        'attributes' => [
+          'title' => '',
+          'field_relationships' => '',
+        ],
+      ],
+    ]);
+    $request->getContent()->willReturn($payload);
 
     // Create a new EntityResource that uses uuid.
-    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
-    $response = $entity_resource->patchIndividual($this->node, $parsed_node, $request->reveal());
-
-    // As a side effect, the node will also be saved.
-    $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
-    $updated_node = $response->getResponseData()->getData();
-    $this->assertInstanceOf(Node::class, $updated_node);
-    $this->assertSame($values['title'], $this->node->getTitle());
-    $this->assertSame($values['field_relationships'], $this->node->get('field_relationships')->getValue());
-    $this->assertEquals(200, $response->getStatusCode());
-  }
-
-  /**
-   * @covers ::patchIndividual
-   * @dataProvider patchIndividualProvider
-   */
-  public function testPatchIndividualUuid($values) {
-    $parsed_node = Node::create($values);
-    Role::load(Role::ANONYMOUS_ID)
-      ->grantPermission('edit any article content')
-      ->save();
-    $uuid = $this->node->uuid();
-    $request = $this->prophesize(Request::class);
-    $request->getContent()->willReturn(sprintf(
-      '{"data":{"type":"article","id":"%s","attributes":{"title": "","field_relationships":""}}}',
-      $uuid
-    ));
-
-    $entity_resource = $this->buildEntityResource('node', 'article', 'uuid');
+    $entity_resource = $this->buildEntityResource('node', 'article');
     $response = $entity_resource->patchIndividual($this->node, $parsed_node, $request->reveal());
 
     // As a side effect, the node will also be saved.
@@ -543,13 +525,13 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $payload = Json::encode([
       'data' => [
         'type' => 'node_type',
-        'id' => 'test',
+        'id' => $node_type->uuid(),
         'attributes' => $values,
       ],
     ]);
     $request->getContent()->willReturn($payload);
 
-    $entity_resource = $this->buildEntityResource('node', 'article', 'id');
+    $entity_resource = $this->buildEntityResource('node', 'article');
     $response = $entity_resource->patchIndividual($node_type, $parsed_node_type, $request->reveal());
 
     // As a side effect, the node will also be saved.
@@ -774,13 +756,11 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    *   The entity type ID.
    * @param string $bundle_id
    *   The bundle ID.
-   * @param string $id_field
-   *   The field used to ID the entity.
    *
    * @return \Drupal\jsonapi\Resource\EntityResourceInterface
    *   The resource.
    */
-  protected function buildEntityResource($entity_type_id, $bundle_id, $id_field) {
+  protected function buildEntityResource($entity_type_id, $bundle_id) {
     $current_context = $this->container->get('jsonapi.current_context');
     $route = $this->prophesize(Route::class);
     $route->getRequirement('_entity_type')->willReturn($entity_type_id);
@@ -789,7 +769,6 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $resource_config = $this->prophesize(ResourceConfigInterface::class);
     $resource_config->getEntityTypeId()->willReturn($entity_type_id);
     $resource_config->getBundleId()->willReturn($bundle_id);
-    $resource_config->getIdKey()->willReturn($id_field);
     return new EntityResource(
       $resource_config->reveal(),
       $this->container->get('entity_type.manager'),

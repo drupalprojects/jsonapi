@@ -168,11 +168,10 @@ class EntityResource implements EntityResourceInterface {
     }
     $body = Json::decode($request->getContent());
     $data = $body['data'];
-    $id_key = $this->resourceConfig->getIdKey();
-    if (!method_exists($entity, $id_key) || $data['id'] != $entity->{$id_key}()) {
+    if ($data['id'] != $entity->uuid()) {
       throw new SerializableHttpException(400, sprintf(
         'The selected entity (%s) does not match the ID in the payload (%s).',
-        $entity->{$id_key}(),
+        $entity->uuid(),
         $data['id']
       ));
     }

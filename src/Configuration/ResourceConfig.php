@@ -155,13 +155,6 @@ class ResourceConfig implements ResourceConfigInterface {
   /**
    * {@inheritdoc}
    */
-  public function getIdKey() {
-    return $this->getGlobalConfig()->get('id_field');
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function isEnabled() {
     return $this->isEnabled;
   }

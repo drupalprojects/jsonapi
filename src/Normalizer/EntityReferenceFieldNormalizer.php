@@ -107,8 +107,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
 
     $is_multiple = $field_definition->getFieldStorageDefinition()->isMultiple();
     $data = $this->massageRelationshipInput($data, $is_multiple);
-    $id_key = $context['resource_config']->getIdKey();
-    $values = array_map(function ($value) use ($property_key, $target_resources, $id_key) {
+    $values = array_map(function ($value) use ($property_key, $target_resources) {
       // Make sure that the provided type is compatible with the targeted
       // resource.
       if (!in_array($value['type'], $target_resources)) {
@@ -119,16 +118,13 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
         ));
       }
 
-      // Load the entity to fetch the entity id based on the $id_key property.
-      if ($id_key !== 'id') {
-        // Load the entity by the selected property.
-        list($entity_type_id,) = explode('--', $value['type']);
-        $storage = $this->resourceManager->getEntityTypeManager()
-          ->getStorage($entity_type_id);
-        $entities = $storage->loadByProperties([$id_key => $value['id']]);
-        $entity = reset($entities);
-        $value['id'] = $entity ? $entity->id() : NULL;
-      }
+      // Load the entity by UUID.
+      list($entity_type_id,) = explode('--', $value['type']);
+      $entities = $this->resourceManager->getEntityTypeManager()
+        ->getStorage($entity_type_id)
+        ->loadByProperties(['uuid' => $value['id']]);
+      $entity = reset($entities);
+      $value['id'] = $entity ? $entity->id() : NULL;
 
       return [$property_key => $value['id']];
     }, $data['data']);

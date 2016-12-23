@@ -73,25 +73,20 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
         }
       }, $data['data']['relationships']);
 
-      $id_key = $this->currentContext->getResourceConfig()->getIdKey();
-
       // Get an array of ids for every relationship.
-      $relationships = array_map(function ($relationship) use ($id_key) {
+      $relationships = array_map(function ($relationship) {
         $id_list = array_column($relationship['data'], 'id');
-        if ($id_key == 'id') {
-          return $id_list;
-        }
         list($entity_type_id,) = explode('--', $relationship['data'][0]['type']);
         $entity_storage = $this->currentContext->getResourceManager()
           ->getEntityTypeManager()
           ->getStorage($entity_type_id);
         // In order to maintain the order ($delta) of the relationships, we need
-        // to load the entities and explore the $id_key value.
+        // to load the entities and explore the uuid value.
         $related_entities = array_values($entity_storage
-          ->loadByProperties([$id_key => $id_list]));
+          ->loadByProperties(['uuid' => $id_list]));
         $map = [];
         foreach ($related_entities as $related_entity) {
-          $map[$related_entity->get($id_key)->value] = $related_entity->id();
+          $map[$related_entity->uuid()] = $related_entity->id();
         }
         $canonical_ids = array_map(function ($input_value) use ($map) {
           return empty($map[$input_value]) ? NULL : $map[$input_value];

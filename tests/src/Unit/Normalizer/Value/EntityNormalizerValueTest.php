@@ -51,18 +51,18 @@ class EntityNormalizerValueTest extends UnitTestCase {
     $included[0]->rasterizeValue()->willReturn([
       'data' => [
         'type' => 'node',
-        'id' => 3,
+        'id' => '199c681d-a9dc-4b6f-a4dc-e3811f24141b',
         'attributes' => ['body' => 'dummy_body1'],
       ],
     ]);
     $included[0]->getCacheContexts()->willReturn(['lorem', 'ipsum']);
-    // Type & id duplicated in purpose.
+    // Type & id duplicated on purpose.
     $included[] = $this->prophesize(DocumentRootNormalizerValueInterface::class);
     $included[1]->getIncludes()->willReturn([]);
     $included[1]->rasterizeValue()->willReturn([
       'data' => [
         'type' => 'node',
-        'id' => 3,
+        'id' => '199c681d-a9dc-4b6f-a4dc-e3811f24141b',
         'attributes' => ['body' => 'dummy_body2'],
       ],
     ]);
@@ -71,7 +71,7 @@ class EntityNormalizerValueTest extends UnitTestCase {
     $included[2]->rasterizeValue()->willReturn([
       'data' => [
         'type' => 'node',
-        'id' => 4,
+        'id' => '83771375-a4ba-4d7d-a4d5-6153095bb5c5',
         'attributes' => ['body' => 'dummy_body3'],
       ],
     ]);
@@ -80,10 +80,9 @@ class EntityNormalizerValueTest extends UnitTestCase {
     }, $included));
     $resource_config = $this->prophesize(ResourceConfigInterface::class);
     $resource_config->getTypeName()->willReturn('node');
-    $resource_config->getIdKey()->willReturn('id');
     $context = ['resource_config' => $resource_config->reveal()];
     $entity = $this->prophesize(EntityInterface::class);
-    $entity->id()->willReturn(1);
+    $entity->uuid()->willReturn('248150b2-79a2-4b44-9f49-bf405a51414a');
     $entity->isNew()->willReturn(FALSE);
     $entity->getEntityTypeId()->willReturn('node');
     $entity->bundle()->willReturn('article');
@@ -113,7 +112,7 @@ class EntityNormalizerValueTest extends UnitTestCase {
   public function testRasterizeValue() {
     $this->assertEquals([
       'type' => 'node',
-      'id' => 1,
+      'id' => '248150b2-79a2-4b44-9f49-bf405a51414a',
       'attributes' => ['title' => 'dummy_title'],
       'relationships' => [
         'field_related' => ['data' => ['type' => 'node', 'id' => 2]],
@@ -132,21 +131,21 @@ class EntityNormalizerValueTest extends UnitTestCase {
       [
         'data' => [
           'type' => 'node',
-          'id' => 3,
+          'id' => '199c681d-a9dc-4b6f-a4dc-e3811f24141b',
           'attributes' => ['body' => 'dummy_body1'],
         ],
       ],
       [
         'data' => [
           'type' => 'node',
-          'id' => 3,
+          'id' => '199c681d-a9dc-4b6f-a4dc-e3811f24141b',
           'attributes' => ['body' => 'dummy_body2'],
         ],
       ],
       [
         'data' => [
           'type' => 'node',
-          'id' => 4,
+          'id' => '83771375-a4ba-4d7d-a4d5-6153095bb5c5',
           'attributes' => ['body' => 'dummy_body3'],
         ],
       ],

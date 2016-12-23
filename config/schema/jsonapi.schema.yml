@@ -1,6 +1,0 @@
-jsonapi.resource_info:
-  type: config_object
-  mapping:
-    id_field:
-      type: string
-      label: 'API field'

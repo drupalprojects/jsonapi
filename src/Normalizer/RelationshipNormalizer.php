@@ -83,7 +83,8 @@ class RelationshipNormalizer extends NormalizerBase {
     }
     $cardinality = $relationship->getCardinality();
     $link_context = [
-      'host_entity_id' => $context['resource_config']->getIdKey() == 'uuid' ? $relationship->getHostEntity()->uuid() : $relationship->getHostEntity()->id(),
+      // @todo why have host_entity_id if we already have host_uuid, and they're identical?
+      'host_entity_id' => $relationship->getHostEntity()->uuid(),
       'field_name' => $relationship->getPropertyName(),
       'link_manager' => $this->linkManager,
       'resource_config' => $context['resource_config'],

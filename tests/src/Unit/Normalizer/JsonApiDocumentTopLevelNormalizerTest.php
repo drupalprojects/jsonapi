@@ -2,8 +2,12 @@
 
 namespace Drupal\Tests\jsonapi\Unit\Normalizer;
 
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
@@ -40,6 +44,30 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
     $link_manager = $this->prophesize(LinkManagerInterface::class);
     $current_context_manager = $this->prophesize(CurrentContextInterface::class);
 
+    $entity_storage = $this->prophesize(EntityStorageInterface::class);
+    $self = $this;
+    $uuid_to_id = [
+      '76dd5c18-ea1b-4150-9e75-b21958a2b836' => 1,
+      'fcce1b61-258e-4054-ae36-244d25a9e04c' => 2,
+    ];
+    $entity_storage->loadByProperties(Argument::type('array'))
+      ->will(function ($args) use ($self, $uuid_to_id) {
+        $result = [];
+        foreach ($args[0]['uuid'] as $uuid) {
+          $entity = $self->prophesize(EntityInterface::class);
+          $entity->uuid()->willReturn($uuid);
+          $entity->id()->willReturn($uuid_to_id[$uuid]);
+          $result[$uuid] = $entity->reveal();
+        }
+        return $result;
+      });
+    $entity_type_manager = $this->prophesize(EntityTypeManagerInterface::class);
+    $entity_type_manager->getStorage('node')
+      ->willReturn($entity_storage->reveal());
+    $resource_manager = $this->prophesize(ResourceManagerInterface::class);
+    $resource_manager->getEntityTypeManager()->willReturn($entity_type_manager->reveal());
+    $current_context_manager->getResourceManager()->willReturn($resource_manager->reveal());
+
     $current_route = $this->prophesize(Route::class);
     $current_route->getDefault('_on_relationship')->willReturn(false);
 
@@ -74,7 +102,6 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
    * @dataProvider denormalizeProvider
    */
   public function testDenormalize($input, $expected) {
-    $this->resourceConfig->getIdKey()->willReturn('id');
     $context = [
       'resource_config' => $this->resourceConfig->reveal(),
     ];
@@ -94,7 +121,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
         [
           'data' => [
             'type' => 'lorem',
-            'id' => 42,
+            'id' => 'e1a613f6-f2b9-4e17-9d33-727eb6509d8b',
             'attributes' => ['title' => 'dummy_title'],
           ],
         ],
@@ -104,8 +131,8 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
         [
           'data' => [
             'type' => 'lorem',
-            'id' => 42,
-            'relationships' => ['field_dummy' => ['data' => ['type' => 'node', 'id' => 1]]],
+            'id' => '0676d1bf-55b3-4bbc-9fbc-3df10f4599d5',
+            'relationships' => ['field_dummy' => ['data' => ['type' => 'node', 'id' => '76dd5c18-ea1b-4150-9e75-b21958a2b836']]],
           ],
         ],
         ['field_dummy' => [1]],
@@ -114,8 +141,8 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
         [
           'data' => [
             'type' => 'lorem',
-            'id' => 42,
-            'relationships' => ['field_dummy' => ['data' => [['type' => 'node', 'id' => 1], ['type' => 'node', 'id' => 2]]]],
+            'id' => '535ba297-8d79-4fc1-b0d6-dc2f047765a1',
+            'relationships' => ['field_dummy' => ['data' => [['type' => 'node', 'id' => '76dd5c18-ea1b-4150-9e75-b21958a2b836'], ['type' => 'node', 'id' => 'fcce1b61-258e-4054-ae36-244d25a9e04c']]]],
           ],
         ],
         ['field_dummy' => [1,2]],

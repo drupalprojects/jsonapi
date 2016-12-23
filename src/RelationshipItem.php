@@ -75,10 +75,7 @@ class RelationshipItem implements RelationshipItemInterface {
    * {@inheritdoc}
    */
   public function getValue() {
-    $method = $this->getTargetResourceConfig()->getIdKey() == 'uuid' ?
-      'uuid' :
-      'id';
-    return [$this->targetKey => $this->getTargetEntity()->{$method}()];
+    return [$this->targetKey => $this->getTargetEntity()->uuid()];
   }
 
   /**
