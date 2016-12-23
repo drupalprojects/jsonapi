@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\jsonapi\Unit\Context;
 
+use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\Configuration\ResourceConfig;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
@@ -60,6 +61,11 @@ class CurrentContextTest extends UnitTestCase {
   protected $requestStack;
 
   /**
+   * @var \Drupal\Core\Routing\StackedRouteMatchInterface
+   */
+  protected $routeMatcher;
+
+  /**
    * {@inheritdoc}
    */
   public function setUp() {
@@ -93,13 +99,15 @@ class CurrentContextTest extends UnitTestCase {
       ],
       RouteObjectInterface::ROUTE_OBJECT => $this->currentRoute,
     ]));
+
+    $this->routeMatcher = new CurrentRouteMatch($this->requestStack);
   }
 
   /**
    * @covers ::getResourceConfig
    */
   public function testGetResourceConfig() {
-    $request_context = new CurrentContext($this->resourceManager, $this->requestStack);
+    $request_context = new CurrentContext($this->resourceManager, $this->requestStack, $this->routeMatcher);
     $resource_config = $request_context->getResourceConfig();
 
     $this->assertEquals(
@@ -109,21 +117,10 @@ class CurrentContextTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::getCurrentRoute
-   */
-  public function testGetCurrentRouteMatch() {
-    $request_context = new CurrentContext($this->resourceManager, $this->requestStack);
-    $this->assertEquals(
-      $this->currentRoute,
-      $request_context->getCurrentRoute()
-    );
-  }
-
-  /**
    * @covers ::getResourceManager
    */
   public function testGetResourceManager() {
-    $request_context = new CurrentContext($this->resourceManager, $this->requestStack);
+    $request_context = new CurrentContext($this->resourceManager, $this->requestStack, $this->routeMatcher);
     $this->assertEquals(
       $this->resourceManager,
       $request_context->getResourceManager()
@@ -134,7 +131,7 @@ class CurrentContextTest extends UnitTestCase {
    * @covers ::getJsonApiParameter
    */
   public function testGetJsonApiParameter() {
-    $request_context = new CurrentContext($this->resourceManager, $this->requestStack);
+    $request_context = new CurrentContext($this->resourceManager, $this->requestStack, $this->routeMatcher);
 
     $expected = new Sort([]);
     $actual = $request_context->getJsonApiParameter('sort');
@@ -149,7 +146,7 @@ class CurrentContextTest extends UnitTestCase {
     $request = new Request();
     $request->headers->set('Content-Type', 'application/vnd.api+json; ext="ext1,ext2"');
     $this->requestStack->push($request);
-    $request_context = new CurrentContext($this->resourceManager, $this->requestStack);
+    $request_context = new CurrentContext($this->resourceManager, $this->requestStack, $this->routeMatcher);
 
     $this->assertTrue($request_context->hasExtension('ext1'));
     $this->assertTrue($request_context->hasExtension('ext2'));
@@ -162,7 +159,7 @@ class CurrentContextTest extends UnitTestCase {
     $request = new Request();
     $request->headers->set('Content-Type', 'application/vnd.api+json; ext="ext1,ext2"');
     $this->requestStack->push($request);
-    $request_context = new CurrentContext($this->resourceManager, $this->requestStack);
+    $request_context = new CurrentContext($this->resourceManager, $this->requestStack, $this->routeMatcher);
 
     $this->assertEquals(['ext1', 'ext2'], $request_context->getExtensions());
   }
@@ -174,7 +171,7 @@ class CurrentContextTest extends UnitTestCase {
     $request = new Request();
     $request->headers->set('Content-Type', 'application/vnd.api+json;');
     $this->requestStack->push($request);
-    $request_context = new CurrentContext($this->resourceManager, $this->requestStack);
+    $request_context = new CurrentContext($this->resourceManager, $this->requestStack, $this->routeMatcher);
     $this->assertFalse($request_context->hasExtension('ext1'));
     $this->assertFalse($request_context->hasExtension('ext2'));
   }

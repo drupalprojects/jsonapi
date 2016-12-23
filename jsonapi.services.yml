@@ -75,7 +75,7 @@ services:
     arguments: ['@router.no_access_checks', '@url_generator']
   jsonapi.current_context:
     class: Drupal\jsonapi\Context\CurrentContext
-    arguments: ['@jsonapi.resource.manager', '@request_stack']
+    arguments: ['@jsonapi.resource.manager', '@request_stack', '@current_route_match']
   jsonapi.field_resolver:
     class: Drupal\jsonapi\Context\FieldResolver
     arguments: ['@jsonapi.current_context', '@entity_field.manager']

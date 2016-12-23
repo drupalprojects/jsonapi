@@ -2,11 +2,6 @@
 
 namespace Drupal\jsonapi\Context;
 
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Route;
-
 /**
  * Interface CurrentContextInterface.
  *
@@ -25,20 +20,12 @@ interface CurrentContextInterface {
   public function getResourceConfig();
 
   /**
-   * Returns the current route match.
+   * Checks if the request is on a relationship.
    *
-   * @return \Symfony\Component\Routing\Route
-   *   The currently matched route.
+   * @return bool
+   *   TRUE if the request is on a relationship. FALSE otherwise.
    */
-  public function getCurrentRoute();
-
-  /**
-   * Returns the current route match.
-   *
-   * @param \Symfony\Component\Routing\Route $route
-   *   The route to set.
-   */
-  public function setCurrentRoute(Route $route);
+  public function isOnRelationship();
 
   /**
    * Returns the resource manager.
@@ -57,14 +44,6 @@ interface CurrentContextInterface {
    *   The JSON API provided parameter.
    */
   public function getJsonApiParameter($parameter_key);
-
-  /**
-   * Configures the current context from a request.
-   *
-   * @param \Symfony\Component\HttpFoundation\Request $request
-   *   The request.
-   */
-  public function fromRequest(Request $request);
 
   /**
    * Determines, whether the JSONAPI extension was requested.

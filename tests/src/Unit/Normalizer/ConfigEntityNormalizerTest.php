@@ -41,12 +41,7 @@ class ConfigEntityNormalizerTest extends UnitTestCase {
     $link_manager = $this->prophesize(LinkManagerInterface::class);
     $current_context_manager = $this->prophesize(CurrentContextInterface::class);
 
-    $current_route = $this->prophesize(Route::class);
-    $current_route->getDefault('_on_relationship')->willReturn(FALSE);
-
-    $current_context_manager->getCurrentRoute()->willReturn(
-      $current_route->reveal()
-    );
+    $current_context_manager->isOnRelationship()->willReturn(FALSE);
 
     $resource_config = $this->prophesize(ResourceConfigInterface::class);
     $resource_config->getTypeName()->willReturn('dolor');

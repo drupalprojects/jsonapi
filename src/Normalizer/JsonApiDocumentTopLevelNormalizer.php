@@ -55,8 +55,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
    */
   public function denormalize($data, $class, $format = NULL, array $context = array()) {
     $context += [
-      'on_relationship' => (bool) $this->currentContext->getCurrentRoute()
-        ->getDefault('_on_relationship'),
+      'on_relationship' => $this->currentContext->isOnRelationship(),
     ];
     $normalized = [];
     if (!empty($data['data']['attributes'])) {
@@ -102,7 +101,8 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
     // config.
     $class = $context['resource_config']->getDeserializationTargetClass();
 
-    return $this->serializer
+    return $this
+      ->serializer
       ->denormalize($normalized, $class, $format, $context);
   }
 

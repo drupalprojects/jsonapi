@@ -71,9 +71,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
     $current_route = $this->prophesize(Route::class);
     $current_route->getDefault('_on_relationship')->willReturn(false);
 
-    $current_context_manager->getCurrentRoute()->willReturn(
-      $current_route->reveal()
-    );
+    $current_context_manager->isOnRelationship()->willReturn(FALSE);
     $this->resourceConfig = $this->prophesize(ResourceConfigInterface::class);
     $this->resourceConfig->getDeserializationTargetClass()->willReturn(FieldableEntityInterface::class);
     $current_context_manager->getResourceConfig()->willReturn(

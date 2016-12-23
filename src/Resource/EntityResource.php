@@ -206,9 +206,6 @@ class EntityResource implements EntityResourceInterface {
     // Instantiate the query for the filtering.
     $entity_type_id = $this->resourceConfig->getEntityTypeId();
 
-    // Set the current context from the request.
-    $this->currentContext->fromRequest($request);
-
     $params = $request->attributes->get('_route_params');
     $query = $this->getCollectionQuery($entity_type_id, $params['_json_api_params']);
 

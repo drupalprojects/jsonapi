@@ -2,11 +2,9 @@
 
 namespace Drupal\jsonapi\Context;
 
+use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
-use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Route;
 
 /**
  * Class CurrentContext.
@@ -16,13 +14,6 @@ use Symfony\Component\Routing\Route;
  * @package \Drupal\jsonapi\Context
  */
 class CurrentContext implements CurrentContextInterface {
-
-  /**
-   * The current route.
-   *
-   * @var \Symfony\Component\Routing\Route
-   */
-  protected $currentRoute;
 
   /**
    * The resource manager.
@@ -41,9 +32,16 @@ class CurrentContext implements CurrentContextInterface {
   /**
    * The current request.
    *
-   * @var \Symfony\Component\HttpFoundation\Request
+   * @var \Symfony\Component\HttpFoundation\RequestStack
    */
-  protected $currentRequest;
+  protected $requestStack;
+
+  /**
+   * The current route match.
+   *
+   * @var \Drupal\Core\Routing\RouteMatchInterface
+   */
+  protected $routeMatch;
 
   /**
    * Creates a CurrentContext object.
@@ -52,20 +50,13 @@ class CurrentContext implements CurrentContextInterface {
    *   The resource manager service.
    * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
    *   The request stack.
+   * @param \Drupal\Core\Routing\RouteMatchInterface $route_match
+   *   The current route match.
    */
-  public function __construct(ResourceManagerInterface $resource_manager, RequestStack $request_stack) {
+  public function __construct(ResourceManagerInterface $resource_manager, RequestStack $request_stack, RouteMatchInterface $route_match) {
     $this->resourceManager = $resource_manager;
-    $this->currentRequest = $request_stack->getCurrentRequest();
-    if ($route = $this->currentRequest->get(RouteObjectInterface::ROUTE_OBJECT)) {
-      $this->setCurrentRoute($route);
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function fromRequest(Request $request) {
-    $this->currentRequest = $request;
+    $this->requestStack = $request_stack;
+    $this->routeMatch = $route_match;
   }
 
   /**
@@ -73,8 +64,9 @@ class CurrentContext implements CurrentContextInterface {
    */
   public function getResourceConfig() {
     if (!isset($this->resourceConfig)) {
-      $entity_type_id = $this->getCurrentRoute()->getRequirement('_entity_type');
-      $bundle_id = $this->getCurrentRoute()->getRequirement('_bundle');
+      $route = $this->routeMatch->getRouteObject();
+      $entity_type_id = $route->getRequirement('_entity_type');
+      $bundle_id = $route->getRequirement('_bundle');
       $this->resourceConfig = $this->resourceManager
         ->get($entity_type_id, $bundle_id);
     }
@@ -85,15 +77,10 @@ class CurrentContext implements CurrentContextInterface {
   /**
    * {@inheritdoc}
    */
-  public function getCurrentRoute() {
-    return $this->currentRoute;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setCurrentRoute(Route $route) {
-    return $this->currentRoute = $route;
+  public function isOnRelationship() {
+    return (bool) $this->routeMatch
+      ->getRouteObject()
+      ->getDefault('_on_relationship');
   }
 
   /**
@@ -107,7 +94,11 @@ class CurrentContext implements CurrentContextInterface {
    * {@inheritdoc}
    */
   public function getJsonApiParameter($parameter_key) {
-    $params = $this->currentRequest->attributes->get('_json_api_params');
+    $params = $this
+      ->requestStack
+      ->getCurrentRequest()
+      ->attributes
+      ->get('_json_api_params');
     return (isset($params[$parameter_key])) ? $params[$parameter_key] : NULL;
   }
 
@@ -122,13 +113,16 @@ class CurrentContext implements CurrentContextInterface {
    * {@inheritdoc}
    */
   public function getExtensions() {
-    $content_type_header = $this->currentRequest->headers->get('Content-Type');
+    $content_type_header = $this
+      ->requestStack
+      ->getCurrentRequest()
+      ->headers
+      ->get('Content-Type');
     if (preg_match('/ext="([^"]+)"/i', $content_type_header, $match)) {
       $extensions = array_map('trim', explode(',', $match[1]));
       return $extensions;
     }
     return [];
   }
-
 
 }

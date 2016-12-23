@@ -5,7 +5,9 @@ namespace Drupal\Tests\jsonapi\Kernel\Resource;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\EntityCollectionInterface;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\Resource\EntityResource;
@@ -20,6 +22,7 @@ use Drupal\user\Entity\User;
 use Drupal\user\RoleInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Route;
 
@@ -176,27 +179,35 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    * @covers ::getCollection
    */
   public function testGetFilteredCollection() {
-    // Fake the request.
-    $request = $this->prophesize(Request::class);
-    $params = $this->prophesize(ParameterBag::class);
     $field_manager = $this->container->get('entity_field.manager');
     $filter = new Filter(['type' => ['value' => 'article']], 'node_type', $field_manager);
-    $params->get('_route_params')->willReturn([
+    // The fake route.
+    $route = new Route(NULL, [], [
+      '_entity_type' => 'node',
+      '_bundle' => 'article',
+    ]);
+    // The request.
+    $request = new Request([], [], [
+      '_route_params' => [
+        '_json_api_params' => [
+          'filter' => $filter,
+        ],
+      ],
       '_json_api_params' => [
         'filter' => $filter,
       ],
+      '_route_object' => $route,
     ]);
-    $params->get('_json_api_params')->willReturn([
-      'filter' => $filter,
-    ]);
-    $request->attributes = $params->reveal();
-
+    $request_stack = new RequestStack();
+    $request_stack->push($request);
     // Get the entity resource.
-    $current_context = $this->container->get('jsonapi.current_context');
-    $route = $this->prophesize(Route::class);
-    $route->getRequirement('_entity_type')->willReturn('node');
-    $route->getRequirement('_bundle')->willReturn('article');
-    $current_context->setCurrentRoute($route->reveal());
+    $current_context = new CurrentContext(
+      $this->container->get('jsonapi.resource.manager'),
+      $request_stack,
+      new CurrentRouteMatch($request_stack)
+    );
+    $this->container->set('jsonapi.current_context', $current_context);
+
     $entity_resource = new EntityResource(
       $this->container->get('jsonapi.resource.manager')->get('node_type', 'node_type'),
       $this->container->get('entity_type.manager'),
@@ -207,7 +218,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     );
 
     // Get the response.
-    $response = $entity_resource->getCollection($request->reveal());
+    $response = $entity_resource->getCollection($request);
 
     // Assertions.
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
@@ -221,26 +232,35 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    */
   public function testGetSortedCollection() {
     // Fake the request.
-    $request = $this->prophesize(Request::class);
-    $params = $this->prophesize(ParameterBag::class);
     $field_manager = $this->container->get('entity_field.manager');
+    // The fake route.
+    $route = new Route(NULL, [], [
+      '_entity_type' => 'node',
+      '_bundle' => 'article',
+    ]);
     $sort = new Sort('-type');
-    $params->get('_route_params')->willReturn([
+    // The request.
+    $request = new Request([], [], [
+      '_route_params' => [
+        '_json_api_params' => [
+          'sort' => $sort,
+        ],
+      ],
       '_json_api_params' => [
         'sort' => $sort,
       ],
+      '_route_object' => $route,
     ]);
-    $params->get('_json_api_params')->willReturn([
-      'sort' => $sort,
-    ]);
-    $request->attributes = $params->reveal();
-
+    $request_stack = new RequestStack();
+    $request_stack->push($request);
     // Get the entity resource.
-    $current_context = $this->container->get('jsonapi.current_context');
-    $route = $this->prophesize(Route::class);
-    $route->getRequirement('_entity_type')->willReturn('node');
-    $route->getRequirement('_bundle')->willReturn('article');
-    $current_context->setCurrentRoute($route->reveal());
+    $current_context = new CurrentContext(
+      $this->container->get('jsonapi.resource.manager'),
+      $request_stack,
+      new CurrentRouteMatch($request_stack)
+    );
+    $this->container->set('jsonapi.current_context', $current_context);
+
     $entity_resource = new EntityResource(
       $this->container->get('jsonapi.resource.manager')->get('node_type', 'node_type'),
       $this->container->get('entity_type.manager'),
@@ -251,7 +271,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     );
 
     // Get the response.
-    $response = $entity_resource->getCollection($request->reveal());
+    $response = $entity_resource->getCollection($request);
 
     // Assertions.
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
@@ -266,26 +286,35 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    */
   public function testGetPagedCollection() {
     // Fake the request.
-    $request = $this->prophesize(Request::class);
-    $params = $this->prophesize(ParameterBag::class);
     $field_manager = $this->container->get('entity_field.manager');
+    // The fake route.
+    $route = new Route(NULL, [], [
+      '_entity_type' => 'node',
+      '_bundle' => 'article',
+    ]);
     $pager = new OffsetPage(['offset' => 1, 'limit' => 1]);
-    $params->get('_route_params')->willReturn([
+    // The request.
+    $request = new Request([], [], [
+      '_route_params' => [
+        '_json_api_params' => [
+          'page' => $pager,
+        ],
+      ],
       '_json_api_params' => [
         'page' => $pager,
       ],
+      '_route_object' => $route,
     ]);
-    $params->get('_json_api_params')->willReturn([
-      'page' => $pager,
-    ]);
-    $request->attributes = $params->reveal();
-
+    $request_stack = new RequestStack();
+    $request_stack->push($request);
     // Get the entity resource.
-    $current_context = $this->container->get('jsonapi.current_context');
-    $route = $this->prophesize(Route::class);
-    $route->getRequirement('_entity_type')->willReturn('node');
-    $route->getRequirement('_bundle')->willReturn('article');
-    $current_context->setCurrentRoute($route->reveal());
+    $current_context = new CurrentContext(
+      $this->container->get('jsonapi.resource.manager'),
+      $request_stack,
+      new CurrentRouteMatch($request_stack)
+    );
+    $this->container->set('jsonapi.current_context', $current_context);
+
     $entity_resource = new EntityResource(
       $this->container->get('jsonapi.resource.manager')->get('node', 'article'),
       $this->container->get('entity_type.manager'),
@@ -296,7 +325,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     );
 
     // Get the response.
-    $response = $entity_resource->getCollection($request->reveal());
+    $response = $entity_resource->getCollection($request);
 
     // Assertions.
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
@@ -761,11 +790,23 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    *   The resource.
    */
   protected function buildEntityResource($entity_type_id, $bundle_id) {
-    $current_context = $this->container->get('jsonapi.current_context');
-    $route = $this->prophesize(Route::class);
-    $route->getRequirement('_entity_type')->willReturn($entity_type_id);
-    $route->getRequirement('_bundle')->willReturn($bundle_id);
-    $current_context->setCurrentRoute($route->reveal());
+    // The fake route.
+    $route = new Route(NULL, [], [
+      '_entity_type' => $entity_type_id,
+      '_bundle' => $bundle_id,
+    ]);
+    // The request.
+    $request = new Request([], [], ['_route_object' => $route]);
+    $request_stack = new RequestStack();
+    $request_stack->push($request);
+    // Get the entity resource.
+    $current_context = new CurrentContext(
+      $this->container->get('jsonapi.resource.manager'),
+      $request_stack,
+      new CurrentRouteMatch($request_stack)
+    );
+    $this->container->set('jsonapi.current_context', $current_context);
+
     $resource_config = $this->prophesize(ResourceConfigInterface::class);
     $resource_config->getEntityTypeId()->willReturn($entity_type_id);
     $resource_config->getBundleId()->willReturn($bundle_id);

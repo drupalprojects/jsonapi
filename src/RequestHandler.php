@@ -138,7 +138,13 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     // Make sure that any PHP error is surfaced as a serializable exception.
     $error_handler->register();
     $output = $this->container->get('renderer')
-      ->executeInRenderContext($context, function () use ($serializer, $data, $format, $request, $cacheable_metadata, $error_handler, $response) {
+      ->executeInRenderContext($context, function () use (
+        $serializer,
+        $data,
+        $format,
+        $request,
+        $cacheable_metadata
+      ) {
         return $serializer->serialize($data, $format, ['request' => $request, 'cacheable_metadata' => $cacheable_metadata]);
       });
     $error_handler->restore();
