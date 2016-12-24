@@ -6,6 +6,7 @@ use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\Resource\EntityResource;
 use Drupal\serialization\EntityResolver\UuidReferenceInterface;
 
 /**
@@ -22,7 +23,7 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
    *
    * @var string
    */
-  protected $supportedInterfaceOrClass = RelationshipItemInterface::class;
+  protected $supportedInterfaceOrClass = \Drupal\jsonapi\Normalizer\RelationshipItemInterface::class;
 
   /**
    * The manager for resource configuration.
@@ -74,8 +75,12 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
     $host_field_name = $relationship_item->getParent()->getPropertyName();
     if (!empty($context['include']) && in_array($host_field_name, $context['include'])) {
       $context = $this->buildSubContext($context, $target_entity, $host_field_name);
-      $included_normalizer_value = $this->jsonapiDocumentToplevelNormalizer->buildNormalizerValue($target_entity, $format, $context);
+      $entity_and_access = EntityResource::getEntityAndAccess($target_entity);
+      $included_normalizer_value = $this
+        ->jsonapiDocumentToplevelNormalizer
+        ->buildNormalizerValue($entity_and_access['entity'], $format, $context);
       $normalizer_value->setInclude($included_normalizer_value);
+      $normalizer_value->addCacheableDependency($entity_and_access['access']);
       $normalizer_value->addCacheableDependency($included_normalizer_value);
       // Add the cacheable dependency of the included item directly to the
       // response cacheable metadata. This is similar to the flatten include

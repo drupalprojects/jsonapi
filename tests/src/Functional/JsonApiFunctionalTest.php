@@ -12,6 +12,8 @@ use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\image\Kernel\ImageFieldCreationTrait;
+use Drupal\user\Entity\Role;
+use Drupal\user\RoleInterface;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
 
@@ -118,6 +120,11 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     // Create a user that can
     $this->userCanViewProfiles = $this->drupalCreateUser([
       'access user profiles',
+    ]);
+
+    $this->grantPermissions(Role::load(RoleInterface::ANONYMOUS_ID), [
+      'access user profiles',
+      'administer taxonomy',
     ]);
 
     drupal_flush_all_caches();

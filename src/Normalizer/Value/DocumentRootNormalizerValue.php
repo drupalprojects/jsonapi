@@ -154,7 +154,11 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
     // Make sure we don't output duplicate includes.
     return array_values(array_reduce($includes, function ($unique_includes, $include) {
       $rasterized_include = $include->rasterizeValue();
-      $unique_includes[$rasterized_include['data']['type'] . ':' . $rasterized_include['data']['id']] = $include;
+
+      $unique_key = $rasterized_include['data'] === FALSE ?
+        $rasterized_include['meta']['errors'][0]['detail'] :
+        $rasterized_include['data']['type'] . ':' . $rasterized_include['data']['id'];
+      $unique_includes[$unique_key] = $include;
       return $unique_includes;
     }, []));
   }
@@ -167,7 +171,7 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
     return array_map(function ($include) {
       $value = $include->rasterizeValue();
       // Included resources should only return their "data" elements
-      return $value['data'];
+      return $value['data'] === FALSE ? ['meta' => $value['meta']] : $value['data'];
     }, $this->getIncludes());
   }
 

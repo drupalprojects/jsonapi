@@ -240,20 +240,29 @@ class EntityResource implements EntityResourceInterface {
     if (!($field_list = $entity->get($related_field)) || !$this->isRelationshipField($field_list)) {
       throw new SerializableHttpException(404, sprintf('The relationship %s is not present in this resource.', $related_field));
     }
-    $data_definition = $field_list->getDataDefinition();
-    // TODO: Also check for access in the related.
-    if (!$is_multiple = $data_definition->getFieldStorageDefinition()->isMultiple()) {
+    $is_multiple = $field_list
+      ->getDataDefinition()
+      ->getFieldStorageDefinition()
+      ->isMultiple();
+    if (!$is_multiple) {
       return $this->getIndividual($field_list->entity, $request);
     }
-    $entities = [];
+    $collection_data = [];
     foreach ($field_list as $field_item) {
       /* @var \Drupal\Core\Entity\EntityInterface $entity_item */
       $entity_item = $field_item->entity;
-      $entities[$entity_item->id()] = $entity_item;
+      $collection_data[$entity_item->id()] = static::getEntityAndAccess($entity_item);
     }
-    $entity_collection = new EntityCollection($entities);
+    $entity_collection = new EntityCollection(array_column($collection_data, 'entity'));
     $entity_type_id = $field_list->getSetting('target_type');
-    return $this->respondWithCollection($entity_collection, $entity_type_id);
+    $response = $this->respondWithCollection($entity_collection, $entity_type_id);
+
+    $access_info = array_column($collection_data, 'access');
+    array_walk($access_info, function ($access) use ($response) {
+      $response->addCacheableDependency($access);
+    });
+
+    return $response;
   }
 
   /**
@@ -563,26 +572,41 @@ class EntityResource implements EntityResourceInterface {
    *     - access: the access object.
    */
   protected function loadEntitiesWithAccess(EntityStorageInterface $storage, $ids) {
-    $collection_data = [];
+    $output = [];
     foreach ($storage->loadMultiple($ids) as $entity) {
-      /* @var \Drupal\Core\Entity\EntityInterface $entity */
-      $access = $entity->access('view', NULL, TRUE);
-      // Accumulate the cacheability metadata for the access.
-      $collection_data[$entity->id()] = [
-        'access' => $access,
-        'entity' => $entity,
-      ];
-      if ($entity instanceof AccessibleInterface && !$access->isAllowed()) {
-        // Pass an exception to the list of things to normalize.
-        $collection_data[$entity->id()]['entity'] = new SerializableHttpException(403, sprintf(
-          'Access checks failed for entity %s:%s.',
-          $entity->getEntityTypeId(),
-          $entity->id()
-        ));
-      }
+      $output[$entity->id()] = static::getEntityAndAccess($entity);
+    }
+    return $output;
+  }
+
+  /**
+   * Get the object to normalize and the access based on the provided entity.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to test access for.
+   *
+   * @return array
+   *   An array containing the keys:
+   *     - entity: the loaded entity or an access exception.
+   *     - access: the access object.
+   */
+  public static function getEntityAndAccess(EntityInterface $entity) {
+    $access = $entity->access('view', NULL, TRUE);
+    // Accumulate the cacheability metadata for the access.
+    $output = [
+      'access' => $access,
+      'entity' => $entity,
+    ];
+    if ($entity instanceof AccessibleInterface && !$access->isAllowed()) {
+      // Pass an exception to the list of things to normalize.
+      $output['entity'] = new SerializableHttpException(403, sprintf(
+        'Access checks failed for entity %s:%s.',
+        $entity->getEntityTypeId(),
+        $entity->id()
+      ));
     }
 
-    return $collection_data;
+    return $output;
   }
 
 }

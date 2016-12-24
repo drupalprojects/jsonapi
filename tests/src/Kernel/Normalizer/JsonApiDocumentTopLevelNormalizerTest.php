@@ -15,7 +15,9 @@ use Drupal\jsonapi\ResourceResponse;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\Tests\jsonapi\Kernel\JsonapiKernelTestBase;
+use Drupal\user\Entity\Role;
 use Drupal\user\Entity\User;
+use Drupal\user\RoleInterface;
 use Prophecy\Argument;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
@@ -115,6 +117,10 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       'title' => 'dummy_title',
       'type' => 'article',
       'uid' => 1,
+      'field_tags' => [
+        ['target_id' => $this->term1->id()],
+        ['target_id' => $this->term2->id()],
+      ],
     ]);
 
     $this->node->save();
@@ -129,6 +135,13 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $this->container->set('jsonapi.link_manager', $link_manager->reveal());
 
     $this->nodeType = NodeType::load('article');
+
+    Role::create([
+      'id' => RoleInterface::ANONYMOUS_ID,
+      'permissions' => [
+        'access content',
+      ],
+    ])->save();
   }
 
 
@@ -163,20 +176,18 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     list($request, $resource_config) = $this->generateProphecies('node', 'article');
     $request->query = new ParameterBag([
       'fields' => [
-        'node--article' => 'title,type,uid',
+        'node--article' => 'title,type,uid,field_tags',
         'user--user' => 'name',
       ],
-      'include' => 'uid',
+      'include' => 'uid,field_tags',
     ]);
-    $document_wrapper = $this->prophesize(JsonApiDocumentTopLevel::class);
-    $document_wrapper->getData()->willReturn($this->node);
 
     $response = new ResourceResponse();
     $normalized = $this
       ->container
       ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
       ->normalize(
-        $document_wrapper->reveal(),
+        new JsonApiDocumentTopLevel($this->node),
         'api_json',
         [
           'request' => $request,
@@ -208,16 +219,25 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         'related' => 'dummy_entity_link',
       ],
     ], $normalized['data']['relationships']['uid']);
-    $this->assertEquals($this->user->uuid(), $normalized['included'][0]['id']);
-    $this->assertEquals('user--user', $normalized['included'][0]['type']);
-    $this->assertEquals($this->user->label(), $normalized['included'][0]['attributes']['name']);
+    $this->assertEquals(
+      'Access checks failed for entity user:' . $this->user->id() . '.',
+      $normalized['included'][0]['meta']['errors'][0]['detail']
+    );
+    $this->assertEquals(403, $normalized['included'][0]['meta']['errors'][0]['status']);
+    $this->assertEquals($this->term1->uuid(), $normalized['included'][1]['id']);
+    $this->assertEquals('taxonomy_term--tags', $normalized['included'][1]['type']);
+    $this->assertEquals($this->term1->label(), $normalized['included'][1]['attributes']['name']);
     $this->assertTrue(!isset($normalized['included'][0]['attributes']['created']));
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
-    $this->assertSame(['node:1', 'user:1'], $response->getCacheableMetadata()
-      ->getCacheTags());
-    $this->assertSame(Cache::PERMANENT, $response->getCacheableMetadata()
-      ->getCacheMaxAge());
+    $this->assertSame(
+      ['node:1', 'taxonomy_term:1', 'taxonomy_term:2'],
+      $response->getCacheableMetadata()->getCacheTags()
+    );
+    $this->assertSame(
+      Cache::PERMANENT,
+      $response->getCacheableMetadata()->getCacheMaxAge()
+    );
   }
 
   /**
@@ -268,10 +288,10 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $document_wrapper->getData()->willReturn($this->node);
     $request->query = new ParameterBag([
       'fields' => [
-        'node--article' => 'title,type,uid',
+        'node--article' => 'title,type,uid,field_tags',
         'user--user' => 'name',
       ],
-      'include' => 'uid',
+      'include' => 'uid,field_tags',
     ]);
 
     $response = new ResourceResponse();
@@ -290,11 +310,14 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $this->assertStringMatchesFormat($this->node->uuid(), $normalized['data']['id']);
     $this->assertEquals($this->node->type->entity->uuid(), $normalized['data']['relationships']['type']['data']['id']);
     $this->assertEquals($this->user->uuid(), $normalized['data']['relationships']['uid']['data']['id']);
-    $this->assertEquals($this->user->uuid(), $normalized['included'][0]['id']);
+    $this->assertTrue(empty($normalized['included'][0]['id']));
+    $this->assertEquals($this->term1->uuid(), $normalized['included'][1]['id']);
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
-    $this->assertSame(['node:1', 'user:1'], $response->getCacheableMetadata()
-      ->getCacheTags());
+    $this->assertSame(
+      ['node:1', 'taxonomy_term:1', 'taxonomy_term:2'],
+      $response->getCacheableMetadata()->getCacheTags()
+    );
   }
 
   /**
