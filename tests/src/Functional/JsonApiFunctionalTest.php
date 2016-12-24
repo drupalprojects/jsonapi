@@ -5,6 +5,8 @@ namespace Drupal\Tests\jsonapi\Functional;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Url;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\field\Tests\EntityReference\EntityReferenceTestTrait;
 use Drupal\file\Entity\File;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
@@ -36,6 +38,7 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     'node',
     'image',
     'taxonomy',
+    'link',
   ];
 
   /**
@@ -111,6 +114,25 @@ class JsonApiFunctionalTest extends BrowserTestBase {
       $this->createImageField('field_image', 'article');
     }
 
+    FieldStorageConfig::create(array(
+      'field_name' => 'field_link',
+      'entity_type' => 'node',
+      'type' => 'link',
+      'settings' => [],
+      'cardinality' => 1,
+    ))->save();
+
+    $field_config = FieldConfig::create([
+      'field_name' => 'field_link',
+      'label' => 'Link',
+      'entity_type' => 'node',
+      'bundle' => 'article',
+      'required' => FALSE,
+      'settings' => [],
+      'description' => '',
+    ]);
+    $field_config->save();
+
     $this->user = $this->drupalCreateUser([
       'create article content',
       'edit any article content',
@@ -177,7 +199,7 @@ class JsonApiFunctionalTest extends BrowserTestBase {
    * Test the GET method.
    */
   public function testRead() {
-    $this->createDefaultContent(60, 5, TRUE);
+    $this->createDefaultContent(60, 5, TRUE, TRUE);
     // 1. Load all articles (1st page).
     $collection_output = Json::decode($this->drupalGet('/jsonapi/node/article'));
     $this->assertSession()->statusCodeEquals(200);
@@ -377,13 +399,28 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $this->assertEquals($this->user->get('name')->value, $single_output['data']['attributes']['name']);
     $this->assertTrue(empty($single_output['data']['attributes']['mail']));
     $this->assertTrue(empty($single_output['data']['attributes']['pass']));
+    // 18. Test filtering on the column of a link.
+    $filter = [
+      'linkUri' => [
+        'condition' => [
+          'path' => 'field_link.uri',
+          'value' => 'https://',
+          'operator' => 'STARTS_WITH',
+        ],
+      ],
+    ];
+    $single_output = Json::decode($this->drupalGet('/jsonapi/node/article', [
+      'query' => ['filter' => $filter],
+    ]));
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertGreaterThanOrEqual(1, count($single_output['data']));
   }
 
   /**
    * Test POST, PATCH and DELETE.
    */
   public function testWrite() {
-    $this->createDefaultContent(0, 3, FALSE);
+    $this->createDefaultContent(0, 3, FALSE, FALSE);
     // 1. Successful post.
     $collection_url = Url::fromRoute('jsonapi.node--article.collection');
     $body = [
@@ -625,8 +662,10 @@ class JsonApiFunctionalTest extends BrowserTestBase {
    *   Number of tags to create.
    * @param bool $article_has_image
    *   Set to TRUE if you want to add an image to the generated articles.
+   * @param bool $article_has_link
+   *   Set to TRUE if you want to add a link to the generated articles.
    */
-  protected function createDefaultContent($num_articles, $num_tags, $article_has_image) {
+  protected function createDefaultContent($num_articles, $num_tags, $article_has_image, $article_has_link) {
     $random = $this->getRandomGenerator();
     for ($created_tags = 0; $created_tags < $num_tags; $created_tags++) {
       $term = Term::create([
@@ -660,7 +699,26 @@ class JsonApiFunctionalTest extends BrowserTestBase {
         $this->files[] = $file;
         $values['field_image'] = ['target_id' => $file->id()];
       }
+      if ($article_has_link) {
+        $values['field_link'] = [
+          'title' => $this->getRandomGenerator()->name(),
+          'uri' => sprintf(
+            '%s://%s.%s',
+            'http' . (mt_rand(0, 2) > 1 ? '' : 's'),
+            $this->getRandomGenerator()->name(),
+            'org'
+          ),
+        ];
+      }
       $this->nodes[] = $this->createNode($values);
+    }
+    if ($article_has_link) {
+      // Make sure that there is at least 1 https link for ::testRead() #19.
+      $this->nodes[0]->field_link = [
+        'title' => 'Drupal',
+        'uri' => 'https://drupal.org'
+      ];
+      $this->nodes[0]->save();
     }
   }
 

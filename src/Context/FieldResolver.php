@@ -65,25 +65,33 @@ class FieldResolver implements FieldResolverInterface {
     // 'uid.entity.field_category.entity.name'. This may be too simple, but it
     // works for the time being.
     $parts = explode('.', $external_field_name);
-    // The last part of the chain is the referenced field, not a relationship.
-    $leave_field = array_pop($parts);
     $entity_type_id = $this->currentContext->getResourceConfig()->getEntityTypeId();
-    foreach ($parts as $field_name) {
+    $reference_breadcrumbs = [];
+    while ($field_name = array_shift($parts)) {
       if (!$definitions = $this->fieldManager->getFieldStorageDefinitions($entity_type_id)) {
         throw new SerializableHttpException(400, sprintf('Invalid nested filtering. There is no entity type "%s".', $entity_type_id));
       }
-      if (
-        empty($definitions[$field_name]) ||
-        $definitions[$field_name]->getType() != 'entity_reference'
-      ) {
+      if (empty($definitions[$field_name])) {
         throw new SerializableHttpException(400, sprintf('Invalid nested filtering. Invalid entity reference "%s".', $field_name));
       }
+      array_push($reference_breadcrumbs, $field_name);
       // Update the entity type with the referenced type.
       $entity_type_id = $definitions[$field_name]->getSetting('target_type');
-    };
-    // Put the leave field back before imploding.
-    array_push($parts, $leave_field);
-    return implode('.entity.', $parts);
+      // $field_name may not be a reference field. In that case we should treat
+      //the rest of the parts as complex fields.
+      if (empty($entity_type_id)) {
+        // This is the path from the initial entity type to the entity type that
+        // contains $field_name. This path is a set of entity references.
+        $entity_path = implode('.entity.', $reference_breadcrumbs);
+        // This is the path from the final entity type to the selected field
+        //column.
+        $field_path = implode('.', $parts);
+
+        return implode('.', array_filter([$entity_path, $field_path]));
+      }
+    }
+
+    return implode('.entity.', $reference_breadcrumbs);
   }
 
 }
