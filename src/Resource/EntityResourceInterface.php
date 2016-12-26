@@ -164,6 +164,6 @@ interface EntityResourceInterface {
    * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    */
-  public function deleteRelationship(EntityInterface $entity, $related_field, $parsed_field_list, Request $request);
+  public function deleteRelationship(EntityInterface $entity, $related_field, $parsed_field_list, Request $request = NULL);
 
 }

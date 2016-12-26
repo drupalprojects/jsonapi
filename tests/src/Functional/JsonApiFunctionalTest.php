@@ -611,8 +611,35 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $this->assertCount(1, $updated_response['data']);
     $this->assertEquals('taxonomy_term--tags', $updated_response['data'][0]['type']);
     $this->assertEquals($this->tags[1]->uuid(), $updated_response['data'][0]['id']);
-    // TODO: Successful DELETE to related endpoint.
-    // 11. PATCH with invalid title and body format.
+    // 11. Successful DELETE to related endpoint.
+    $payload = $updated_response;
+    $response = $this->request('DELETE', $relationship_url, [
+      // Send a request with no body.
+      'auth' => [$this->user->getUsername(), $this->user->pass_raw],
+      'headers' => ['Content-Type' => 'application/vnd.api+json'],
+    ]);
+    $updated_response = Json::decode($response->getBody()->__toString());
+    $this->assertEquals(
+      'You need to provide a body for DELETE operations on a relationship (field_tags).',
+      $updated_response['errors'][0]['detail']
+    );
+    $this->assertEquals(400, $response->getStatusCode());
+    $response = $this->request('DELETE', $relationship_url, [
+      // Send a request with no authentication.
+      'body' => Json::encode($payload),
+      'headers' => ['Content-Type' => 'application/vnd.api+json'],
+    ]);
+    $this->assertEquals(403, $response->getStatusCode());
+    $response = $this->request('DELETE', $relationship_url, [
+      // Remove the existing relationship item.
+      'body' => Json::encode($payload),
+      'auth' => [$this->user->getUsername(), $this->user->pass_raw],
+      'headers' => ['Content-Type' => 'application/vnd.api+json'],
+    ]);
+    $updated_response = Json::decode($response->getBody()->__toString());
+    $this->assertEquals(201, $response->getStatusCode());
+    $this->assertCount(0, $updated_response['data']);
+    // 12. PATCH with invalid title and body format.
     $body = [
       'data' => [
         'id' => $uuid,
@@ -644,7 +671,7 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $this->assertEquals("body.0.format: The value you selected is not a valid choice.", $updated_response['errors'][1]['detail']);
     $this->assertEquals("/data/attributes/title", $updated_response['errors'][0]['source']['pointer']);
     $this->assertEquals("/data/attributes/body/format", $updated_response['errors'][1]['source']['pointer']);
-    // 12. Successful DELETE.
+    // 13. Successful DELETE.
     $response = $this->request('DELETE', $individual_url, [
       'auth' => [$this->user->getUsername(), $this->user->pass_raw],
     ]);

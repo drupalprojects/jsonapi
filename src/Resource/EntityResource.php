@@ -373,11 +373,15 @@ class EntityResource implements EntityResourceInterface {
   /**
    * {@inheritdoc}
    */
-  public function deleteRelationship(EntityInterface $entity, $related_field, $parsed_field_list, Request $request) {
+  public function deleteRelationship(EntityInterface $entity, $related_field, $parsed_field_list, Request $request = NULL) {
     if ($parsed_field_list instanceof Response) {
       // This usually means that there was an error, so there is no point on
       // processing further.
       return $parsed_field_list;
+    }
+    if ($parsed_field_list instanceof Request) {
+      // This usually means that there was not body provided.
+      throw new SerializableHttpException(400, sprintf('You need to provide a body for DELETE operations on a relationship (%s).', $related_field));
     }
     /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $parsed_field_list */
     $this->relationshipAccess($entity, $related_field);
@@ -389,6 +393,13 @@ class EntityResource implements EntityResourceInterface {
     }
     /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $field_list */
     $field_list = $entity->{$related_field};
+    $is_multiple = $field_list->getFieldDefinition()
+      ->getFieldStorageDefinition()
+      ->isMultiple();
+    if (!$is_multiple) {
+      throw new SerializableHttpException(409, sprintf('You can only DELETE from to-many relationships. %s is a to-one relationship.', $related_field));
+    }
+
     // Compute the list of current values and remove the ones in the payload.
     $current_values = $field_list->getValue();
     $deleted_values = $parsed_field_list->getValue();
@@ -500,7 +511,7 @@ class EntityResource implements EntityResourceInterface {
     /* @var \Drupal\Core\Field\EntityReferenceFieldItemListInterface $parsed_field_list */
     $entity_access = $entity->access('update', NULL, TRUE);
     if (!$entity_access->isAllowed()) {
-      throw new SerializableHttpException(403, 'The current user is not allowed to POST the selected resource.');
+      throw new SerializableHttpException(403, 'The current user is not allowed to update the selected resource.');
     }
     if (!($field_list = $entity->get($related_field)) || !$this->isRelationshipField($field_list)) {
       throw new SerializableHttpException(404, sprintf('The relationship %s is not present in this resource.', $related_field));
