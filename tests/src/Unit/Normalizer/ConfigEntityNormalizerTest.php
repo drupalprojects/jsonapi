@@ -3,17 +3,14 @@
 namespace Drupal\Tests\jsonapi\Unit\Normalizer;
 
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\Configuration\ResourceConfig;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\Normalizer\ConfigEntityNormalizer;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
-use Drupal\jsonapi\Normalizer\FieldItemNormalizer;
 use Drupal\jsonapi\Normalizer\ScalarNormalizer;
-use Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValue;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
-use Symfony\Component\Routing\Route;
 use Symfony\Component\Serializer\Serializer;
 
 /**
@@ -43,13 +40,9 @@ class ConfigEntityNormalizerTest extends UnitTestCase {
 
     $current_context_manager->isOnRelationship()->willReturn(FALSE);
 
-    $resource_config = $this->prophesize(ResourceConfigInterface::class);
-    $resource_config->getTypeName()->willReturn('dolor');
-    $resource_config->getBundleId()->willReturn('sid');
-
     $resource_manager = $this->prophesize(ResourceManagerInterface::class);
     $resource_manager->get(Argument::type('string'), Argument::type('string'))
-      ->willReturn($resource_config->reveal());
+      ->willReturn(new ResourceConfig('dolor', 'sid', NULL));
     $current_context_manager->getResourceManager()->willReturn(
       $resource_manager->reveal()
     );

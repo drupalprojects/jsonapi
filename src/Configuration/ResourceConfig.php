@@ -6,22 +6,14 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
- * Class ResourceConfig.
+ * Value object containing all metadata for a JSON API resource type.
  *
- * This object contains all the information needed to generate all the routes
- * associated with a JSON API type. In the future this is going to be
- * constructed (maybe?) from a configuration entity.
+ * Used to generate routes (collection, individual, et cetera), generate
+ * relationship links, and so on.
  *
- * @package Drupal\jsonapi\Configuration
+ * @internal
  */
 class ResourceConfig implements ResourceConfigInterface {
-
-  /**
-   * Holds the entity type manager.
-   *
-   * @var EntityTypeManagerInterface
-   */
-  protected $entityTypeManager;
 
   /**
    * The entity type ID.
@@ -68,25 +60,8 @@ class ResourceConfig implements ResourceConfigInterface {
   /**
    * {@inheritdoc}
    */
-  public function setEntityTypeId($entity_type_id) {
-    $this->entityTypeId = $entity_type_id;
-    $this->deserializationTargetClass = $this->entityTypeManager
-      ->getDefinition($entity_type_id)
-      ->getClass();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function getTypeName() {
     return $this->typeName;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setTypeName($type_name) {
-    $this->typeName = $type_name;
   }
 
   /**
@@ -99,29 +74,8 @@ class ResourceConfig implements ResourceConfigInterface {
   /**
    * {@inheritdoc}
    */
-  public function setPath($path) {
-    $this->path = $path;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function getBundleId() {
     return $this->bundleId;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setBundleId($bundle_id) {
-    $this->bundleId = $bundle_id;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getStorage() {
-    return $this->entityTypeManager->getStorage($this->entityTypeId);
   }
 
   /**
@@ -134,11 +88,20 @@ class ResourceConfig implements ResourceConfigInterface {
   /**
    * Instantiates a ResourceConfig object.
    *
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
-   *   The entity type manager.
+   * @param string $entity_type_id
+   *   An entity type ID.
+   * @param string $bundle_id
+   *   A bundle ID.
+   * @param string $deserialization_target_class
+   *   The deserialization target class.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager) {
-    $this->entityTypeManager = $entity_type_manager;
+  public function __construct($entity_type_id, $bundle_id, $deserialization_target_class) {
+    $this->entityTypeId = $entity_type_id;
+    $this->bundleId = $bundle_id;
+    $this->deserializationTargetClass = $deserialization_target_class;
+
+    $this->typeName = sprintf('%s--%s', $this->entityTypeId, $this->bundleId);
+    $this->path= sprintf('/%s/%s', $this->entityTypeId, $this->bundleId);
   }
 
 }

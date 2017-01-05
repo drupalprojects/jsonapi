@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\jsonapi\Unit\Normalizer\Value;
 
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\Configuration\ResourceConfig;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Normalizer\Value\RelationshipItemNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValue;
@@ -32,7 +32,7 @@ class RelationshipNormalizerValueTest extends UnitTestCase {
     $object = new RelationshipNormalizerValue($values, $cardinality, [
       'link_manager' => $link_manager->reveal(),
       'host_entity_id' => 'lorem',
-      'resource_config' => $this->prophesize(ResourceConfigInterface::class)->reveal(),
+      'resource_config' => new ResourceConfig($this->randomMachineName(), $this->randomMachineName(), NULL),
       'field_name' => 'ipsum',
     ]);
     $this->assertEquals($expected, $object->rasterizeValue());
@@ -86,7 +86,7 @@ class RelationshipNormalizerValueTest extends UnitTestCase {
     $object = new RelationshipNormalizerValue([$uid1->reveal()], 1, [
       'link_manager' => $link_manager->reveal(),
       'host_entity_id' => 'lorem',
-      'resource_config' => $this->prophesize(ResourceConfigInterface::class)->reveal(),
+      'resource_config' => new ResourceConfig($this->randomMachineName(), $this->randomMachineName(), NULL),
       'field_name' => 'ipsum',
     ]);
     $object->rasterizeValue();

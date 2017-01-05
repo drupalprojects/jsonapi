@@ -6,13 +6,14 @@ use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Url;
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\Configuration\ResourceConfig;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\EntityNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValueInterface;
+use Drupal\node\NodeInterface;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 
@@ -78,9 +79,7 @@ class EntityNormalizerValueTest extends UnitTestCase {
     $field2->getIncludes()->willReturn(array_map(function ($included_item) {
       return $included_item->reveal();
     }, $included));
-    $resource_config = $this->prophesize(ResourceConfigInterface::class);
-    $resource_config->getTypeName()->willReturn('node');
-    $context = ['resource_config' => $resource_config->reveal()];
+    $context = ['resource_config' => new ResourceConfig('node', 'article', NodeInterface::class)];
     $entity = $this->prophesize(EntityInterface::class);
     $entity->uuid()->willReturn('248150b2-79a2-4b44-9f49-bf405a51414a');
     $entity->isNew()->willReturn(FALSE);
@@ -111,7 +110,7 @@ class EntityNormalizerValueTest extends UnitTestCase {
    */
   public function testRasterizeValue() {
     $this->assertEquals([
-      'type' => 'node',
+      'type' => 'node--article',
       'id' => '248150b2-79a2-4b44-9f49-bf405a51414a',
       'attributes' => ['title' => 'dummy_title'],
       'relationships' => [

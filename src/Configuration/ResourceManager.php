@@ -58,11 +58,11 @@ class ResourceManager implements ResourceManagerInterface {
       foreach ($entity_type_ids as $entity_type_id) {
         // Add a ResourceConfig per bundle.
         $this->all = array_merge($this->all, array_map(function ($bundle) use ($entity_type_id) {
-          $resource_config = new ResourceConfig($this->entityTypeManager);
-          $resource_config->setEntityTypeId($entity_type_id);
-          $resource_config->setBundleId($bundle);
-          $resource_config->setPath(sprintf('/%s/%s', $entity_type_id, $bundle));
-          $resource_config->setTypeName(sprintf('%s--%s', $entity_type_id, $bundle));
+          $resource_config = new ResourceConfig(
+            $entity_type_id,
+            $bundle,
+            $this->entityTypeManager->getDefinition($entity_type_id)->getClass()
+          );
           return $resource_config;
         }, array_keys($this->bundleManager->getBundleInfo($entity_type_id))));
       }

@@ -140,7 +140,9 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
       $data[$bundle_key] = $bundle_id;
     }
 
-    return $resource_config->getStorage()->create($data);
+    return $this->currentContext->getResourceManager()
+      ->getEntityTypeManager()
+      ->getStorage($resource_config->getEntityTypeId())->create($data);
   }
 
   /**

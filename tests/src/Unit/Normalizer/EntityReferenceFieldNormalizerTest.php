@@ -11,7 +11,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
 use Drupal\field\Entity\FieldConfig;
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\Configuration\ResourceConfig;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\Normalizer\EntityReferenceFieldNormalizer;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
@@ -74,10 +74,8 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
       Argument::type('array')
     )->willReturnArgument(2);
     $resource_manager = $this->prophesize(ResourceManagerInterface::class);
-    $resource_config = $this->prophesize(ResourceConfigInterface::class);
-    $resource_config->getTypeName()->willReturn('lorem');
     $resource_manager->get('fake_entity_type', 'dummy_bundle')
-      ->willReturn($resource_config->reveal());
+      ->willReturn(new ResourceConfig('lorem', 'dummy_bundle', NULL));
 
     $entity_storage = $this->prophesize(EntityStorageInterface::class);
     $entity = $this->prophesize(EntityInterface::class);
@@ -103,12 +101,10 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
    * @dataProvider denormalizeProvider
    */
   public function testDenormalize($input, $field_name, $expected) {
-    $resource_config = $this->prophesize(ResourceConfigInterface::class);
-    $resource_config->getEntityTypeId()->willReturn('fake_entity_type');
-    $resource_config->getBundleId()->willReturn('dummy_bundle');
+    $resource_config = new ResourceConfig('fake_entity_type', 'dummy_bundle', NULL);
     $entity = $this->prophesize(FieldableEntityInterface::class);
     $context = [
-      'resource_config' => $resource_config->reveal(),
+      'resource_config' => $resource_config,
       'related' => $field_name,
       'target_entity' => $entity->reveal(),
     ];
@@ -125,7 +121,7 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
   public function denormalizeProvider() {
     return [
       [
-        ['data' => [['type' => 'lorem', 'id' => '4e6cb61d-4f04-437f-99fe-42c002393658']]],
+        ['data' => [['type' => 'lorem--dummy_bundle', 'id' => '4e6cb61d-4f04-437f-99fe-42c002393658']]],
         'field_dummy',
         [['bunny' => 42]],
       ],
@@ -148,11 +144,9 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
    * @dataProvider denormalizeInvalidResourceProvider
    */
   public function testDenormalizeInvalidResource($data, $field_name) {
-    $resource_config = $this->prophesize(ResourceConfigInterface::class);
-    $resource_config->getEntityTypeId()->willReturn('fake_entity_type');
-    $resource_config->getBundleId()->willReturn('dummy_bundle');
+    $resource_config = new ResourceConfig('fake_entity_type', 'dummy_bundle', NULL);
     $context = [
-      'resource_config' => $resource_config->reveal(),
+      'resource_config' => $resource_config,
       'related' => $field_name,
       'target_entity' => $this->prophesize(FieldableEntityInterface::class)->reveal(),
     ];

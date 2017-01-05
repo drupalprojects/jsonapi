@@ -5,10 +5,10 @@ namespace Drupal\Tests\jsonapi\Kernel\Normalizer;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\jsonapi\Configuration\ResourceConfig;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\jsonapi\ResourceResponse;
@@ -191,7 +191,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         'api_json',
         [
           'request' => $request,
-          'resource_config' => $resource_config->reveal(),
+          'resource_config' => $resource_config,
           'cacheable_metadata' => $response->getCacheableMetadata(),
         ]
       );
@@ -264,7 +264,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         'api_json',
         [
           'request' => $request,
-          'resource_config' => $resource_config->reveal(),
+          'resource_config' => $resource_config,
           'cacheable_metadata' => $response->getCacheableMetadata(),
         ]
       );
@@ -303,7 +303,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         'api_json',
         [
           'request' => $request,
-          'resource_config' => $resource_config->reveal(),
+          'resource_config' => $resource_config,
           'cacheable_metadata' => $response->getCacheableMetadata(),
         ]
       );
@@ -344,7 +344,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         'api_json',
         [
           'request' => $request,
-          'resource_config' => $resource_config->reveal(),
+          'resource_config' => $resource_config,
           'cacheable_metadata' => $response->getCacheableMetadata(),
           'data_wrapper' => 'errors',
         ]
@@ -377,7 +377,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
       ->normalize($document_wrapper->reveal(), 'api_json', [
         'request' => $request,
-        'resource_config' => $resource_config->reveal(),
+        'resource_config' => $resource_config,
         'cacheable_metadata' => $response->getCacheableMetadata(),
       ]);
     $this->assertTrue(empty($normalized['data']['attributes']['type']));
@@ -405,7 +405,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
       ->denormalize(Json::decode($payload), JsonApiDocumentTopLevelNormalizer::class, 'api_json', [
         'request' => $request,
-        'resource_config' => $resource_config->reveal(),
+        'resource_config' => $resource_config,
       ]);
     $this->assertInstanceOf('\Drupal\node\Entity\Node', $node);
     $this->assertSame('Testing article', $node->getTitle());
@@ -464,7 +464,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
         ->denormalize(Json::decode($payload), JsonApiDocumentTopLevelNormalizer::class, 'api_json', [
           'request' => $request,
-          'resource_config' => $resource_config->reveal(),
+          'resource_config' => $resource_config,
         ]);
 
       /* @var \Drupal\node\Entity\Node $node */
@@ -558,20 +558,15 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $request = new Request([], [], [
       RouteObjectInterface::ROUTE_OBJECT => $route,
     ]);
-    $resource_config = $this->prophesize(ResourceConfigInterface::CLASS);
-    $resource_config->getTypeName()
-      ->willReturn(sprintf('%s--%s', $entity_type_id, $bundle_id));
-    $resource_config->getEntityTypeId()->willReturn($entity_type_id);
-    $resource_config->getBundleId()->willReturn($bundle_id);
-
     /* @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager */
     $entity_type_manager = $this->container->get('entity_type.manager');
-    $serialization_class = $entity_type_manager->getDefinition($entity_type_id)
-      ->getClass();
-    $resource_config->getDeserializationTargetClass()
-      ->willReturn($serialization_class);
-    $resource_config->getStorage()
-      ->willReturn($entity_type_manager->getStorage($entity_type_id));
+
+    $resource_config = new ResourceConfig(
+      $entity_type_id,
+      $bundle_id,
+      $entity_type_manager->getDefinition($entity_type_id)->getClass()
+    );
+
     /* @var \Symfony\Component\HttpFoundation\RequestStack $request_stack */
     $request_stack = $this->container->get('request_stack');
     $request_stack->push($request);

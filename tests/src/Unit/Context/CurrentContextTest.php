@@ -14,6 +14,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\node\NodeInterface;
 use Drupal\Tests\UnitTestCase;
 
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
@@ -81,7 +82,7 @@ class CurrentContextTest extends UnitTestCase {
 
     // Create a mock for the ResourceManager service.
     $resource_prophecy = $this->prophesize(ResourceManagerInterface::CLASS);
-    $resource_config = new ResourceConfig($this->prophesize(EntityTypeManagerInterface::CLASS)->reveal());
+    $resource_config = new ResourceConfig('node', 'article', NodeInterface::class);
     $resource_prophecy->get('node', 'article')->willReturn($resource_config);
     $this->resourceManager = $resource_prophecy->reveal();
 

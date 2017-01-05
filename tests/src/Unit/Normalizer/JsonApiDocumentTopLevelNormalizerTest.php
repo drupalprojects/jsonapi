@@ -6,7 +6,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\Configuration\ResourceConfig;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
@@ -72,11 +72,6 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
     $current_route->getDefault('_on_relationship')->willReturn(false);
 
     $current_context_manager->isOnRelationship()->willReturn(FALSE);
-    $this->resourceConfig = $this->prophesize(ResourceConfigInterface::class);
-    $this->resourceConfig->getDeserializationTargetClass()->willReturn(FieldableEntityInterface::class);
-    $current_context_manager->getResourceConfig()->willReturn(
-      $this->resourceConfig->reveal()
-    );
 
     $this->normalizer = new JsonApiDocumentTopLevelNormalizer(
       $link_manager->reveal(),
@@ -100,8 +95,9 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
    * @dataProvider denormalizeProvider
    */
   public function testDenormalize($input, $expected) {
+    $resource_config = new ResourceConfig($this->randomMachineName(), $this->randomMachineName(), FieldableEntityInterface::class);
     $context = [
-      'resource_config' => $this->resourceConfig->reveal(),
+      'resource_config' => $resource_config,
     ];
     $denormalized = $this->normalizer->denormalize($input, NULL, 'api_json', $context);
     $this->assertSame($expected, $denormalized);

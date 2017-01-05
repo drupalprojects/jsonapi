@@ -4,12 +4,13 @@ namespace Drupal\Tests\jsonapi\Unit\Normalizer\Value;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\Configuration\ResourceConfig;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValueInterface;
+use Drupal\node\NodeInterface;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 
@@ -75,9 +76,7 @@ class DocumentRootNormalizerValueTest extends UnitTestCase{
     $field2->getIncludes()->willReturn(array_map(function ($included_item) {
       return $included_item->reveal();
     }, $included));
-    $resource_config = $this->prophesize(ResourceConfigInterface::class);
-    $resource_config->getTypeName()->willReturn('node');
-    $context = ['resource_config' => $resource_config->reveal()];
+    $context = ['resource_config' => new ResourceConfig('node', 'article', NodeInterface::class)];
     $entity = $this->prophesize(EntityInterface::class);
     $entity->id()->willReturn(1);
     $entity->isNew()->willReturn(FALSE);

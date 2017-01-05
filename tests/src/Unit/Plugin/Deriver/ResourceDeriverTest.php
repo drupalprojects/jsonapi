@@ -2,9 +2,9 @@
 
 namespace Drupal\Tests\jsonapi\Unit\Plugin\Deriver;
 
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\jsonapi\Configuration\ResourceConfig;
 use Drupal\jsonapi\Plugin\Deriver\ResourceDeriver;
-use Drupal\Core\Config\ImmutableConfig;
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
@@ -37,15 +37,7 @@ class ResourceDeriverTest extends UnitTestCase {
     $resource_manager = $this->prophesize(ResourceManagerInterface::class);
 
     // Create some resource mocks for the manager.
-    $resource_config = $this->prophesize(ResourceConfigInterface::class);
-    $global_config = $this->prophesize(ImmutableConfig::class);
-    $resource_config->getEntityTypeId()->willReturn('entity_type_1');
-    $resource_config->getBundleId()->willReturn('bundle_1_1');
-    // Make sure that we're not coercing the bundle into the path, they can be
-    // different in the future.
-    $resource_config->getPath()->willReturn('/entity_type_1/bundle_path_1');
-    $resource_config->getTypeName()->willReturn('resource_type_1');
-    $resource_manager->all()->willReturn([$resource_config->reveal()]);
+    $resource_manager->all()->willReturn([new ResourceConfig('entity_type_1', 'bundle_1_1', EntityInterface::class)]);
     $resource_manager->hasBundle(Argument::type('string'))->willReturn(FALSE);
 
     $container = $this->prophesize(ContainerInterface::class);
@@ -58,14 +50,14 @@ class ResourceDeriverTest extends UnitTestCase {
    * @covers ::getDerivativeDefinitions
    */
   public function testGetDerivativeDefinitions() {
-    $expected = ['jsonapi.resource_type_1' => [
-      'id' => 'jsonapi.resource_type_1',
+    $expected = ['jsonapi.entity_type_1--bundle_1_1' => [
+      'id' => 'jsonapi.entity_type_1--bundle_1_1',
       'entityType' => 'entity_type_1',
       'bundle' => 'bundle_1_1',
       'hasBundle' => FALSE,
-      'type' => 'resource_type_1',
+      'type' => 'entity_type_1--bundle_1_1',
       'data' => [
-        'partialPath' => '/entity_type_1/bundle_path_1',
+        'partialPath' => '/entity_type_1/bundle_1_1',
       ],
       'permission' => 'access content',
       'controller' => '\\Drupal\\jsonapi\\RequestHandler::handle',

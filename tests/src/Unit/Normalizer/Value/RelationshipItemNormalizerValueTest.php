@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\jsonapi\Unit\Normalizer\Value;
 
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\Configuration\ResourceConfig;
 use Drupal\jsonapi\Normalizer\Value\RelationshipItemNormalizerValue;
 use Drupal\Tests\UnitTestCase;
 
@@ -20,10 +20,8 @@ class RelationshipItemNormalizerValueTest extends UnitTestCase {
    * @covers ::rasterizeValue
    * @dataProvider rasterizeValueProvider
    */
-  public function testRasterizeValue($values, $resource_type, $expected) {
-    $resource = $this->prophesize(ResourceConfigInterface::class);
-    $resource->getTypeName()->willReturn($resource_type);
-    $object = new RelationshipItemNormalizerValue($values, $resource->reveal());
+  public function testRasterizeValue($values, $entity_type_id, $bundle, $expected) {
+    $object = new RelationshipItemNormalizerValue($values, new ResourceConfig($entity_type_id, $bundle, NULL));
     $this->assertEquals($expected, $object->rasterizeValue());
   }
 
@@ -32,11 +30,11 @@ class RelationshipItemNormalizerValueTest extends UnitTestCase {
    */
   public function rasterizeValueProvider() {
     return [
-      [['target_id' => 1], 'node', ['type' => 'node', 'id' => 1]],
-      [['value' => 1], 'node', ['type' => 'node', 'id' => 1]],
-      [[1], 'node', ['type' => 'node', 'id' => 1]],
-      [[], 'node', []],
-      [[NULL], 'node', NULL],
+      [['target_id' => 1], 'node', 'article', ['type' => 'node--article', 'id' => 1]],
+      [['value' => 1], 'node', 'page', ['type' => 'node--page', 'id' => 1]],
+      [[1], 'node', 'foo', ['type' => 'node--foo', 'id' => 1]],
+      [[], 'node', 'bar', []],
+      [[NULL], 'node', 'baz', NULL],
     ];
   }
 }

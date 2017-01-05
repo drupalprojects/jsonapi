@@ -6,7 +6,7 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Routing\CurrentRouteMatch;
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\Configuration\ResourceConfig;
 use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\Resource\EntityCollectionInterface;
 use Drupal\jsonapi\Resource\EntityResource;
@@ -807,11 +807,8 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     );
     $this->container->set('jsonapi.current_context', $current_context);
 
-    $resource_config = $this->prophesize(ResourceConfigInterface::class);
-    $resource_config->getEntityTypeId()->willReturn($entity_type_id);
-    $resource_config->getBundleId()->willReturn($bundle_id);
     return new EntityResource(
-      $resource_config->reveal(),
+      new ResourceConfig($entity_type_id, $bundle_id, NULL),
       $this->container->get('entity_type.manager'),
       $this->container->get('jsonapi.query_builder'),
       $this->container->get('entity_field.manager'),
