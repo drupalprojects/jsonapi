@@ -17,13 +17,6 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 class ResourceConfig implements ResourceConfigInterface {
 
   /**
-   * Holds the configuration that is global to all the JSON API types.
-   *
-   * @var object
-   */
-  protected $globalConfig;
-
-  /**
    * Holds the entity type manager.
    *
    * @var EntityTypeManagerInterface
@@ -64,13 +57,6 @@ class ResourceConfig implements ResourceConfigInterface {
    * @var string
    */
   protected $deserializationTargetClass;
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getGlobalConfig() {
-    return $this->globalConfig;
-  }
 
   /**
    * {@inheritdoc}
@@ -148,13 +134,10 @@ class ResourceConfig implements ResourceConfigInterface {
   /**
    * Instantiates a ResourceConfig object.
    *
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The configuration factory.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager) {
-    $this->globalConfig = $config_factory->get('jsonapi.resource_info');
+  public function __construct(EntityTypeManagerInterface $entity_type_manager) {
     $this->entityTypeManager = $entity_type_manager;
   }
 

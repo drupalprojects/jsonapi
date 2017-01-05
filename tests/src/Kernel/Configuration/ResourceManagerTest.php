@@ -68,7 +68,6 @@ class ResourceManagerTest extends KernelTestBase {
     array_walk($all, function (ResourceConfigInterface $resource_config) {
       $this->assertNotEmpty($resource_config->getDeserializationTargetClass());
       $this->assertNotEmpty($resource_config->getEntityTypeId());
-      $this->assertNotEmpty($resource_config->getGlobalConfig());
       $this->assertNotEmpty($resource_config->getTypeName());
       $path = $resource_config->getPath();
       if (!$resource_config->getBundleId()) {
@@ -89,7 +88,6 @@ class ResourceManagerTest extends KernelTestBase {
     $this->assertSame($entity_class, $resource_config->getDeserializationTargetClass());
     $this->assertSame($entity_type_id, $resource_config->getEntityTypeId());
     $this->assertSame($bundle_id, $resource_config->getBundleId());
-    $this->assertNotEmpty($resource_config->getGlobalConfig());
     $this->assertSame('/' . $entity_type_id . '/' . $bundle_id, $resource_config->getPath());
     $this->assertSame($entity_type_id . '--' . $bundle_id, $resource_config->getTypeName());
   }

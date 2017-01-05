@@ -75,14 +75,6 @@ interface ResourceConfigInterface {
   public function setBundleId($bundle_id);
 
   /**
-   * Gets the global configuration.
-   *
-   * @return \Drupal\Core\Config\Config
-   *   The global configuration.
-   */
-  public function getGlobalConfig();
-
-  /**
    * Gets the underlying entity storage for the resource.
    *
    * @return \Drupal\Core\Entity\EntityStorageInterface

@@ -23,25 +23,11 @@ class ResourceManager implements ResourceManagerInterface {
   protected $entityTypeManager;
 
   /**
-   * The configuration factory.
-   *
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
-   */
-  protected $configFactory;
-
-  /**
    * The bundle manager.
    *
    * @var \Drupal\Core\Entity\EntityTypeBundleInfoInterface
    */
   protected $bundleManager;
-
-  /**
-   * The module handler.
-   *
-   * @var \Drupal\Core\Extension\ModuleHandlerInterface
-   */
-  protected $moduleHandler;
 
   /**
    * The loaded resource config objects.
@@ -57,16 +43,10 @@ class ResourceManager implements ResourceManagerInterface {
    *   The entity type manager.
    * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $bundle_manager
    *   The bundle manager.
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The config factory interface.
-   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
-   *   The module handler service.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, EntityTypeBundleInfoInterface $bundle_manager, ConfigFactoryInterface $config_factory, ModuleHandlerInterface $module_handler) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, EntityTypeBundleInfoInterface $bundle_manager) {
     $this->entityTypeManager = $entity_type_manager;
     $this->bundleManager = $bundle_manager;
-    $this->configFactory = $config_factory;
-    $this->moduleHandler = $module_handler;
   }
 
   /**
@@ -78,7 +58,7 @@ class ResourceManager implements ResourceManagerInterface {
       foreach ($entity_type_ids as $entity_type_id) {
         // Add a ResourceConfig per bundle.
         $this->all = array_merge($this->all, array_map(function ($bundle) use ($entity_type_id) {
-          $resource_config = new ResourceConfig($this->configFactory, $this->entityTypeManager);
+          $resource_config = new ResourceConfig($this->entityTypeManager);
           $resource_config->setEntityTypeId($entity_type_id);
           $resource_config->setBundleId($bundle);
           $resource_config->setPath(sprintf('/%s/%s', $entity_type_id, $bundle));

@@ -81,10 +81,7 @@ class CurrentContextTest extends UnitTestCase {
 
     // Create a mock for the ResourceManager service.
     $resource_prophecy = $this->prophesize(ResourceManagerInterface::CLASS);
-    $resource_config = new ResourceConfig(
-      $this->prophesize(ConfigFactoryInterface::CLASS)->reveal(),
-      $this->prophesize(EntityTypeManagerInterface::CLASS)->reveal()
-    );
+    $resource_config = new ResourceConfig($this->prophesize(EntityTypeManagerInterface::CLASS)->reveal());
     $resource_prophecy->get('node', 'article')->willReturn($resource_config);
     $this->resourceManager = $resource_prophecy->reveal();
 

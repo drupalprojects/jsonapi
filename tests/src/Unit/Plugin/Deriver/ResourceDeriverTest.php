@@ -39,7 +39,6 @@ class ResourceDeriverTest extends UnitTestCase {
     // Create some resource mocks for the manager.
     $resource_config = $this->prophesize(ResourceConfigInterface::class);
     $global_config = $this->prophesize(ImmutableConfig::class);
-    $resource_config->getGlobalConfig()->willReturn($global_config->reveal());
     $resource_config->getEntityTypeId()->willReturn('entity_type_1');
     $resource_config->getBundleId()->willReturn('bundle_1_1');
     // Make sure that we're not coercing the bundle into the path, they can be
