@@ -5,7 +5,7 @@ namespace Drupal\jsonapi\Routing;
 use Drupal\Core\Authentication\AuthenticationCollectorInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
-use Drupal\jsonapi\Plugin\JsonApiResourceManager;
+use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -31,9 +31,9 @@ class Routes implements ContainerInjectionInterface {
   /**
    * The resource manager interface.
    *
-   * @var \Drupal\jsonapi\Plugin\JsonApiResourceManager
+   * @var \Drupal\jsonapi\Configuration\ResourceManager
    */
-  protected $resourcePluginManager;
+  protected $resourceManager;
 
   /**
    * The authentication collector.
@@ -52,13 +52,13 @@ class Routes implements ContainerInjectionInterface {
   /**
    * Instantiates a Routes object.
    *
-   * @param \Drupal\jsonapi\Plugin\JsonApiResourceManager $resource_plugin_manager
+   * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
    *   The resource manager.
    * @param \Drupal\Core\Authentication\AuthenticationCollectorInterface $auth_collector
    *   The resource manager.
    */
-  public function __construct(JsonApiResourceManager $resource_plugin_manager, AuthenticationCollectorInterface $auth_collector) {
-    $this->resourcePluginManager = $resource_plugin_manager;
+  public function __construct(ResourceManagerInterface $resource_manager, AuthenticationCollectorInterface $auth_collector) {
+    $this->resourceManager = $resource_manager;
     $this->authCollector = $auth_collector;
   }
 
@@ -66,12 +66,12 @@ class Routes implements ContainerInjectionInterface {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    /* @var \Drupal\jsonapi\Plugin\JsonApiResourceManager $resource_plugin_manager */
-    $resource_plugin_manager = $container->get('plugin.manager.resource.processor');
+    /* @var \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager */
+    $resource_manager = $container->get('jsonapi.resource.manager');
     /* @var \Drupal\Core\Authentication\AuthenticationCollectorInterface $auth_collector */
     $auth_collector = $container->get('authentication_collector');
 
-    return new static($resource_plugin_manager, $auth_collector);
+    return new static($resource_manager, $auth_collector);
   }
 
   /**
@@ -79,16 +79,13 @@ class Routes implements ContainerInjectionInterface {
    */
   public function routes() {
     $collection = new RouteCollection();
-    foreach ($this->resourcePluginManager->getDefinitions() as $plugin_id => $plugin_definition) {
-      $entity_type = $plugin_definition['entityType'];
-      // For the entity type resources the bundle is NULL.
-      $bundle = $plugin_definition['bundle'];
-      $partial_path = $plugin_definition['data']['partialPath'];
-      $route_keys = explode(':', $plugin_id);
-      $route_key = end($route_keys) . '.';
-      // Add the collection route.
+    foreach ($this->resourceManager->all() as $resource_config) {
+      $build_route_name = function ($key) use ($resource_config) {
+        return sprintf('jsonapi.%s.%s', $resource_config->getTypeName(), $key);
+      };
+
       $defaults = [
-        RouteObjectInterface::CONTROLLER_NAME => $plugin_definition['controller'],
+        RouteObjectInterface::CONTROLLER_NAME => static::FRONT_CONTROLLER,
       ];
       // Options that apply to all routes.
       $options = [
@@ -97,70 +94,62 @@ class Routes implements ContainerInjectionInterface {
       ];
 
       // Collection endpoint, like /jsonapi/file/photo.
-      $route_collection = (new Route('/jsonapi' . $partial_path))
+      $route_collection = (new Route('/jsonapi' . $resource_config->getPath()))
         ->addDefaults($defaults)
-        ->setRequirement('_entity_type', $entity_type)
-        ->setRequirement('_permission', $plugin_definition['permission'])
+        ->setRequirement('_entity_type', $resource_config->getEntityTypeId())
+        ->setRequirement('_bundle', $resource_config->getBundleId())
+        ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setRequirement('_custom_parameter_names', 'TRUE')
         ->setOption('serialization_class', JsonApiDocumentTopLevel::class)
         ->setMethods(['GET', 'POST']);
-      if ($bundle) {
-        $route_collection->setRequirement('_bundle', $bundle);
-      }
       $route_collection->addOptions($options);
-      $collection->add($route_key . 'collection', $route_collection);
+      $collection->add($build_route_name('collection'), $route_collection);
 
       // Individual endpoint, like /jsonapi/file/photo/123.
-      $parameters = [$entity_type => ['type' => 'entity:' . $entity_type]];
-      $route_individual = (new Route('/jsonapi' . sprintf('%s/{%s}', $partial_path, $entity_type)))
+      $parameters = [$resource_config->getEntityTypeId() => ['type' => 'entity:' . $resource_config->getEntityTypeId()]];
+      $route_individual = (new Route('/jsonapi' . sprintf('%s/{%s}', $resource_config->getPath(), $resource_config->getEntityTypeId())))
         ->addDefaults($defaults)
-        ->setRequirement('_entity_type', $entity_type)
-        ->setRequirement('_permission', $plugin_definition['permission'])
+        ->setRequirement('_entity_type', $resource_config->getEntityTypeId())
+        ->setRequirement('_bundle', $resource_config->getBundleId())
+        ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setRequirement('_custom_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
         ->setOption('serialization_class', JsonApiDocumentTopLevel::class)
         ->setMethods(['GET', 'PATCH', 'DELETE']);
-      if ($bundle) {
-        $route_individual->setRequirement('_bundle', $bundle);
-      }
       $route_individual->addOptions($options);
-      $collection->add($route_key . 'individual', $route_individual);
+      $collection->add($build_route_name('individual'), $route_individual);
 
       // Related resource, like /jsonapi/file/photo/123/comments.
-      $route_related = (new Route('/jsonapi' . sprintf('%s/{%s}/{related}', $partial_path, $entity_type)))
+      $route_related = (new Route('/jsonapi' . sprintf('%s/{%s}/{related}', $resource_config->getPath(), $resource_config->getEntityTypeId())))
         ->addDefaults($defaults)
-        ->setRequirement('_entity_type', $entity_type)
-        ->setRequirement('_permission', $plugin_definition['permission'])
+        ->setRequirement('_entity_type', $resource_config->getEntityTypeId())
+        ->setRequirement('_bundle', $resource_config->getBundleId())
+        ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setRequirement('_custom_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
         ->setMethods(['GET']);
-      if ($bundle) {
-        $route_related->setRequirement('_bundle', $bundle);
-      }
       $route_related->addOptions($options);
-      $collection->add($route_key . 'related', $route_related);
+      $collection->add($build_route_name('related'), $route_related);
 
       // Related endpoint, like /jsonapi/file/photo/123/relationships/comments.
-      $route_relationship = (new Route('/jsonapi' . sprintf('%s/{%s}/relationships/{related}', $partial_path, $entity_type)))
+      $route_relationship = (new Route('/jsonapi' . sprintf('%s/{%s}/relationships/{related}', $resource_config->getPath(), $resource_config->getEntityTypeId())))
         ->addDefaults($defaults + ['_on_relationship' => TRUE])
-        ->setRequirement('_entity_type', $entity_type)
-        ->setRequirement('_permission', $plugin_definition['permission'])
+        ->setRequirement('_entity_type', $resource_config->getEntityTypeId())
+        ->setRequirement('_bundle', $resource_config->getBundleId())
+        ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setRequirement('_custom_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
         ->setOption('serialization_class', EntityReferenceFieldItemList::class)
         ->setMethods(['GET', 'POST', 'PATCH', 'DELETE']);
-      if ($bundle) {
-        $route_relationship->setRequirement('_bundle', $bundle);
-      }
       $route_relationship->addOptions($options);
-      $collection->add($route_key . 'relationship', $route_relationship);
+      $collection->add($build_route_name('relationship'), $route_relationship);
     }
 
     return $collection;

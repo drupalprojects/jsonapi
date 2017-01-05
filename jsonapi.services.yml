@@ -91,9 +91,6 @@ services:
     arguments: ['@entity.manager']
   jsonapi.error_handler:
     class: Drupal\jsonapi\Error\ErrorHandler
-  plugin.manager.resource.processor:
-    class: Drupal\jsonapi\Plugin\JsonApiResourceManager
-    parent: default_plugin_manager
   jsonapi.exception_subscriber:
     class: Drupal\jsonapi\EventSubscriber\DefaultExceptionSubscriber
     tags:
