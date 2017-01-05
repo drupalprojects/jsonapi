@@ -94,8 +94,6 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
       }
       $normalizer_values[$field_name] = $this->serializeField($field, $context, $format);
     }
-    // Clean all the NULL values coming from denied access.
-    $normalizer_values = array_filter($normalizer_values);
 
     $link_context = ['link_manager' => $this->linkManager];
     $output = new Value\EntityNormalizerValue($normalizer_values, $context, $entity, $link_context);

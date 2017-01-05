@@ -63,7 +63,9 @@ class EntityNormalizerValue implements EntityNormalizerValueInterface {
    *   relationship.
    */
   public function __construct(array $values, array $context, EntityInterface $entity, array $link_context) {
-    $this->values = $values;
+    $this->values = array_filter($values, function($value) {
+      return !($value instanceof NullFieldNormalizerValue);
+    });
     $this->context = $context;
     $this->entity = $entity;
     $this->linkManager = $link_context['link_manager'];
