@@ -68,9 +68,9 @@ class CurrentContext implements CurrentContextInterface {
     if (!isset($this->resourceConfig)) {
       $route = $this->routeMatch->getRouteObject();
       $entity_type_id = $route->getRequirement('_entity_type');
-      $bundle_id = $route->getRequirement('_bundle');
+      $bundle = $route->getRequirement('_bundle');
       $this->resourceConfig = $this->resourceManager
-        ->get($entity_type_id, $bundle_id);
+        ->get($entity_type_id, $bundle);
     }
 
     return $this->resourceConfig;

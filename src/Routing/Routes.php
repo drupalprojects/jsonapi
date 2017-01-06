@@ -80,6 +80,7 @@ class Routes implements ContainerInjectionInterface {
   public function routes() {
     $collection = new RouteCollection();
     foreach ($this->resourceManager->all() as $resource_config) {
+      $route_base_path = sprintf('/jsonapi/%s/%s', $resource_config->getEntityTypeId(), $resource_config->getBundle());
       $build_route_name = function ($key) use ($resource_config) {
         return sprintf('jsonapi.%s.%s', $resource_config->getTypeName(), $key);
       };
@@ -94,10 +95,9 @@ class Routes implements ContainerInjectionInterface {
       ];
 
       // Collection endpoint, like /jsonapi/file/photo.
-      $route_collection = (new Route('/jsonapi' . $resource_config->getPath()))
-        ->addDefaults($defaults)
+      $route_collection = (new Route($route_base_path, $defaults))
         ->setRequirement('_entity_type', $resource_config->getEntityTypeId())
-        ->setRequirement('_bundle', $resource_config->getBundleId())
+        ->setRequirement('_bundle', $resource_config->getBundle())
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setRequirement('_custom_parameter_names', 'TRUE')
@@ -108,10 +108,10 @@ class Routes implements ContainerInjectionInterface {
 
       // Individual endpoint, like /jsonapi/file/photo/123.
       $parameters = [$resource_config->getEntityTypeId() => ['type' => 'entity:' . $resource_config->getEntityTypeId()]];
-      $route_individual = (new Route('/jsonapi' . sprintf('%s/{%s}', $resource_config->getPath(), $resource_config->getEntityTypeId())))
+      $route_individual = (new Route(sprintf('%s/{%s}', $route_base_path, $resource_config->getEntityTypeId())))
         ->addDefaults($defaults)
         ->setRequirement('_entity_type', $resource_config->getEntityTypeId())
-        ->setRequirement('_bundle', $resource_config->getBundleId())
+        ->setRequirement('_bundle', $resource_config->getBundle())
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setRequirement('_custom_parameter_names', 'TRUE')
@@ -123,10 +123,9 @@ class Routes implements ContainerInjectionInterface {
       $collection->add($build_route_name('individual'), $route_individual);
 
       // Related resource, like /jsonapi/file/photo/123/comments.
-      $route_related = (new Route('/jsonapi' . sprintf('%s/{%s}/{related}', $resource_config->getPath(), $resource_config->getEntityTypeId())))
-        ->addDefaults($defaults)
+      $route_related = (new Route(sprintf('%s/{%s}/{related}', $route_base_path, $resource_config->getEntityTypeId()), $defaults))
         ->setRequirement('_entity_type', $resource_config->getEntityTypeId())
-        ->setRequirement('_bundle', $resource_config->getBundleId())
+        ->setRequirement('_bundle', $resource_config->getBundle())
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setRequirement('_custom_parameter_names', 'TRUE')
@@ -137,10 +136,9 @@ class Routes implements ContainerInjectionInterface {
       $collection->add($build_route_name('related'), $route_related);
 
       // Related endpoint, like /jsonapi/file/photo/123/relationships/comments.
-      $route_relationship = (new Route('/jsonapi' . sprintf('%s/{%s}/relationships/{related}', $resource_config->getPath(), $resource_config->getEntityTypeId())))
-        ->addDefaults($defaults + ['_on_relationship' => TRUE])
+      $route_relationship = (new Route(sprintf('%s/{%s}/relationships/{related}', $route_base_path, $resource_config->getEntityTypeId()), $defaults + ['_on_relationship' => TRUE]))
         ->setRequirement('_entity_type', $resource_config->getEntityTypeId())
-        ->setRequirement('_bundle', $resource_config->getBundleId())
+        ->setRequirement('_bundle', $resource_config->getBundle())
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
         ->setRequirement('_custom_parameter_names', 'TRUE')

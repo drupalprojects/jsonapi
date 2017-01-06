@@ -4,8 +4,7 @@ namespace Drupal\Tests\jsonapi\Unit\Normalizer;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityStorageInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
@@ -77,22 +76,19 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
     $resource_manager->get('fake_entity_type', 'dummy_bundle')
       ->willReturn(new ResourceConfig('lorem', 'dummy_bundle', NULL));
 
-    $entity_storage = $this->prophesize(EntityStorageInterface::class);
     $entity = $this->prophesize(EntityInterface::class);
     $entity->uuid()->willReturn('4e6cb61d-4f04-437f-99fe-42c002393658');
     $entity->id()->willReturn(42);
-    $entity_storage->loadByProperties(Argument::type('array'))
-      ->willReturn([$entity->reveal()]);
-    $entity_type_manager = $this->prophesize(EntityTypeManagerInterface::class);
-    $entity_type_manager->getStorage('lorem')
-      ->willReturn($entity_storage->reveal());
-    $resource_manager->getEntityTypeManager()->willReturn($entity_type_manager->reveal());
+    $entity_repository = $this->prophesize(EntityRepositoryInterface::class);
+    $entity_repository->loadEntityByUuid('lorem', '4e6cb61d-4f04-437f-99fe-42c002393658')
+      ->willReturn($entity->reveal());
 
     $this->normalizer = new EntityReferenceFieldNormalizer(
       $link_manager->reveal(),
       $field_manager->reveal(),
       $plugin_manager->reveal(),
-      $resource_manager->reveal()
+      $resource_manager->reveal(),
+      $entity_repository->reveal()
     );
   }
 

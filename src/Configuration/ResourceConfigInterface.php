@@ -9,12 +9,25 @@ namespace Drupal\jsonapi\Configuration;
 interface ResourceConfigInterface {
 
   /**
-   * Gets the entity type id.
+   * Gets the entity type ID.
    *
    * @return string
-   *   The entity type id.
+   *   The entity type ID.
+   *
+   * @see \Drupal\Core\Entity\EntityInterface::getEntityTypeId
    */
   public function getEntityTypeId();
+
+  /**
+   * Gets the bundle.
+   *
+   * @return string
+   *   The bundle. Is the same as the entity type ID if the entity type does not
+   *   make use of different bundles.
+   *
+   * @see \Drupal\Core\Entity\EntityInterface::bundle
+   */
+  public function getBundle();
 
   /**
    * Gets the type name.
@@ -23,22 +36,6 @@ interface ResourceConfigInterface {
    *   The type name.
    */
   public function getTypeName();
-
-  /**
-   * Gets the path.
-   *
-   * @return string
-   *   The path.
-   */
-  public function getPath();
-
-  /**
-   * Gets the bundle ID.
-   *
-   * @return string
-   *   The bundleId.
-   */
-  public function getBundleId();
 
   /**
    * Gets the deserialization target class.

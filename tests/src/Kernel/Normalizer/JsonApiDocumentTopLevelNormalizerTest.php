@@ -537,14 +537,14 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
    *
    * @param string $entity_type_id
    *   The ID of the entity type. Ex: node.
-   * @param string $bundle_id
-   *   The ID of the bundle. Ex: article.
+   * @param string $bundle
+   *   The bundle. Ex: article.
    *
    * @return array
    *   A numeric array containing the request and the resource config mocks.
    */
-  protected function generateProphecies($entity_type_id, $bundle_id, $related_property = NULL) {
-    $path = sprintf('/%s/%s', $entity_type_id, $bundle_id);
+  protected function generateProphecies($entity_type_id, $bundle, $related_property = NULL) {
+    $path = sprintf('/%s/%s', $entity_type_id, $bundle);
     $path = $related_property ?
       sprintf('%s/%s', $path, $related_property) :
       $path;
@@ -553,7 +553,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       '_on_relationship' => NULL,
     ], [
       '_entity_type' => $entity_type_id,
-      '_bundle' => $bundle_id,
+      '_bundle' => $bundle,
     ]);
     $request = new Request([], [], [
       RouteObjectInterface::ROUTE_OBJECT => $route,
@@ -563,7 +563,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
 
     $resource_config = new ResourceConfig(
       $entity_type_id,
-      $bundle_id,
+      $bundle,
       $entity_type_manager->getDefinition($entity_type_id)->getClass()
     );
 

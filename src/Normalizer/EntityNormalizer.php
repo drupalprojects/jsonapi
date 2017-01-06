@@ -5,6 +5,7 @@ namespace Drupal\jsonapi\Normalizer;
 use Drupal\Core\Access\AccessibleInterface;
 use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\jsonapi\Configuration\ResourceConfigInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
@@ -54,17 +55,27 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
   protected $currentContext;
 
   /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * Constructs an ContentEntityNormalizer object.
    *
    * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface $link_manager
    *   The link manager.
    * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
    *   The current context.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    */
-  public function __construct(LinkManagerInterface $link_manager, CurrentContextInterface $current_context) {
+  public function __construct(LinkManagerInterface $link_manager, CurrentContextInterface $current_context, EntityTypeManagerInterface $entity_type_manager) {
     $this->linkManager = $link_manager;
     $this->currentContext = $current_context;
     $this->resourceManager = $current_context->getResourceManager();
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -79,16 +90,16 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
     $resource_type = $context['resource_config']->getTypeName();
     // Get the bundle ID of the requested resource. This is used to determine if
     // this is a bundle level resource or an entity level resource.
-    $bundle_id = $context['resource_config']->getBundleId();
+    $bundle = $context['resource_config']->getBundle();
     if (!empty($context['sparse_fieldset'][$resource_type])) {
       $field_names = $context['sparse_fieldset'][$resource_type];
     }
     else {
-      $field_names = $this->getFieldNames($entity, $bundle_id);
+      $field_names = $this->getFieldNames($entity, $bundle);
     }
     /* @var Value\FieldNormalizerValueInterface[] $normalizer_values */
     $normalizer_values = [];
-    foreach ($this->getFields($entity, $bundle_id) as $field_name => $field) {
+    foreach ($this->getFields($entity, $bundle) as $field_name => $field) {
       if (!in_array($field_name, $field_names)) {
         continue;
       }
@@ -131,18 +142,16 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
     }
     /* @var \Drupal\jsonapi\Configuration\ResourceConfigInterface $resource_config */
     $resource_config = $context['resource_config'];
-    $bundle_id = $resource_config->getBundleId();
-    $bundle_key = $this->resourceManager
-      ->getEntityTypeManager()
-      ->getDefinition($resource_config->getEntityTypeId())
+    $entity_type_id = $resource_config->getEntityTypeId();
+    $bundle = $resource_config->getBundle();
+    $bundle_key = $this->entityTypeManager->getDefinition($entity_type_id)
       ->getKey('bundle');
-    if ($bundle_key && $bundle_id) {
-      $data[$bundle_key] = $bundle_id;
+    if ($bundle_key && $bundle) {
+      $data[$bundle_key] = $bundle;
     }
 
-    return $this->currentContext->getResourceManager()
-      ->getEntityTypeManager()
-      ->getStorage($resource_config->getEntityTypeId())->create($data);
+    return $this->entityTypeManager->getStorage($entity_type_id)
+      ->create($data);
   }
 
   /**
@@ -154,9 +163,9 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
    * @return string[]
    *   The field names.
    */
-  protected function getFieldNames($entity, $bundle_id) {
+  protected function getFieldNames($entity, $bundle) {
     /* @var \Drupal\Core\Entity\ContentEntityInterface $entity */
-    return array_keys($this->getFields($entity, $bundle_id));
+    return array_keys($this->getFields($entity, $bundle));
   }
 
   /**
@@ -164,13 +173,13 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
    *
    * @param mixed $entity
    *   The entity.
-   * @param string $bundle_id
+   * @param string $bundle
    *   The bundle id.
    *
    * @return array
    *   The fields.
    */
-  protected function getFields($entity, $bundle_id) {
+  protected function getFields($entity, $bundle) {
     /* @var \Drupal\Core\Entity\ContentEntityInterface $entity */
     return $entity->getFields();
   }

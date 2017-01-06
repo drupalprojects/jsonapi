@@ -36,7 +36,6 @@ class RoutesTest extends UnitTestCase {
     parent::setUp();
     // Mock the resource manager to have some resources available.
     $resource_manager = $this->prophesize(ResourceManagerInterface::class);
-    $resource_manager->hasBundle('entity_type_1')->willReturn(TRUE);
     $resource_manager->all()->willReturn([new ResourceConfig('entity_type_1', 'bundle_1_1', EntityInterface::class)]);
     $container = $this->prophesize(ContainerInterface::class);
     $container->get('jsonapi.resource.manager')->willReturn($resource_manager->reveal());

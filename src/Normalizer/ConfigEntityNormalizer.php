@@ -23,7 +23,7 @@ class ConfigEntityNormalizer extends EntityNormalizer {
   /**
    * {@inheritdoc}
    */
-  protected function getFields($entity, $bundle_id) {
+  protected function getFields($entity, $bundle) {
     /* @var \Drupal\Core\Config\Entity\ConfigEntityInterface $entity */
     return $entity->toArray();
   }

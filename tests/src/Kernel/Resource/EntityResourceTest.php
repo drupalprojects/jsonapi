@@ -783,17 +783,17 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    *
    * @param string $entity_type_id
    *   The entity type ID.
-   * @param string $bundle_id
-   *   The bundle ID.
+   * @param string $bundle
+   *   The bundle.
    *
    * @return \Drupal\jsonapi\Resource\EntityResourceInterface
    *   The resource.
    */
-  protected function buildEntityResource($entity_type_id, $bundle_id) {
+  protected function buildEntityResource($entity_type_id, $bundle) {
     // The fake route.
     $route = new Route(NULL, [], [
       '_entity_type' => $entity_type_id,
-      '_bundle' => $bundle_id,
+      '_bundle' => $bundle,
     ]);
     // The request.
     $request = new Request([], [], ['_route_object' => $route]);
@@ -808,7 +808,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $this->container->set('jsonapi.current_context', $current_context);
 
     return new EntityResource(
-      new ResourceConfig($entity_type_id, $bundle_id, NULL),
+      new ResourceConfig($entity_type_id, $bundle, NULL),
       $this->container->get('entity_type.manager'),
       $this->container->get('jsonapi.query_builder'),
       $this->container->get('entity_field.manager'),

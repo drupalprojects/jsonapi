@@ -3,6 +3,8 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
+use Drupal\Core\Entity\EntityRepositoryInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
@@ -46,6 +48,13 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
   protected $pluginManager;
 
   /**
+   * The entity repository.
+   *
+   * @var \Drupal\Core\Entity\EntityRepositoryInterface
+   */
+  protected $entityRepository;
+
+  /**
    * Instantiates a EntityReferenceFieldNormalizer object.
    *
    * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface $link_manager
@@ -56,12 +65,15 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
    *   The plugin manager for fields.
    * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
    *   The resource manager.
+   * @param \Drupal\Core\Entity\EntityRepositoryInterface $entity_repository
+   *   The entity repository.
    */
-  public function __construct(LinkManagerInterface $link_manager, EntityFieldManagerInterface $field_manager, FieldTypePluginManagerInterface $plugin_manager, ResourceManagerInterface $resource_manager) {
+  public function __construct(LinkManagerInterface $link_manager, EntityFieldManagerInterface $field_manager, FieldTypePluginManagerInterface $plugin_manager, ResourceManagerInterface $resource_manager, EntityRepositoryInterface $entity_repository) {
     $this->linkManager = $link_manager;
     $this->fieldManager = $field_manager;
     $this->pluginManager = $plugin_manager;
     $this->resourceManager = $resource_manager;
+    $this->entityRepository = $entity_repository;
   }
 
   /**
@@ -91,7 +103,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
     $entity_type_id = $context['resource_config']->getEntityTypeId();
     $field_definitions = $this->fieldManager->getFieldDefinitions(
       $entity_type_id,
-      $context['resource_config']->getBundleId()
+      $context['resource_config']->getBundle()
     );
     if (empty($context['related']) || empty($field_definitions[$context['related']])) {
       throw new SerializableHttpException(400, 'Invalid or missing related field.');
@@ -118,10 +130,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
 
       // Load the entity by UUID.
       list($entity_type_id,) = explode('--', $value['type']);
-      $entities = $this->resourceManager->getEntityTypeManager()
-        ->getStorage($entity_type_id)
-        ->loadByProperties(['uuid' => $value['id']]);
-      $entity = reset($entities);
+      $entity = $this->entityRepository->loadEntityByUuid($entity_type_id, $value['id']);
       $value['id'] = $entity ? $entity->id() : NULL;
 
       return [$property_key => $value['id']];
@@ -183,9 +192,9 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
     $target_bundles = empty($handler_settings['target_bundles']) ?
       [] :
       $handler_settings['target_bundles'];
-    return array_map(function ($target_bundle_id) use ($target_entity_id) {
+    return array_map(function ($target_bundle) use ($target_entity_id) {
       return $this->resourceManager
-        ->get($target_entity_id, $target_bundle_id)
+        ->get($target_entity_id, $target_bundle)
         ->getTypeName();
     }, $target_bundles);
   }

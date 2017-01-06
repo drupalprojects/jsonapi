@@ -3,6 +3,7 @@
 namespace Drupal\Tests\jsonapi\Unit\Normalizer;
 
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\jsonapi\Configuration\ResourceConfig;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\Normalizer\ConfigEntityNormalizer;
@@ -49,7 +50,8 @@ class ConfigEntityNormalizerTest extends UnitTestCase {
 
     $this->normalizer = new ConfigEntityNormalizer(
       $link_manager->reveal(),
-      $current_context_manager->reveal()
+      $current_context_manager->reveal(),
+      $this->prophesize(EntityTypeManagerInterface::class)->reveal()
     );
 
     $normalizers = [new ScalarNormalizer()];

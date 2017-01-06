@@ -27,7 +27,7 @@ class ResourceConfig implements ResourceConfigInterface {
    *
    * @var string
    */
-  protected $bundleId;
+  protected $bundle;
 
   /**
    * The type name.
@@ -35,13 +35,6 @@ class ResourceConfig implements ResourceConfigInterface {
    * @var string
    */
   protected $typeName;
-
-  /**
-   * The base resource path.
-   *
-   * @var string
-   */
-  protected $path;
 
   /**
    * The class to which a payload converts to.
@@ -67,15 +60,8 @@ class ResourceConfig implements ResourceConfigInterface {
   /**
    * {@inheritdoc}
    */
-  public function getPath() {
-    return $this->path;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getBundleId() {
-    return $this->bundleId;
+  public function getBundle() {
+    return $this->bundle;
   }
 
   /**
@@ -90,18 +76,17 @@ class ResourceConfig implements ResourceConfigInterface {
    *
    * @param string $entity_type_id
    *   An entity type ID.
-   * @param string $bundle_id
-   *   A bundle ID.
+   * @param string $bundle
+   *   A bundle.
    * @param string $deserialization_target_class
    *   The deserialization target class.
    */
-  public function __construct($entity_type_id, $bundle_id, $deserialization_target_class) {
+  public function __construct($entity_type_id, $bundle, $deserialization_target_class) {
     $this->entityTypeId = $entity_type_id;
-    $this->bundleId = $bundle_id;
+    $this->bundle = $bundle;
     $this->deserializationTargetClass = $deserialization_target_class;
 
-    $this->typeName = sprintf('%s--%s', $this->entityTypeId, $this->bundleId);
-    $this->path= sprintf('/%s/%s', $this->entityTypeId, $this->bundleId);
+    $this->typeName = sprintf('%s--%s', $this->entityTypeId, $this->bundle);
   }
 
 }

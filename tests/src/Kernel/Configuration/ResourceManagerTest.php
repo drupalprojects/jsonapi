@@ -69,11 +69,6 @@ class ResourceManagerTest extends KernelTestBase {
       $this->assertNotEmpty($resource_config->getDeserializationTargetClass());
       $this->assertNotEmpty($resource_config->getEntityTypeId());
       $this->assertNotEmpty($resource_config->getTypeName());
-      $path = $resource_config->getPath();
-      if (!$resource_config->getBundleId()) {
-        $this->assertCount(1, explode('/', ltrim($path, '/')));
-      }
-      $this->assertNotEmpty($path);
     });
   }
 
@@ -81,15 +76,14 @@ class ResourceManagerTest extends KernelTestBase {
    * @covers ::get
    * @dataProvider getProvider
    */
-  public function testGet($entity_type_id, $bundle_id, $entity_class) {
+  public function testGet($entity_type_id, $bundle, $entity_class) {
     // Make sure that there are resources being created.
-    $resource_config = $this->resourceManager->get($entity_type_id, $bundle_id);
+    $resource_config = $this->resourceManager->get($entity_type_id, $bundle);
     $this->assertInstanceOf(ResourceConfigInterface::class, $resource_config);
     $this->assertSame($entity_class, $resource_config->getDeserializationTargetClass());
     $this->assertSame($entity_type_id, $resource_config->getEntityTypeId());
-    $this->assertSame($bundle_id, $resource_config->getBundleId());
-    $this->assertSame('/' . $entity_type_id . '/' . $bundle_id, $resource_config->getPath());
-    $this->assertSame($entity_type_id . '--' . $bundle_id, $resource_config->getTypeName());
+    $this->assertSame($bundle, $resource_config->getBundle());
+    $this->assertSame($entity_type_id . '--' . $bundle, $resource_config->getTypeName());
   }
 
   /**
@@ -104,16 +98,6 @@ class ResourceManagerTest extends KernelTestBase {
       ['node_type', 'node_type', 'Drupal\node\Entity\NodeType'],
       ['menu', 'menu', 'Drupal\system\Entity\Menu'],
     ];
-  }
-
-  /**
-   * @covers ::hasBundle
-   */
-  public function testHasBundle() {
-    $this->assertTrue($this->resourceManager->hasBundle('node'));
-    $this->assertFalse($this->resourceManager->hasBundle('node_type'));
-    $this->assertFalse($this->resourceManager->hasBundle('date_format'));
-    $this->assertFalse($this->resourceManager->hasBundle('user'));
   }
 
 }

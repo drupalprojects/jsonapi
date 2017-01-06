@@ -2,6 +2,7 @@
 
 namespace Drupal\jsonapi\Normalizer;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\Resource\EntityCollectionInterface;
@@ -39,16 +40,26 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
   protected $currentContext;
 
   /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * Constructs an ContentEntityNormalizer object.
    *
    * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface $link_manager
    *   The link manager to get the links.
    * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
    *   The current context.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    */
-  public function __construct(LinkManagerInterface $link_manager, CurrentContextInterface $current_context) {
+  public function __construct(LinkManagerInterface $link_manager, CurrentContextInterface $current_context, EntityTypeManagerInterface $entity_type_manager) {
     $this->linkManager = $link_manager;
     $this->currentContext = $current_context;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -77,13 +88,10 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
       $relationships = array_map(function ($relationship) {
         $id_list = array_column($relationship['data'], 'id');
         list($entity_type_id,) = explode('--', $relationship['data'][0]['type']);
-        $entity_storage = $this->currentContext->getResourceManager()
-          ->getEntityTypeManager()
-          ->getStorage($entity_type_id);
+        $entity_storage = $this->entityTypeManager->getStorage($entity_type_id);
         // In order to maintain the order ($delta) of the relationships, we need
         // to load the entities and explore the uuid value.
-        $related_entities = array_values($entity_storage
-          ->loadByProperties(['uuid' => $id_list]));
+        $related_entities = array_values($entity_storage->loadByProperties(['uuid' => $id_list]));
         $map = [];
         foreach ($related_entities as $related_entity) {
           $map[$related_entity->uuid()] = $related_entity->id();

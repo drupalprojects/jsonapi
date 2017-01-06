@@ -65,7 +65,6 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
     $entity_type_manager->getStorage('node')
       ->willReturn($entity_storage->reveal());
     $resource_manager = $this->prophesize(ResourceManagerInterface::class);
-    $resource_manager->getEntityTypeManager()->willReturn($entity_type_manager->reveal());
     $current_context_manager->getResourceManager()->willReturn($resource_manager->reveal());
 
     $current_route = $this->prophesize(Route::class);
@@ -75,7 +74,8 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
 
     $this->normalizer = new JsonApiDocumentTopLevelNormalizer(
       $link_manager->reveal(),
-      $current_context_manager->reveal()
+      $current_context_manager->reveal(),
+      $entity_type_manager->reveal()
     );
 
     $serializer = $this->prophesize(DenormalizerInterface::class);
