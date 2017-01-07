@@ -5,7 +5,10 @@ namespace Drupal\jsonapi\Normalizer;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 
-class RelationshipItem implements RelationshipItemInterface {
+/**
+ * @internal
+ */
+class RelationshipItem {
 
   /**
    * The target key name.
@@ -31,7 +34,7 @@ class RelationshipItem implements RelationshipItemInterface {
   /**
    * The parent relationship.
    *
-   * @var RelationshipInterface
+   * @var \Drupal\jsonapi\Normalizer\Relationship
    */
   protected $parent;
 
@@ -42,12 +45,12 @@ class RelationshipItem implements RelationshipItemInterface {
    *   The resource manager.
    * @param \Drupal\Core\Entity\EntityInterface $target_entity
    *   The entity this relationship points to.
-   * @param RelationshipInterface
+   * @param \Drupal\jsonapi\Normalizer\Relationship
    *   The parent of this item.
    * @param string $target_key
    *   The key name of the target relationship.
    */
-  public function __construct(ResourceManagerInterface $resource_manager, EntityInterface $target_entity, RelationshipInterface $parent, $target_key = 'target_id') {
+  public function __construct(ResourceManagerInterface $resource_manager, EntityInterface $target_entity, Relationship $parent, $target_key = 'target_id') {
     $this->targetResourceConfig = $resource_manager->get(
       $target_entity->getEntityTypeId(),
       $target_entity->bundle()
@@ -58,28 +61,38 @@ class RelationshipItem implements RelationshipItemInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the target entity.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface
    */
   public function getTargetEntity() {
     return $this->targetEntity;
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the targetResourceConfig.
+   *
+   * @return mixed
    */
   public function getTargetResourceConfig() {
     return $this->targetResourceConfig;
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the relationship value.
+   *
+   * Defaults to the entity ID.
+   *
+   * @return string
    */
   public function getValue() {
     return [$this->targetKey => $this->getTargetEntity()->uuid()];
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the relationship object that contains this relationship item.
+   *
+   * @return \Drupal\jsonapi\Normalizer\Relationship
    */
   public function getParent() {
     return $this->parent;

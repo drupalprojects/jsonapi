@@ -17,7 +17,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 /**
  * Converts the Drupal entity object structure to a HAL array structure.
  */
-class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, EntityNormalizerInterface {
+class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
 
   /**
    * The interface or class that this Normalizer supports.
@@ -130,7 +130,7 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
    *   TRUE if it's a JSON API relationship.
    */
   protected function isRelationship($field) {
-    return $field instanceof EntityReferenceFieldItemList || $field instanceof RelationshipInterface;
+    return $field instanceof EntityReferenceFieldItemList || $field instanceof Relationship;
   }
 
   /**
@@ -198,7 +198,7 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface, 
    *   The normalized value.
    */
   protected function serializeField($field, $context, $format) {
-    /* @var \Drupal\Core\Field\FieldItemListInterface|\Drupal\jsonapi\Normalizer\RelationshipInterface $field */
+    /* @var \Drupal\Core\Field\FieldItemListInterface|\Drupal\jsonapi\Normalizer\Relationship $field */
     // Continue if the current user does not have access to view this field.
     $access = $field->access('view', $context['account'], TRUE);
     if ($field instanceof AccessibleInterface && !$access->isAllowed()) {

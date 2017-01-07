@@ -10,15 +10,13 @@ use Drupal\jsonapi\Configuration\ResourceManagerInterface;
 use Drupal\jsonapi\Resource\EntityCollectionInterface;
 
 /**
- * Class Relationship.
- *
  * Use this class to create a relationship in your normalizer without having an
  * entity reference field: allows for "virtual" relationships that are not
  * backed by a stored entity reference.
  *
- * @package Drupal\jsonapi
+ * @internal
  */
-class Relationship implements RelationshipInterface, AccessibleInterface {
+class Relationship implements AccessibleInterface {
 
   /**
    * Cardinality.
@@ -51,7 +49,7 @@ class Relationship implements RelationshipInterface, AccessibleInterface {
   /**
    * The relationship items.
    *
-   * @var array
+   * @var \Drupal\jsonapi\Normalizer\RelationshipItem[]
    */
   protected $items;
 
@@ -88,21 +86,27 @@ class Relationship implements RelationshipInterface, AccessibleInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the cardinality.
+   *
+   * @return mixed
    */
   public function getCardinality() {
     return $this->cardinality;
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the host entity.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface
    */
   public function getHostEntity() {
     return $this->hostEntity;
   }
 
   /**
-   * {@inheritdoc}
+   * Sets the host entity.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $hostEntity
    */
   public function setHostEntity(EntityInterface $hostEntity) {
     $this->hostEntity = $hostEntity;
@@ -117,14 +121,18 @@ class Relationship implements RelationshipInterface, AccessibleInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the field name.
+   *
+   * @return string
    */
   public function getPropertyName() {
     return $this->propertyName;
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the items.
+   *
+   * @return \Drupal\jsonapi\Normalizer\RelationshipItem[]
    */
   public function getItems() {
     return $this->items;

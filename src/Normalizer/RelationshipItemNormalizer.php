@@ -23,7 +23,7 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
    *
    * @var string
    */
-  protected $supportedInterfaceOrClass = \Drupal\jsonapi\Normalizer\RelationshipItemInterface::class;
+  protected $supportedInterfaceOrClass = \Drupal\jsonapi\Normalizer\RelationshipItem::class;
 
   /**
    * The manager for resource configuration.
@@ -56,7 +56,7 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
    * {@inheritdoc}
    */
   public function normalize($relationship_item, $format = NULL, array $context = array()) {
-    /* @var $relationship_item \Drupal\jsonapi\Normalizer\RelationshipItemInterface */
+    /* @var $relationship_item \Drupal\jsonapi\Normalizer\RelationshipItem */
     // TODO: We are always loading the referenced entity. Even if it is not
     // going to be included. That may be a performance issue. We do it because
     // we need to know the entity type and bundle to load the resource config to

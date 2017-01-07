@@ -41,7 +41,7 @@ class ConfigEntityNormalizer extends EntityNormalizer {
       $output->setPropertyType('attributes');
       return $output;
     }
-    $field instanceof RelationshipInterface ?
+    $field instanceof Relationship ?
       $output->setPropertyType('relationships') :
       $output->setPropertyType('attributes');
     return $output;

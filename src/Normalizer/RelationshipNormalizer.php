@@ -60,7 +60,7 @@ class RelationshipNormalizer extends NormalizerBase {
   /**
    * Helper function to normalize field items.
    *
-   * @param \Drupal\jsonapi\Normalizer\RelationshipInterface $relationship
+   * @param \Drupal\jsonapi\Normalizer\Relationship $relationship
    *   The field object.
    * @param string $format
    *   The format.
@@ -71,7 +71,7 @@ class RelationshipNormalizer extends NormalizerBase {
    *   The array of normalized field items.
    */
   public function normalize($relationship, $format = NULL, array $context = array()) {
-    /* @var \Drupal\jsonapi\Normalizer\RelationshipInterface $relationship */
+    /* @var \Drupal\jsonapi\Normalizer\Relationship $relationship */
     $normalizer_items = array();
     foreach ($relationship->getItems() as $relationship_item) {
       $normalizer_items[] = $this->serializer->normalize($relationship_item, $format, $context);
