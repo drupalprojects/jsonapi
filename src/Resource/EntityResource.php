@@ -224,7 +224,11 @@ class EntityResource implements EntityResourceInterface {
     $entity_collection->setHasNextPage($has_next_page);
     $response = $this->respondWithCollection($entity_collection, $entity_type_id);
 
+    // Add cacheable metadata for the denied entities.
     $access_info = array_column($collection_data, 'access');
+    $access_info = array_filter($access_info, function ($access) {
+      return !$access->isAllowed();
+    });
     array_walk($access_info, function ($access) use ($response) {
       $response->addCacheableDependency($access);
     });
@@ -495,7 +499,7 @@ class EntityResource implements EntityResourceInterface {
     // the validity of this cached list. Add the list tag to deal with that.
     $list_tag = $this->entityTypeManager->getDefinition($entity_type_id)
       ->getListCacheTags();
-    $response->getCacheableMetadata()->setCacheTags($list_tag);
+    $response->getCacheableMetadata()->addCacheTags($list_tag);
     return $response;
   }
 
