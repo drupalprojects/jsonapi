@@ -31,7 +31,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    return new static($container->get('entity_type.manager')->getStorage('rest_resource_config'));
+    return new static();
   }
 
   /**
@@ -186,8 +186,8 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     try {
       return $serializer->deserialize($received, $serialization_class, $format, [
         'related' => $request->get('related'),
-        'target_entity' => $request->get($current_context->getResourceConfig()->getEntityTypeId()),
-        'resource_config' => $current_context->getResourceConfig(),
+        'target_entity' => $request->get($current_context->getResourceType()->getEntityTypeId()),
+        'resource_type' => $current_context->getResourceType(),
       ]);
     }
     catch (UnexpectedValueException $e) {
@@ -259,8 +259,8 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
    *   The instantiated resource.
    */
   protected function resourceFactory(Route $route, CurrentContextInterface $current_context) {
-    /** @var \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager */
-    $resource_manager = $this->container->get('jsonapi.resource.manager');
+    /** @var \Drupal\jsonapi\ResourceType\ResourceTypeRepository $resource_type_repository */
+    $resource_type_repository = $this->container->get('jsonapi.resource_type.repository');
     /* @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager */
     $entity_type_manager = $this->container->get('entity_type.manager');
     /* @var \Drupal\jsonapi\Query\QueryBuilderInterface $query_builder */
@@ -270,7 +270,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     /* @var \Drupal\Core\Field\FieldTypePluginManagerInterface $plugin_manager */
     $plugin_manager = $this->container->get('plugin.manager.field.field_type');
     $resource = new EntityResource(
-      $resource_manager->get($route->getRequirement('_entity_type'), $route->getRequirement('_bundle')),
+      $resource_type_repository->get($route->getRequirement('_entity_type'), $route->getRequirement('_bundle')),
       $entity_type_manager,
       $query_builder,
       $field_manager,

@@ -349,7 +349,7 @@ class QueryBuilder implements QueryBuilderInterface {
    *   The key.
    */
   protected function getLangcodeKey() {
-    $entity_type_id = $this->currentContext->getResourceConfig()
+    $entity_type_id = $this->currentContext->getResourceType()
       ->getEntityTypeId();
     return $this->entityTypeManager
       ->getDefinition($entity_type_id)

@@ -5,7 +5,7 @@ namespace Drupal\jsonapi\Normalizer;
 use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\Resource\EntityResource;
 use Drupal\serialization\EntityResolver\UuidReferenceInterface;
 
@@ -26,11 +26,11 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
   protected $supportedInterfaceOrClass = \Drupal\jsonapi\Normalizer\RelationshipItem::class;
 
   /**
-   * The manager for resource configuration.
+   * The JSON API resource type repository.
    *
-   * @var \Drupal\jsonapi\Configuration\ResourceManagerInterface
+   * @var \Drupal\jsonapi\ResourceType\ResourceTypeRepository
    */
-  protected $resourceManager;
+  protected $resourceTypeRepository;
 
   /**
    * The JSON API document top level normalizer.
@@ -42,13 +42,13 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
   /**
    * Instantiates a RelationshipItemNormalizer object.
    *
-   * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
-   *   The resource manager.
+   * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepository $resource_type_repository
+   *   The JSON API resource type repository.
    * @param \Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer $jsonapi_document_toplevel_normalizer
    *   The document root normalizer for the include.
    */
-  public function __construct(ResourceManagerInterface $resource_manager, JsonApiDocumentTopLevelNormalizer $jsonapi_document_toplevel_normalizer) {
-    $this->resourceManager = $resource_manager;
+  public function __construct(ResourceTypeRepository $resource_type_repository, JsonApiDocumentTopLevelNormalizer $jsonapi_document_toplevel_normalizer) {
+    $this->resourceTypeRepository = $resource_type_repository;
     $this->jsonapiDocumentToplevelNormalizer = $jsonapi_document_toplevel_normalizer;
   }
 
@@ -59,9 +59,9 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
     /* @var $relationship_item \Drupal\jsonapi\Normalizer\RelationshipItem */
     // TODO: We are always loading the referenced entity. Even if it is not
     // going to be included. That may be a performance issue. We do it because
-    // we need to know the entity type and bundle to load the resource config to
-    // get the type for the relationship item. We need a better way of finding
-    // about this.
+    // we need to know the entity type and bundle to load the JSON API resource
+    // type for the relationship item. We need a better way of finding about
+    // this.
     $target_entity = $relationship_item->getTargetEntity();
     $values = $relationship_item->getValue();
     if (isset($context['langcode'])) {
@@ -69,7 +69,7 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
     }
     $normalizer_value = new Value\RelationshipItemNormalizerValue(
       $values,
-      $relationship_item->getTargetResourceConfig()
+      $relationship_item->getTargetResourceType()
     );
 
     $host_field_name = $relationship_item->getParent()->getPropertyName();
@@ -107,7 +107,7 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
    */
   protected function buildSubContext($context, EntityInterface $entity, $host_field_name) {
     // Swap out the context for the context of the referenced resource.
-    $context['resource_config'] = $this->resourceManager
+    $context['resource_type'] = $this->resourceTypeRepository
       ->get($entity->getEntityTypeId(), $entity->bundle());
     // Since we're going one level down the only includes we need are the ones
     // that apply to this level as well.

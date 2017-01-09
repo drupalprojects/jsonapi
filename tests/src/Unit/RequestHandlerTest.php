@@ -3,7 +3,7 @@
 namespace Drupal\Tests\jsonapi\Unit;
 
 use Drupal\Core\Entity\EntityStorageInterface;
-use Drupal\jsonapi\Configuration\ResourceConfig;
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\RequestHandler;
 use Drupal\Tests\UnitTestCase;
@@ -45,8 +45,8 @@ class RequestHandlerTest extends UnitTestCase  {
     $serializer->serialize(Argument::any(), Argument::any(), Argument::any())
       ->willReturn('{"errors":[{"status":422,"message":"Foo"}]}');
     $current_context = $this->prophesize(CurrentContextInterface::class);
-    $resource_config = new ResourceConfig($this->randomMachineName(), $this->randomMachineName(), NULL);
-    $current_context->getResourceConfig()->willReturn($resource_config);
+    $current_context->getResourceType()
+      ->willReturn(new ResourceType($this->randomMachineName(), $this->randomMachineName(), NULL));
     try {
       $request_handler->deserializeBody(
         $request->reveal(),

@@ -1,7 +1,7 @@
 services:
   serializer.normalizer.entity_reference_item.jsonapi:
     class: Drupal\jsonapi\Normalizer\RelationshipItemNormalizer
-    arguments: ['@jsonapi.resource.manager', '@serializer.normalizer.jsonapi_document_toplevel.jsonapi',]
+    arguments: ['@jsonapi.resource_type.repository', '@serializer.normalizer.jsonapi_document_toplevel.jsonapi',]
     tags:
       - { name: normalizer, priority: 21 }
   serializer.normalizer.field_item.jsonapi:
@@ -18,22 +18,22 @@ services:
       - { name: normalizer, priority: 21 }
   serializer.normalizer.entity_reference_field.jsonapi:
     class: Drupal\jsonapi\Normalizer\EntityReferenceFieldNormalizer
-    arguments: ['@jsonapi.link_manager', '@entity_field.manager', '@plugin.manager.field.field_type', '@jsonapi.resource.manager', '@entity.repository']
+    arguments: ['@jsonapi.link_manager', '@entity_field.manager', '@plugin.manager.field.field_type', '@jsonapi.resource_type.repository', '@entity.repository']
     tags:
       - { name: normalizer, priority: 31 }
   serializer.normalizer.relationship.jsonapi:
     class: Drupal\jsonapi\Normalizer\RelationshipNormalizer
-    arguments: ['@jsonapi.resource.manager', '@jsonapi.link_manager']
+    arguments: ['@jsonapi.resource_type.repository', '@jsonapi.link_manager']
     tags:
       - { name: normalizer, priority: 21 }
   serializer.normalizer.entity.jsonapi:
     class: Drupal\jsonapi\Normalizer\ContentEntityNormalizer
-    arguments: ['@jsonapi.link_manager', '@jsonapi.current_context', '@entity_type.manager']
+    arguments: ['@jsonapi.link_manager', '@jsonapi.resource_type.repository', '@entity_type.manager']
     tags:
       - { name: normalizer, priority: 21 }
   serializer.normalizer.config_entity.jsonapi:
     class: Drupal\jsonapi\Normalizer\ConfigEntityNormalizer
-    arguments: ['@jsonapi.link_manager', '@jsonapi.current_context', '@entity_type.manager']
+    arguments: ['@jsonapi.link_manager', '@jsonapi.resource_type.repository', '@entity_type.manager']
     tags:
       - { name: normalizer, priority: 21 }
   serializer.normalizer.jsonapi_document_toplevel.jsonapi:
@@ -55,8 +55,8 @@ services:
     class: Drupal\jsonapi\Encoder\JsonEncoder
     tags:
       - { name: encoder, priority: 21, format: 'api_json' }
-  jsonapi.resource.manager:
-    class: Drupal\jsonapi\Configuration\ResourceManager
+  jsonapi.resource_type.repository:
+    class: Drupal\jsonapi\ResourceType\ResourceTypeRepository
     arguments: ['@entity_type.manager', '@entity_type.bundle.info']
   jsonapi.route_enhancer:
     class: Drupal\jsonapi\Routing\RouteEnhancer
@@ -75,7 +75,7 @@ services:
     arguments: ['@router.no_access_checks', '@url_generator']
   jsonapi.current_context:
     class: Drupal\jsonapi\Context\CurrentContext
-    arguments: ['@jsonapi.resource.manager', '@request_stack', '@current_route_match']
+    arguments: ['@jsonapi.resource_type.repository', '@request_stack', '@current_route_match']
   jsonapi.field_resolver:
     class: Drupal\jsonapi\Context\FieldResolver
     arguments: ['@jsonapi.current_context', '@entity_field.manager']

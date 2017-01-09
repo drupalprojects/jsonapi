@@ -3,7 +3,7 @@
 namespace Drupal\jsonapi\LinkManager;
 
 use Drupal\Core\Routing\UrlGeneratorInterface;
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
@@ -43,12 +43,12 @@ class LinkManager implements LinkManagerInterface {
   /**
    * {@inheritdoc}
    */
-  public function getEntityLink($entity_id, ResourceConfigInterface $resource_config, array $route_parameters, $key) {
+  public function getEntityLink($entity_id, ResourceType $resource_type, array $route_parameters, $key) {
     $route_parameters += [
-      $resource_config->getEntityTypeId() => $entity_id,
+      $resource_type->getEntityTypeId() => $entity_id,
       '_format' => 'api_json',
     ];
-    $route_key = sprintf('jsonapi.%s.%s', $resource_config->getTypeName(), $key);
+    $route_key = sprintf('jsonapi.%s.%s', $resource_type->getTypeName(), $key);
     return $this->urlGenerator->generateFromRoute($route_key, $route_parameters, ['absolute' => TRUE]);
   }
 

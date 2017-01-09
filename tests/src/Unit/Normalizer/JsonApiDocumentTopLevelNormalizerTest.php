@@ -6,8 +6,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
-use Drupal\jsonapi\Configuration\ResourceConfig;
-use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
@@ -29,13 +28,6 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
    * @var \Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer
    */
   protected $normalizer;
-
-  /**
-   * The resource config for the context.
-   *
-   * @var \Drupal\jsonapi\Configuration\ResourceConfigInterface
-   */
-  protected $resourceConfig;
 
   /**
    * {@inheritdoc}
@@ -64,8 +56,6 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
     $entity_type_manager = $this->prophesize(EntityTypeManagerInterface::class);
     $entity_type_manager->getStorage('node')
       ->willReturn($entity_storage->reveal());
-    $resource_manager = $this->prophesize(ResourceManagerInterface::class);
-    $current_context_manager->getResourceManager()->willReturn($resource_manager->reveal());
 
     $current_route = $this->prophesize(Route::class);
     $current_route->getDefault('_on_relationship')->willReturn(false);
@@ -95,9 +85,8 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
    * @dataProvider denormalizeProvider
    */
   public function testDenormalize($input, $expected) {
-    $resource_config = new ResourceConfig($this->randomMachineName(), $this->randomMachineName(), FieldableEntityInterface::class);
     $context = [
-      'resource_config' => $resource_config,
+      'resource_type' => new ResourceType($this->randomMachineName(), $this->randomMachineName(), FieldableEntityInterface::class),
     ];
     $denormalized = $this->normalizer->denormalize($input, NULL, 'api_json', $context);
     $this->assertSame($expected, $denormalized);

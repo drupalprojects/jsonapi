@@ -14,12 +14,12 @@ namespace Drupal\jsonapi\Context;
 interface CurrentContextInterface {
 
   /**
-   * Returns a ResouceConfig for the current request.
+   * Gets the JSON API resource type for the current request.
    *
-   * @return \Drupal\jsonapi\Configuration\ResourceConfigInterface
-   *   The ResourceConfig object corresponding to the current request.
+   * @return \Drupal\jsonapi\ResourceType\ResourceType
+   *   The JSON API resource type for the current request.
    */
-  public function getResourceConfig();
+  public function getResourceType();
 
   /**
    * Checks if the request is on a relationship.
@@ -28,13 +28,6 @@ interface CurrentContextInterface {
    *   TRUE if the request is on a relationship. FALSE otherwise.
    */
   public function isOnRelationship();
-
-  /**
-   * Returns the resource manager.
-   *
-   * @return \Drupal\jsonapi\Configuration\ResourceManagerInterface
-   */
-  public function getResourceManager();
 
   /**
    * Get a value by key from the _json_api_params route parameter.

@@ -106,9 +106,8 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
       // Add the relationship ids.
       $normalized = array_merge($normalized, $relationships);
     }
-    // Overwrite the serialization target class with the one in the resource
-    // config.
-    $class = $context['resource_config']->getDeserializationTargetClass();
+    // Override deserialization target class with the one in the ResourceType.
+    $class = $context['resource_type']->getDeserializationTargetClass();
 
     return $this
       ->serializer
@@ -119,7 +118,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
    * {@inheritdoc}
    */
   public function normalize($object, $format = NULL, array $context = array()) {
-    $context += ['resource_config' => $this->currentContext->getResourceConfig()];
+    $context += ['resource_type' => $this->currentContext->getResourceType()];
     $value_extractor = $this->buildNormalizerValue($object->getData(), $format, $context);
     if (!empty($context['cacheable_metadata'])) {
       $context['cacheable_metadata']->addCacheableDependency($value_extractor);
@@ -177,11 +176,11 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
     $context = array(
       'account' => NULL,
       'sparse_fieldset' => NULL,
-      'resource_config' => NULL,
+      'resource_type' => NULL,
       'include' => array_filter(explode(',', $request->query->get('include'))),
     );
     if (isset($this->currentContext)) {
-      $context['resource_config'] = $this->currentContext->getResourceConfig();
+      $context['resource_type'] = $this->currentContext->getResourceType();
     }
     if ($request->query->get('fields')) {
       $context['sparse_fieldset'] = array_map(function ($item) {

@@ -6,7 +6,7 @@ use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Url;
-use Drupal\jsonapi\Configuration\ResourceConfig;
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\EntityNormalizerValueInterface;
@@ -79,7 +79,7 @@ class EntityNormalizerValueTest extends UnitTestCase {
     $field2->getIncludes()->willReturn(array_map(function ($included_item) {
       return $included_item->reveal();
     }, $included));
-    $context = ['resource_config' => new ResourceConfig('node', 'article', NodeInterface::class)];
+    $context = ['resource_type' => new ResourceType('node', 'article', NodeInterface::class)];
     $entity = $this->prophesize(EntityInterface::class);
     $entity->uuid()->willReturn('248150b2-79a2-4b44-9f49-bf405a51414a');
     $entity->isNew()->willReturn(FALSE);

@@ -4,8 +4,8 @@ namespace Drupal\Tests\jsonapi\Unit\Context;
 
 use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\jsonapi\Context\CurrentContext;
-use Drupal\jsonapi\Configuration\ResourceConfig;
-use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\ResourceType\ResourceType;
+use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\Sort;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
@@ -41,11 +41,11 @@ class CurrentContextTest extends UnitTestCase {
   protected $currentRoute;
 
   /**
-   * A mock for the current route.
+   * A mock for the JSON API resource type repository.
    *
-   * @var \Drupal\jsonapi\Configuration\ResourceManagerInterface
+   * @var \Drupal\jsonapi\ResourceType\ResourceTypeRepository
    */
-  protected $resourceManager;
+  protected $resourceTypeRepository;
 
   /**
    * A mock for the entity field manager.
@@ -80,11 +80,11 @@ class CurrentContextTest extends UnitTestCase {
       ['_entity_type' => 'node', '_bundle' => 'article']
     );
 
-    // Create a mock for the ResourceManager service.
-    $resource_prophecy = $this->prophesize(ResourceManagerInterface::CLASS);
-    $resource_config = new ResourceConfig('node', 'article', NodeInterface::class);
-    $resource_prophecy->get('node', 'article')->willReturn($resource_config);
-    $this->resourceManager = $resource_prophecy->reveal();
+    // Create a mock for the ResourceTypeRepository service.
+    $resource_type_repository_prophecy = $this->prophesize(ResourceTypeRepository::CLASS);
+    $resource_type_repository_prophecy->get('node', 'article')
+      ->willReturn(new ResourceType('node', 'article', NodeInterface::class));
+    $this->resourceTypeRepository = $resource_type_repository_prophecy->reveal();
 
     $this->requestStack = new RequestStack();
     $this->requestStack->push(new Request([], [], [
@@ -102,26 +102,14 @@ class CurrentContextTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::getResourceConfig
+   * @covers ::getResourceType
    */
-  public function testGetResourceConfig() {
-    $request_context = new CurrentContext($this->resourceManager, $this->requestStack, $this->routeMatcher);
-    $resource_config = $request_context->getResourceConfig();
+  public function testGetResourceType() {
+    $request_context = new CurrentContext($this->resourceTypeRepository, $this->requestStack, $this->routeMatcher);
 
     $this->assertEquals(
-      $this->resourceManager->get('node', 'article'),
-      $resource_config
-    );
-  }
-
-  /**
-   * @covers ::getResourceManager
-   */
-  public function testGetResourceManager() {
-    $request_context = new CurrentContext($this->resourceManager, $this->requestStack, $this->routeMatcher);
-    $this->assertEquals(
-      $this->resourceManager,
-      $request_context->getResourceManager()
+      $this->resourceTypeRepository->get('node', 'article'),
+      $request_context->getResourceType()
     );
   }
 
@@ -129,7 +117,7 @@ class CurrentContextTest extends UnitTestCase {
    * @covers ::getJsonApiParameter
    */
   public function testGetJsonApiParameter() {
-    $request_context = new CurrentContext($this->resourceManager, $this->requestStack, $this->routeMatcher);
+    $request_context = new CurrentContext($this->resourceTypeRepository, $this->requestStack, $this->routeMatcher);
 
     $expected = new Sort([]);
     $actual = $request_context->getJsonApiParameter('sort');
@@ -144,7 +132,7 @@ class CurrentContextTest extends UnitTestCase {
     $request = new Request();
     $request->headers->set('Content-Type', 'application/vnd.api+json; ext="ext1,ext2"');
     $this->requestStack->push($request);
-    $request_context = new CurrentContext($this->resourceManager, $this->requestStack, $this->routeMatcher);
+    $request_context = new CurrentContext($this->resourceTypeRepository, $this->requestStack, $this->routeMatcher);
 
     $this->assertTrue($request_context->hasExtension('ext1'));
     $this->assertTrue($request_context->hasExtension('ext2'));
@@ -157,7 +145,7 @@ class CurrentContextTest extends UnitTestCase {
     $request = new Request();
     $request->headers->set('Content-Type', 'application/vnd.api+json; ext="ext1,ext2"');
     $this->requestStack->push($request);
-    $request_context = new CurrentContext($this->resourceManager, $this->requestStack, $this->routeMatcher);
+    $request_context = new CurrentContext($this->resourceTypeRepository, $this->requestStack, $this->routeMatcher);
 
     $this->assertEquals(['ext1', 'ext2'], $request_context->getExtensions());
   }
@@ -169,7 +157,7 @@ class CurrentContextTest extends UnitTestCase {
     $request = new Request();
     $request->headers->set('Content-Type', 'application/vnd.api+json;');
     $this->requestStack->push($request);
-    $request_context = new CurrentContext($this->resourceManager, $this->requestStack, $this->routeMatcher);
+    $request_context = new CurrentContext($this->resourceTypeRepository, $this->requestStack, $this->routeMatcher);
     $this->assertFalse($request_context->hasExtension('ext1'));
     $this->assertFalse($request_context->hasExtension('ext2'));
   }

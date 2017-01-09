@@ -4,7 +4,7 @@ namespace Drupal\Tests\jsonapi\Unit\Normalizer\Value;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
-use Drupal\jsonapi\Configuration\ResourceConfig;
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValueInterface;
@@ -76,7 +76,7 @@ class DocumentRootNormalizerValueTest extends UnitTestCase{
     $field2->getIncludes()->willReturn(array_map(function ($included_item) {
       return $included_item->reveal();
     }, $included));
-    $context = ['resource_config' => new ResourceConfig('node', 'article', NodeInterface::class)];
+    $context = ['resource_type' => new ResourceType('node', 'article', NodeInterface::class)];
     $entity = $this->prophesize(EntityInterface::class);
     $entity->id()->willReturn(1);
     $entity->isNew()->willReturn(FALSE);

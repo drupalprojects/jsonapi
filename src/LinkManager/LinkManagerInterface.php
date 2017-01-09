@@ -3,7 +3,7 @@
 
 namespace Drupal\jsonapi\LinkManager;
 
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -19,8 +19,8 @@ interface LinkManagerInterface {
    * @param int $entity_id
    *   The entity ID to generate the link for. Note: Depending on the
    *   configuration this might be the UUID as well.
-   * @param \Drupal\jsonapi\Configuration\ResourceConfigInterface $resource_config
-   *   The resource configuration.
+   * @param \Drupal\jsonapi\ResourceType\ResourceType $resource_type
+   *   The JSON API resource type.
    * @param array $route_parameters
    *   Parameters for the route generation.
    * @param string $key
@@ -29,7 +29,7 @@ interface LinkManagerInterface {
    * @return string
    *   The URL string.
    */
-  public function getEntityLink($entity_id, ResourceConfigInterface $resource_config, array $route_parameters, $key);
+  public function getEntityLink($entity_id, ResourceType $resource_type, array $route_parameters, $key);
 
   /**
    * Get the full URL for a given request object.

@@ -7,11 +7,11 @@ use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
-use Drupal\jsonapi\Context\CurrentContextInterface;
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Normalizer\Value\NullFieldNormalizerValue;
+use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
@@ -41,18 +41,11 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
   protected $linkManager;
 
   /**
-   * The resource manager.
+   * The JSON API resource type repository.
    *
-   * @var \Drupal\jsonapi\Configuration\ResourceManagerInterface
+   * @var \Drupal\jsonapi\ResourceType\ResourceTypeRepository
    */
-  protected $resourceManager;
-
-  /**
-   * The current JSON API request context.
-   *
-   * @var \Drupal\jsonapi\Context\CurrentContextInterface
-   */
-  protected $currentContext;
+  protected $resourceTypeRepository;
 
   /**
    * The entity type manager.
@@ -66,15 +59,14 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
    *
    * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface $link_manager
    *   The link manager.
-   * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
-   *   The current context.
+   * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepository $resource_type_repository
+   *   The JSON API resource type repository.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    */
-  public function __construct(LinkManagerInterface $link_manager, CurrentContextInterface $current_context, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(LinkManagerInterface $link_manager, ResourceTypeRepository $resource_type_repository, EntityTypeManagerInterface $entity_type_manager) {
     $this->linkManager = $link_manager;
-    $this->currentContext = $current_context;
-    $this->resourceManager = $current_context->getResourceManager();
+    $this->resourceTypeRepository = $resource_type_repository;
     $this->entityTypeManager = $entity_type_manager;
   }
 
@@ -83,16 +75,16 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
    */
   public function normalize($entity, $format = NULL, array $context = array()) {
     // If the fields to use were specified, only output those field values.
-    $context['resource_config'] = $this->resourceManager->get(
+    $context['resource_type'] = $resource_type = $this->resourceTypeRepository->get(
       $entity->getEntityTypeId(),
       $entity->bundle()
     );
-    $resource_type = $context['resource_config']->getTypeName();
+    $resource_type_name = $resource_type->getTypeName();
     // Get the bundle ID of the requested resource. This is used to determine if
     // this is a bundle level resource or an entity level resource.
-    $bundle = $context['resource_config']->getBundle();
-    if (!empty($context['sparse_fieldset'][$resource_type])) {
-      $field_names = $context['sparse_fieldset'][$resource_type];
+    $bundle = $resource_type->getBundle();
+    if (!empty($context['sparse_fieldset'][$resource_type_name])) {
+      $field_names = $context['sparse_fieldset'][$resource_type_name];
     }
     else {
       $field_names = $this->getFieldNames($entity, $bundle);
@@ -137,13 +129,13 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
    * {@inheritdoc}
    */
   public function denormalize($data, $class, $format = NULL, array $context = array()) {
-    if (empty($context['resource_config']) || !$context['resource_config'] instanceof ResourceConfigInterface) {
+    if (empty($context['resource_type']) || !$context['resource_type'] instanceof ResourceType) {
       throw new SerializableHttpException(412, 'Missing context during denormalization.');
     }
-    /* @var \Drupal\jsonapi\Configuration\ResourceConfigInterface $resource_config */
-    $resource_config = $context['resource_config'];
-    $entity_type_id = $resource_config->getEntityTypeId();
-    $bundle = $resource_config->getBundle();
+    /* @var \Drupal\jsonapi\ResourceType\ResourceType $resource_type */
+    $resource_type = $context['resource_type'];
+    $entity_type_id = $resource_type->getEntityTypeId();
+    $bundle = $resource_type->getBundle();
     $bundle_key = $this->entityTypeManager->getDefinition($entity_type_id)
       ->getKey('bundle');
     if ($bundle_key && $bundle) {

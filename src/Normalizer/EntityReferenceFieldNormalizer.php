@@ -4,11 +4,10 @@ namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityRepositoryInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
-use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\Resource\EntityCollection;
 use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
@@ -63,16 +62,16 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
    *   The entity field manager.
    * @param \Drupal\Core\Field\FieldTypePluginManagerInterface $plugin_manager
    *   The plugin manager for fields.
-   * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
-   *   The resource manager.
+   * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepository $resource_type_repository
+   *   The JSON API resource type repository.aaaa
    * @param \Drupal\Core\Entity\EntityRepositoryInterface $entity_repository
    *   The entity repository.
    */
-  public function __construct(LinkManagerInterface $link_manager, EntityFieldManagerInterface $field_manager, FieldTypePluginManagerInterface $plugin_manager, ResourceManagerInterface $resource_manager, EntityRepositoryInterface $entity_repository) {
+  public function __construct(LinkManagerInterface $link_manager, EntityFieldManagerInterface $field_manager, FieldTypePluginManagerInterface $plugin_manager, ResourceTypeRepository $resource_type_repository, EntityRepositoryInterface $entity_repository) {
     $this->linkManager = $link_manager;
     $this->fieldManager = $field_manager;
     $this->pluginManager = $plugin_manager;
-    $this->resourceManager = $resource_manager;
+    $this->resourceTypeRepository = $resource_type_repository;
     $this->entityRepository = $entity_repository;
   }
 
@@ -91,7 +90,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
     $entity_collection = new EntityCollection(array_map(function ($item) {
       return $item->get('entity')->getValue();
     }, (array) $field->getIterator()));
-    $relationship = new Relationship($this->resourceManager, $field->getName(), $cardinality, $entity_collection, $field->getEntity(), $main_property);
+    $relationship = new Relationship($this->resourceTypeRepository, $field->getName(), $cardinality, $entity_collection, $field->getEntity(), $main_property);
     return $this->serializer->normalize($relationship, $format, $context);
   }
 
@@ -100,10 +99,12 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
    */
   public function denormalize($data, $class, $format = NULL, array $context = array()) {
     // If we get to here is through a write method on a relationship operation.
-    $entity_type_id = $context['resource_config']->getEntityTypeId();
+    /** @var \Drupal\jsonapi\ResourceType\ResourceType $resource_type */
+    $resource_type = $context['resource_type'];
+    $entity_type_id = $resource_type->getEntityTypeId();
     $field_definitions = $this->fieldManager->getFieldDefinitions(
       $entity_type_id,
-      $context['resource_config']->getBundle()
+      $resource_type->getBundle()
     );
     if (empty($context['related']) || empty($field_definitions[$context['related']])) {
       throw new SerializableHttpException(400, 'Invalid or missing related field.');
@@ -193,7 +194,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
       [] :
       $handler_settings['target_bundles'];
     return array_map(function ($target_bundle) use ($target_entity_id) {
-      return $this->resourceManager
+      return $this->resourceTypeRepository
         ->get($target_entity_id, $target_bundle)
         ->getTypeName();
     }, $target_bundles);

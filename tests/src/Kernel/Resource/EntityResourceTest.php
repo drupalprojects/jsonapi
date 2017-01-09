@@ -6,7 +6,7 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Routing\CurrentRouteMatch;
-use Drupal\jsonapi\Configuration\ResourceConfig;
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\Resource\EntityCollectionInterface;
 use Drupal\jsonapi\Resource\EntityResource;
@@ -217,14 +217,14 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $request_stack->push($request);
     // Get the entity resource.
     $current_context = new CurrentContext(
-      $this->container->get('jsonapi.resource.manager'),
+      $this->container->get('jsonapi.resource_type.repository'),
       $request_stack,
       new CurrentRouteMatch($request_stack)
     );
     $this->container->set('jsonapi.current_context', $current_context);
 
     $entity_resource = new EntityResource(
-      $this->container->get('jsonapi.resource.manager')->get('node_type', 'node_type'),
+      $this->container->get('jsonapi.resource_type.repository')->get('node_type', 'node_type'),
       $this->container->get('entity_type.manager'),
       $this->container->get('jsonapi.query_builder'),
       $field_manager,
@@ -270,14 +270,14 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $request_stack->push($request);
     // Get the entity resource.
     $current_context = new CurrentContext(
-      $this->container->get('jsonapi.resource.manager'),
+      $this->container->get('jsonapi.resource_type.repository'),
       $request_stack,
       new CurrentRouteMatch($request_stack)
     );
     $this->container->set('jsonapi.current_context', $current_context);
 
     $entity_resource = new EntityResource(
-      $this->container->get('jsonapi.resource.manager')->get('node_type', 'node_type'),
+      $this->container->get('jsonapi.resource_type.repository')->get('node_type', 'node_type'),
       $this->container->get('entity_type.manager'),
       $this->container->get('jsonapi.query_builder'),
       $field_manager,
@@ -324,14 +324,14 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $request_stack->push($request);
     // Get the entity resource.
     $current_context = new CurrentContext(
-      $this->container->get('jsonapi.resource.manager'),
+      $this->container->get('jsonapi.resource_type.repository'),
       $request_stack,
       new CurrentRouteMatch($request_stack)
     );
     $this->container->set('jsonapi.current_context', $current_context);
 
     $entity_resource = new EntityResource(
-      $this->container->get('jsonapi.resource.manager')->get('node', 'article'),
+      $this->container->get('jsonapi.resource_type.repository')->get('node', 'article'),
       $this->container->get('entity_type.manager'),
       $this->container->get('jsonapi.query_builder'),
       $field_manager,
@@ -816,14 +816,14 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $request_stack->push($request);
     // Get the entity resource.
     $current_context = new CurrentContext(
-      $this->container->get('jsonapi.resource.manager'),
+      $this->container->get('jsonapi.resource_type.repository'),
       $request_stack,
       new CurrentRouteMatch($request_stack)
     );
     $this->container->set('jsonapi.current_context', $current_context);
 
     return new EntityResource(
-      new ResourceConfig($entity_type_id, $bundle, NULL),
+      new ResourceType($entity_type_id, $bundle, NULL),
       $this->container->get('entity_type.manager'),
       $this->container->get('jsonapi.query_builder'),
       $this->container->get('entity_field.manager'),

@@ -3,7 +3,7 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 
@@ -24,13 +24,6 @@ class RelationshipNormalizer extends NormalizerBase {
   protected $formats = array('api_json');
 
   /**
-   * The manager for resource configuration.
-   *
-   * @var \Drupal\jsonapi\Configuration\ResourceManagerInterface
-   */
-  protected $resourceManager;
-
-  /**
    * The link manager.
    *
    * @var \Drupal\jsonapi\LinkManager\LinkManagerInterface
@@ -40,13 +33,13 @@ class RelationshipNormalizer extends NormalizerBase {
   /**
    * RelationshipNormalizer constructor.
    *
-   * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
-   *   The resource manager.
+   * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepository $resource_type_repository
+   *   The JSON API resource type repository.
    * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface $link_manager
    *   The link manager.
    */
-  public function __construct(ResourceManagerInterface $resource_manager, LinkManagerInterface $link_manager) {
-    $this->resourceManager = $resource_manager;
+  public function __construct(ResourceTypeRepository $resource_type_repository, LinkManagerInterface $link_manager) {
+    $this->resourceTypeRepository = $resource_type_repository;
     $this->linkManager = $link_manager;
   }
 
@@ -81,7 +74,7 @@ class RelationshipNormalizer extends NormalizerBase {
       'host_entity_id' => $relationship->getHostEntity()->uuid(),
       'field_name' => $relationship->getPropertyName(),
       'link_manager' => $this->linkManager,
-      'resource_config' => $context['resource_config'],
+      'resource_type' => $context['resource_type'],
     ];
     return new Value\RelationshipNormalizerValue($normalizer_items, $cardinality, $link_context);
   }
@@ -104,7 +97,7 @@ class RelationshipNormalizer extends NormalizerBase {
    */
   protected function buildSubContext($context, EntityInterface $entity, $host_field_name) {
     // Swap out the context for the context of the referenced resource.
-    $context['resource_config'] = $this->resourceManager
+    $context['resource_type'] = $this->resourceTypeRepository
       ->get($entity->getEntityTypeId(), $entity->bundle());
     // Since we're going one level down the only includes we need are the ones
     // that apply to this level as well.

@@ -4,11 +4,10 @@ namespace Drupal\Tests\jsonapi\Unit\Normalizer;
 
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\jsonapi\Configuration\ResourceConfig;
-use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\ResourceType\ResourceType;
+use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\Normalizer\ConfigEntityNormalizer;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
-use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\Normalizer\ScalarNormalizer;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
@@ -37,20 +36,14 @@ class ConfigEntityNormalizerTest extends UnitTestCase {
    */
   public function setUp() {
     $link_manager = $this->prophesize(LinkManagerInterface::class);
-    $current_context_manager = $this->prophesize(CurrentContextInterface::class);
 
-    $current_context_manager->isOnRelationship()->willReturn(FALSE);
-
-    $resource_manager = $this->prophesize(ResourceManagerInterface::class);
-    $resource_manager->get(Argument::type('string'), Argument::type('string'))
-      ->willReturn(new ResourceConfig('dolor', 'sid', NULL));
-    $current_context_manager->getResourceManager()->willReturn(
-      $resource_manager->reveal()
-    );
+    $resource_type_repository = $this->prophesize(ResourceTypeRepository::class);
+    $resource_type_repository->get(Argument::type('string'), Argument::type('string'))
+      ->willReturn(new ResourceType('dolor', 'sid', NULL));
 
     $this->normalizer = new ConfigEntityNormalizer(
       $link_manager->reveal(),
-      $current_context_manager->reveal(),
+      $resource_type_repository->reveal(),
       $this->prophesize(EntityTypeManagerInterface::class)->reveal()
     );
 

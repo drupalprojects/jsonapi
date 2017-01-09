@@ -17,11 +17,11 @@ class RelationshipNormalizerValue extends FieldNormalizerValue implements Relati
   protected $linkManager;
 
   /**
-   * The resource config for the link generation.
+   * The JSON API resource type.
    *
-   * @var \Drupal\jsonapi\Configuration\ResourceConfigInterface
+   * @var \Drupal\jsonapi\ResourceType\ResourceType
    */
-  protected $resourceConfig;
+  protected $resourceType;
 
   /**
    * The field name for the link generation.
@@ -52,7 +52,7 @@ class RelationshipNormalizerValue extends FieldNormalizerValue implements Relati
     $this->hostEntityId = $link_context['host_entity_id'];
     $this->fieldName = $link_context['field_name'];
     $this->linkManager = $link_context['link_manager'];
-    $this->resourceConfig = $link_context['resource_config'];
+    $this->resourceType = $link_context['resource_type'];
     array_walk($values, function ($field_item_value) {
       if (!$field_item_value instanceof RelationshipItemNormalizerValueInterface) {
         throw new \RuntimeException(sprintf('Unexpected normalizer item value for this %s.', get_called_class()));
@@ -77,13 +77,13 @@ class RelationshipNormalizerValue extends FieldNormalizerValue implements Relati
       'links' => [
         'self' => $this->linkManager->getEntityLink(
           $this->hostEntityId,
-          $this->resourceConfig,
+          $this->resourceType,
           $route_parameters,
           'relationship'
         ),
         'related' => $this->linkManager->getEntityLink(
           $this->hostEntityId,
-          $this->resourceConfig,
+          $this->resourceType,
           $route_parameters,
           'related'
         ),

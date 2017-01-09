@@ -14,7 +14,7 @@ use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\Error\UnprocessableHttpEntityException;
 use Drupal\jsonapi\Query\QueryBuilderInterface;
@@ -33,11 +33,11 @@ use Symfony\Component\HttpFoundation\Response;
 class EntityResource implements EntityResourceInterface {
 
   /**
-   * The resource config.
+   * The JSON API resource type.
    *
-   * @var \Drupal\jsonapi\Configuration\ResourceConfigInterface
+   * @var \Drupal\jsonapi\ResourceType\ResourceType
    */
-  protected $resourceConfig;
+  protected $resourceType;
 
   /**
    * The entity type manager.
@@ -77,8 +77,8 @@ class EntityResource implements EntityResourceInterface {
   /**
    * Instantiates a EntityResource object.
    *
-   * @param \Drupal\jsonapi\Configuration\ResourceConfigInterface $resource_config
-   *   The configuration for the resource.
+   * @param \Drupal\jsonapi\ResourceType\ResourceType $resource_type
+   *   The JSON API resource type.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    * @param \Drupal\jsonapi\Query\QueryBuilderInterface $query_builder
@@ -90,8 +90,8 @@ class EntityResource implements EntityResourceInterface {
    * @param \Drupal\Core\Field\FieldTypePluginManagerInterface $plugin_manager
    *   The plugin manager for fields.
    */
-  public function __construct(ResourceConfigInterface $resource_config, EntityTypeManagerInterface $entity_type_manager, QueryBuilderInterface $query_builder, EntityFieldManagerInterface $field_manager, CurrentContextInterface $current_context, FieldTypePluginManagerInterface $plugin_manager) {
-    $this->resourceConfig = $resource_config;
+  public function __construct(ResourceType $resource_type, EntityTypeManagerInterface $entity_type_manager, QueryBuilderInterface $query_builder, EntityFieldManagerInterface $field_manager, CurrentContextInterface $current_context, FieldTypePluginManagerInterface $plugin_manager) {
+    $this->resourceType = $resource_type;
     $this->entityTypeManager = $entity_type_manager;
     $this->queryBuilder = $query_builder;
     $this->fieldManager = $field_manager;
@@ -202,7 +202,7 @@ class EntityResource implements EntityResourceInterface {
    */
   public function getCollection(Request $request) {
     // Instantiate the query for the filtering.
-    $entity_type_id = $this->resourceConfig->getEntityTypeId();
+    $entity_type_id = $this->resourceType->getEntityTypeId();
 
     $params = $request->attributes->get('_route_params');
     $query = $this->getCollectionQuery($entity_type_id, $params['_json_api_params']);
@@ -437,7 +437,7 @@ class EntityResource implements EntityResourceInterface {
     $query = $this->queryBuilder->newQuery($entity_type, $params);
 
     // Limit this query to the bundle type for this resource.
-    $bundle = $this->resourceConfig->getBundle();
+    $bundle = $this->resourceType->getBundle();
     if ($bundle && ($bundle_key = $entity_type->getKey('bundle'))) {
       $query->condition(
         $bundle_key, $bundle

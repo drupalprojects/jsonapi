@@ -65,7 +65,7 @@ class FieldResolver implements FieldResolverInterface {
     // 'uid.entity.field_category.entity.name'. This may be too simple, but it
     // works for the time being.
     $parts = explode('.', $external_field_name);
-    $entity_type_id = $this->currentContext->getResourceConfig()->getEntityTypeId();
+    $entity_type_id = $this->currentContext->getResourceType()->getEntityTypeId();
     $reference_breadcrumbs = [];
     while ($field_name = array_shift($parts)) {
       if (!$definitions = $this->fieldManager->getFieldStorageDefinitions($entity_type_id)) {

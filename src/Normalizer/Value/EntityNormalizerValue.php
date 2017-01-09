@@ -90,7 +90,7 @@ class EntityNormalizerValue implements EntityNormalizerValueInterface {
   public function rasterizeValue() {
     // Create the array of normalized fields, starting with the URI.
     $rasterized = [
-      'type' => $this->context['resource_config']->getTypeName(),
+      'type' => $this->context['resource_type']->getTypeName(),
       'id' => $this->entity->uuid(),
       'attributes' => [],
       'relationships' => [],
@@ -98,7 +98,7 @@ class EntityNormalizerValue implements EntityNormalizerValueInterface {
     $rasterized['links'] = [
       'self' => $this->linkManager->getEntityLink(
         $rasterized['id'],
-        $this->context['resource_config'],
+        $this->context['resource_type'],
         [],
         'individual'
       ),

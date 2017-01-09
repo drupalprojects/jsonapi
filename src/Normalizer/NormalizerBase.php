@@ -19,11 +19,11 @@ abstract class NormalizerBase extends SerializationNormalizerBase {
   protected $formats = array('api_json');
 
   /**
-   * The resource manager.
+   * The JSON API resource type repository.
    *
-   * @var \Drupal\jsonapi\Configuration\ResourceManagerInterface
+   * @var \Drupal\jsonapi\ResourceType\ResourceTypeRepository
    */
-  protected $resourceManager;
+  protected $resourceTypeRepository;
 
   /**
    * {@inheritdoc}

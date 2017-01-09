@@ -37,8 +37,8 @@ class RouteEnhancer implements RouteEnhancerInterface {
     $configured_bundle = $route->getRequirement('_bundle');
     if ($retrieved_bundle != $configured_bundle) {
       // If the bundle in the loaded entity does not match the bundle in the
-      // route configuration (that comes from the resource_config), then throw
-      // an exception.
+      // route (which is set based on the corresponding ResourceType), then
+      // throw an exception.
       throw new SerializableHttpException(404, sprintf('The loaded entity bundle (%s) does not match the configured resource (%s).', $retrieved_bundle, $configured_bundle));
     }
     return $defaults;

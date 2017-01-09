@@ -6,7 +6,7 @@ use Drupal\Core\Access\AccessibleInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\Resource\EntityCollectionInterface;
 
 /**
@@ -40,11 +40,11 @@ class Relationship implements AccessibleInterface {
   protected $propertyName;
 
   /**
-   * The resource manager.
+   * The JSON API resource type repository.
    *
-   * @var \Drupal\jsonapi\Configuration\ResourceManagerInterface
+   * @var \Drupal\jsonapi\ResourceType\ResourceTypeRepository
    */
-  protected $resourceManager;
+  protected $resourceTypeRepository;
 
   /**
    * The relationship items.
@@ -56,8 +56,8 @@ class Relationship implements AccessibleInterface {
   /**
    * Relationship constructor.
    *
-   * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
-   *   The resource manager.
+   * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepository $resource_type_repository
+   *   The JSON API resource type repository.
    * @param string $field_name
    *   The name of the relationship.
    * @param int $cardinality
@@ -69,15 +69,15 @@ class Relationship implements AccessibleInterface {
    * @param string $target_key
    *   The property name of the relationship id.
    */
-  public function __construct(ResourceManagerInterface $resource_manager, $field_name, $cardinality = FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED, EntityCollectionInterface $entities, EntityInterface $host_entity, $target_key = 'target_id') {
-    $this->resourceManager = $resource_manager;
+  public function __construct(ResourceTypeRepository $resource_type_repository, $field_name, $cardinality = FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED, EntityCollectionInterface $entities, EntityInterface $host_entity, $target_key = 'target_id') {
+    $this->resourceTypeRepository = $resource_type_repository;
     $this->propertyName = $field_name;
     $this->cardinality = $cardinality;
     $this->hostEntity = $host_entity;
     $this->items = [];
     foreach ($entities as $entity) {
       $this->items[] = new RelationshipItem(
-        $resource_manager,
+        $resource_type_repository,
         $entity,
         $this,
         $target_key

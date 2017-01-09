@@ -3,7 +3,7 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 
 /**
  * @internal
@@ -25,11 +25,11 @@ class RelationshipItem {
   protected $targetEntity;
 
   /**
-   * The target resource config.
+   * The target JSON API resource type.
    *
-   * @param \Drupal\jsonapi\Configuration\ResourceConfigInterface
+   * @param \Drupal\jsonapi\ResourceType\ResourceType
    */
-  protected $targetResourceConfig;
+  protected $targetResourceType;
 
   /**
    * The parent relationship.
@@ -41,8 +41,8 @@ class RelationshipItem {
   /**
    * Relationship item constructor.
    *
-   * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
-   *   The resource manager.
+   * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepository $resource_type_repository
+   *   The JSON API resource type repository.
    * @param \Drupal\Core\Entity\EntityInterface $target_entity
    *   The entity this relationship points to.
    * @param \Drupal\jsonapi\Normalizer\Relationship
@@ -50,8 +50,8 @@ class RelationshipItem {
    * @param string $target_key
    *   The key name of the target relationship.
    */
-  public function __construct(ResourceManagerInterface $resource_manager, EntityInterface $target_entity, Relationship $parent, $target_key = 'target_id') {
-    $this->targetResourceConfig = $resource_manager->get(
+  public function __construct(ResourceTypeRepository $resource_type_repository, EntityInterface $target_entity, Relationship $parent, $target_key = 'target_id') {
+    $this->targetResourceType = $resource_type_repository->get(
       $target_entity->getEntityTypeId(),
       $target_entity->bundle()
     );
@@ -74,8 +74,8 @@ class RelationshipItem {
    *
    * @return mixed
    */
-  public function getTargetResourceConfig() {
-    return $this->targetResourceConfig;
+  public function getTargetResourceType() {
+    return $this->targetResourceType;
   }
 
   /**

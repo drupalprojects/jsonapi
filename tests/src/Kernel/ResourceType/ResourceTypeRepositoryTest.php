@@ -1,22 +1,16 @@
 <?php
 
-namespace Drupal\Tests\jsonapi\Kernel\Configuration;
+namespace Drupal\Tests\jsonapi\Kernel\ResourceType;
 
-use Drupal\jsonapi\Configuration\ResourceConfigInterface;
-use Drupal\jsonapi\Configuration\ResourceManager;
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\NodeType;
 
 /**
- * Class ResourceManagerTest.
- *
- * @package Drupal\Tests\jsonapi\Kernel\Resource
- *
- * @coversDefaultClass \Drupal\jsonapi\Configuration\ResourceManager
- *
+ * @coversDefaultClass \Drupal\jsonapi\ResourceType\ResourceTypeRepository
  * @group jsonapi
  */
-class ResourceManagerTest extends KernelTestBase {
+class ResourceTypeRepositoryTest extends KernelTestBase {
 
   /**
    * {@inheritdoc}
@@ -30,11 +24,11 @@ class ResourceManagerTest extends KernelTestBase {
   ];
 
   /**
-   * The entity resource under test.
+   * The JSON API resource type repository under test.
    *
-   * @var \Drupal\jsonapi\Configuration\ResourceManagerInterface
+   * @var \Drupal\jsonapi\ResourceType\ResourceTypeRepository
    */
-  protected $resourceManager;
+  protected $resourceTypeRepository;
 
   /**
    * {@inheritdoc}
@@ -55,7 +49,7 @@ class ResourceManagerTest extends KernelTestBase {
       'type' => 'page',
     ])->save();
 
-    $this->resourceManager = $this->container->get('jsonapi.resource.manager');
+    $this->resourceTypeRepository = $this->container->get('jsonapi.resource_type.repository');
   }
 
   /**
@@ -63,12 +57,12 @@ class ResourceManagerTest extends KernelTestBase {
    */
   public function testAll() {
     // Make sure that there are resources being created.
-    $all = $this->resourceManager->all();
+    $all = $this->resourceTypeRepository->all();
     $this->assertNotEmpty($all);
-    array_walk($all, function (ResourceConfigInterface $resource_config) {
-      $this->assertNotEmpty($resource_config->getDeserializationTargetClass());
-      $this->assertNotEmpty($resource_config->getEntityTypeId());
-      $this->assertNotEmpty($resource_config->getTypeName());
+    array_walk($all, function (ResourceType $resource_type) {
+      $this->assertNotEmpty($resource_type->getDeserializationTargetClass());
+      $this->assertNotEmpty($resource_type->getEntityTypeId());
+      $this->assertNotEmpty($resource_type->getTypeName());
     });
   }
 
@@ -78,12 +72,12 @@ class ResourceManagerTest extends KernelTestBase {
    */
   public function testGet($entity_type_id, $bundle, $entity_class) {
     // Make sure that there are resources being created.
-    $resource_config = $this->resourceManager->get($entity_type_id, $bundle);
-    $this->assertInstanceOf(ResourceConfigInterface::class, $resource_config);
-    $this->assertSame($entity_class, $resource_config->getDeserializationTargetClass());
-    $this->assertSame($entity_type_id, $resource_config->getEntityTypeId());
-    $this->assertSame($bundle, $resource_config->getBundle());
-    $this->assertSame($entity_type_id . '--' . $bundle, $resource_config->getTypeName());
+    $resource_type = $this->resourceTypeRepository->get($entity_type_id, $bundle);
+    $this->assertInstanceOf(ResourceType::class, $resource_type);
+    $this->assertSame($entity_class, $resource_type->getDeserializationTargetClass());
+    $this->assertSame($entity_type_id, $resource_type->getEntityTypeId());
+    $this->assertSame($bundle, $resource_type->getBundle());
+    $this->assertSame($entity_type_id . '--' . $bundle, $resource_type->getTypeName());
   }
 
   /**

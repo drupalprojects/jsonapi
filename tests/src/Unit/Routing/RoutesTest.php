@@ -4,20 +4,15 @@ namespace Drupal\Tests\jsonapi\Unit\Routing;
 
 use Drupal\Core\Authentication\AuthenticationCollectorInterface;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\jsonapi\Configuration\ResourceConfig;
-use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\ResourceType\ResourceType;
+use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\Routing\Routes;
 use Drupal\Tests\UnitTestCase;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class RoutesTest.
- *
- * @package Drupal\Tests\jsonapi\Unit\Routing
- *
  * @coversDefaultClass \Drupal\jsonapi\Routing\Routes
- *
  * @group jsonapi
  */
 class RoutesTest extends UnitTestCase {
@@ -34,11 +29,10 @@ class RoutesTest extends UnitTestCase {
    */
   protected function setUp() {
     parent::setUp();
-    // Mock the resource manager to have some resources available.
-    $resource_manager = $this->prophesize(ResourceManagerInterface::class);
-    $resource_manager->all()->willReturn([new ResourceConfig('entity_type_1', 'bundle_1_1', EntityInterface::class)]);
+    $resource_type_repository = $this->prophesize(ResourceTypeRepository::class);
+    $resource_type_repository->all()->willReturn([new ResourceType('entity_type_1', 'bundle_1_1', EntityInterface::class)]);
     $container = $this->prophesize(ContainerInterface::class);
-    $container->get('jsonapi.resource.manager')->willReturn($resource_manager->reveal());
+    $container->get('jsonapi.resource_type.repository')->willReturn($resource_type_repository->reveal());
     $auth_collector = $this->prophesize(AuthenticationCollectorInterface::class);
     $auth_collector->getSortedProviders()->willReturn([
       'lorem' => [],

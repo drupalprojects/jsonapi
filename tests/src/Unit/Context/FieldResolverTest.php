@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\jsonapi\Unit\Context;
 
-use Drupal\jsonapi\Configuration\ResourceConfig;
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\Tests\UnitTestCase;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -40,8 +40,8 @@ class FieldResolverTest extends UnitTestCase {
   public function setUp() {
     $current_context = $this->prophesize(CurrentContextInterface::class);
 
-    $resource_config = new ResourceConfig('lorem', $this->randomMachineName(), NULL);
-    $current_context->getResourceConfig()->willReturn($resource_config);
+    $current_context->getResourceType()
+      ->willReturn(new ResourceType('lorem', $this->randomMachineName(), NULL));
 
     $this->currentContext = $current_context->reveal();
   }

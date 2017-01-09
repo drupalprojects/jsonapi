@@ -1,9 +1,6 @@
 <?php
 
-namespace Drupal\jsonapi\Configuration;
-
-use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
+namespace Drupal\jsonapi\ResourceType;
 
 /**
  * Value object containing all metadata for a JSON API resource type.
@@ -11,9 +8,11 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
  * Used to generate routes (collection, individual, et cetera), generate
  * relationship links, and so on.
  *
+ * @see \Drupal\jsonapi\ResourceType\ResourceTypeRepository
+ *
  * @internal
  */
-class ResourceConfig implements ResourceConfigInterface {
+class ResourceType {
 
   /**
    * The entity type ID.
@@ -44,35 +43,52 @@ class ResourceConfig implements ResourceConfigInterface {
   protected $deserializationTargetClass;
 
   /**
-   * {@inheritdoc}
+   * Gets the entity type ID.
+   *
+   * @return string
+   *   The entity type ID.
+   *
+   * @see \Drupal\Core\Entity\EntityInterface::getEntityTypeId
    */
   public function getEntityTypeId() {
     return $this->entityTypeId;
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the type name.
+   *
+   * @return string
+   *   The type name.
    */
   public function getTypeName() {
     return $this->typeName;
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the bundle.
+   *
+   * @return string
+   *   The bundle of the entity. Defaults to the entity type ID if the entity
+   *   type does not make use of different bundles.
+   *
+   * @see \Drupal\Core\Entity\EntityInterface::bundle
    */
   public function getBundle() {
     return $this->bundle;
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the deserialization target class.
+   *
+   * @return string
+   *   The deserialization target class.
    */
   public function getDeserializationTargetClass() {
     return $this->deserializationTargetClass;
   }
 
   /**
-   * Instantiates a ResourceConfig object.
+   * Instantiates a ResourceType object.
    *
    * @param string $entity_type_id
    *   An entity type ID.

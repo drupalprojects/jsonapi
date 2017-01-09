@@ -3,7 +3,7 @@
 namespace Drupal\jsonapi\Context;
 
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\jsonapi\Configuration\ResourceManagerInterface;
+use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -18,18 +18,18 @@ use Symfony\Component\HttpFoundation\RequestStack;
 class CurrentContext implements CurrentContextInterface {
 
   /**
-   * The resource manager.
+   * The JSON API resource type repository.
    *
-   * @var \Drupal\jsonapi\Configuration\ResourceManagerInterface
+   * @var \Drupal\jsonapi\ResourceType\ResourceTypeRepository
    */
-  protected $resourceManager;
+  protected $resourceTypeRepository;
 
   /**
-   * The current resource config.
+   * The current JSON API resource type.
    *
-   * @var \Drupal\jsonapi\Configuration\ResourceConfigInterface
+   * @var \Drupal\jsonapi\ResourceType\ResourceType
    */
-  protected $resourceConfig;
+  protected $resourceType;
 
   /**
    * The current request.
@@ -48,15 +48,15 @@ class CurrentContext implements CurrentContextInterface {
   /**
    * Creates a CurrentContext object.
    *
-   * @param \Drupal\jsonapi\Configuration\ResourceManagerInterface $resource_manager
-   *   The resource manager service.
+   * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepository $resource_type_repository
+   *   The resource type repository.
    * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
    *   The request stack.
    * @param \Drupal\Core\Routing\RouteMatchInterface $route_match
    *   The current route match.
    */
-  public function __construct(ResourceManagerInterface $resource_manager, RequestStack $request_stack, RouteMatchInterface $route_match) {
-    $this->resourceManager = $resource_manager;
+  public function __construct(ResourceTypeRepository $resource_type_repository, RequestStack $request_stack, RouteMatchInterface $route_match) {
+    $this->resourceTypeRepository = $resource_type_repository;
     $this->requestStack = $request_stack;
     $this->routeMatch = $route_match;
   }
@@ -64,16 +64,16 @@ class CurrentContext implements CurrentContextInterface {
   /**
    * {@inheritdoc}
    */
-  public function getResourceConfig() {
-    if (!isset($this->resourceConfig)) {
+  public function getResourceType() {
+    if (!isset($this->resourceType)) {
       $route = $this->routeMatch->getRouteObject();
       $entity_type_id = $route->getRequirement('_entity_type');
       $bundle = $route->getRequirement('_bundle');
-      $this->resourceConfig = $this->resourceManager
+      $this->resourceType = $this->resourceTypeRepository
         ->get($entity_type_id, $bundle);
     }
 
-    return $this->resourceConfig;
+    return $this->resourceType;
   }
 
   /**
@@ -83,13 +83,6 @@ class CurrentContext implements CurrentContextInterface {
     return (bool) $this->routeMatch
       ->getRouteObject()
       ->getDefault('_on_relationship');
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getResourceManager() {
-    return $this->resourceManager;
   }
 
   /**
