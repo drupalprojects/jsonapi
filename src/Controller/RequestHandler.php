@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\jsonapi;
+namespace Drupal\jsonapi\Controller;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Render\RenderContext;
@@ -8,7 +8,6 @@ use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\Error\ErrorHandlerInterface;
 use Drupal\jsonapi\Error\SerializableHttpException;
-use Drupal\jsonapi\Resource\EntityResource;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -255,7 +254,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
    * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
    *   The current context.
    *
-   * @return \Drupal\jsonapi\Resource\EntityResourceInterface
+   * @return \Drupal\jsonapi\Controller\EntityResource
    *   The instantiated resource.
    */
   protected function resourceFactory(Route $route, CurrentContextInterface $current_context) {

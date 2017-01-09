@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\jsonapi\Kernel\Resource;
+namespace Drupal\Tests\jsonapi\Kernel\Controller;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
@@ -8,8 +8,8 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Context\CurrentContext;
+use Drupal\jsonapi\Controller\EntityResource;
 use Drupal\jsonapi\Resource\EntityCollectionInterface;
-use Drupal\jsonapi\Resource\EntityResource;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\Sort;
@@ -31,7 +31,7 @@ use Symfony\Component\Routing\Route;
  *
  * @package Drupal\Tests\jsonapi\Kernel\Resource
  *
- * @coversDefaultClass \Drupal\jsonapi\Resource\EntityResource
+ * @coversDefaultClass \Drupal\jsonapi\Controller\EntityResource
  *
  * @group jsonapi
  */
@@ -801,7 +801,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    * @param string $bundle
    *   The bundle.
    *
-   * @return \Drupal\jsonapi\Resource\EntityResourceInterface
+   * @return \Drupal\jsonapi\Controller\EntityResource
    *   The resource.
    */
   protected function buildEntityResource($entity_type_id, $bundle) {

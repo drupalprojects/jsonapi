@@ -1,11 +1,11 @@
 <?php
 
-namespace Drupal\Tests\jsonapi\Unit;
+namespace Drupal\Tests\jsonapi\Unit\Controller;
 
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Context\CurrentContextInterface;
-use Drupal\jsonapi\RequestHandler;
+use Drupal\jsonapi\Controller\RequestHandler;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\SerializerInterface;
  *
  * @package Drupal\Tests\jsonapi\Unit
  *
- * @coversDefaultClass \Drupal\jsonapi\RequestHandler
+ * @coversDefaultClass \Drupal\jsonapi\Controller\RequestHandler
  *
  * @group jsonapi
  */

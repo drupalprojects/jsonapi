@@ -6,7 +6,7 @@ use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
-use Drupal\jsonapi\Resource\EntityResource;
+use Drupal\jsonapi\Controller\EntityResource;
 use Drupal\serialization\EntityResolver\UuidReferenceInterface;
 
 /**
