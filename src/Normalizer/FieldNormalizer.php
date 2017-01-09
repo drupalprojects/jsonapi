@@ -3,6 +3,7 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 
 /**
@@ -62,7 +63,7 @@ class FieldNormalizer extends NormalizerBase {
     $cardinality = $field->getFieldDefinition()
       ->getFieldStorageDefinition()
       ->getCardinality();
-    return new Value\FieldNormalizerValue($normalizer_items, $cardinality);
+    return new FieldNormalizerValue($normalizer_items, $cardinality);
   }
 
 }

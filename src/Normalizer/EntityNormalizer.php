@@ -7,6 +7,7 @@ use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
+use Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
@@ -99,7 +100,7 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
     }
 
     $link_context = ['link_manager' => $this->linkManager];
-    $output = new Value\EntityNormalizerValue($normalizer_values, $context, $entity, $link_context);
+    $output = new EntityNormalizerValue($normalizer_values, $context, $entity, $link_context);
     // Add the entity level cacheability metadata.
     $output->addCacheableDependency($entity);
     $output->addCacheableDependency($output);

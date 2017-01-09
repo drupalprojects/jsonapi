@@ -58,7 +58,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
       ->willReturn($entity_storage->reveal());
 
     $current_route = $this->prophesize(Route::class);
-    $current_route->getDefault('_on_relationship')->willReturn(false);
+    $current_route->getDefault('_on_relationship')->willReturn(FALSE);
 
     $current_context_manager->isOnRelationship()->willReturn(FALSE);
 
@@ -128,7 +128,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
             'relationships' => ['field_dummy' => ['data' => [['type' => 'node', 'id' => '76dd5c18-ea1b-4150-9e75-b21958a2b836'], ['type' => 'node', 'id' => 'fcce1b61-258e-4054-ae36-244d25a9e04c']]]],
           ],
         ],
-        ['field_dummy' => [1,2]],
+        ['field_dummy' => [1, 2]],
       ],
     ];
   }

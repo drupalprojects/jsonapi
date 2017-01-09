@@ -114,8 +114,8 @@ class LinkManager implements LinkManagerInterface {
    * @param array $query
    *   The query parameters.
    *
-   * @return array The pagination query param array.
-   * The pagination query param array.
+   * @return array
+   *   The pagination query param array.
    */
   protected function getPagerQueries($link_id, $offset, $size, $query = []) {
     $extra_query = [];

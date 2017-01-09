@@ -113,7 +113,7 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
         // Add the errors to the pre-existing errors.
         $rasterized['meta']['errors'] = array_merge($previous_errors, $normalizer_value->rasterizeValue());
       }
-    else {
+      else {
         $rasterized['data'][] = $normalizer_value->rasterizeValue();
       }
     }

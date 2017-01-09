@@ -9,6 +9,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
 use Drupal\Core\Link;
+use Drupal\Core\Entity\EntityTypeInterface;
 
 /**
  * Implements hook_help().
@@ -46,7 +47,7 @@ function jsonapi_help($route_name, RouteMatchInterface $route_match) {
  *
  * @see https://www.drupal.org/node/2825487
  */
-function jsonapi_entity_base_field_info(\Drupal\Core\Entity\EntityTypeInterface $entity_type) {
+function jsonapi_entity_base_field_info(EntityTypeInterface $entity_type) {
   $fields = [];
   if ($entity_type->id() == 'file') {
     $fields['url'] = BaseFieldDefinition::create('uri')

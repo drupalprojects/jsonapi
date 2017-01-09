@@ -5,6 +5,7 @@ namespace Drupal\jsonapi\Normalizer;
 use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\jsonapi\Normalizer\Value\RelationshipItemNormalizerValue;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\Controller\EntityResource;
 use Drupal\serialization\EntityResolver\UuidReferenceInterface;
@@ -23,7 +24,7 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
    *
    * @var string
    */
-  protected $supportedInterfaceOrClass = \Drupal\jsonapi\Normalizer\RelationshipItem::class;
+  protected $supportedInterfaceOrClass = RelationshipItem::class;
 
   /**
    * The JSON API resource type repository.
@@ -67,7 +68,7 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
     if (isset($context['langcode'])) {
       $values['lang'] = $context['langcode'];
     }
-    $normalizer_value = new Value\RelationshipItemNormalizerValue(
+    $normalizer_value = new RelationshipItemNormalizerValue(
       $values,
       $relationship_item->getTargetResourceType()
     );

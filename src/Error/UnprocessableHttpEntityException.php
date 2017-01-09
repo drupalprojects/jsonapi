@@ -17,11 +17,11 @@ class UnprocessableHttpEntityException extends SerializableHttpException {
    * UnprocessableHttpEntityException constructor.
    *
    * @param array $violations
-   * @param \Exception|NULL $previous
+   * @param \Exception|null $previous
    * @param array $headers
    * @param int $code
    */
-  public function __construct(\Exception $previous = null, array $headers = array(), $code = 0) {
+  public function __construct(\Exception $previous = NULL, array $headers = array(), $code = 0) {
     parent::__construct(422, "Unprocessable Entity: validation failed.", $previous, $headers, $code);
   }
 

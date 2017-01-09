@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Drupal\jsonapi\LinkManager;
 
 use Drupal\jsonapi\ResourceType\ResourceType;
@@ -36,7 +35,7 @@ interface LinkManagerInterface {
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
-   * @param array|NULL $query
+   * @param array|null $query
    *   The query parameters to use. Leave it empty to get the query from the
    *   request object.
    *
@@ -50,7 +49,7 @@ interface LinkManagerInterface {
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
-   * @param array
+   * @param array $link_context
    *   An associative array with extra data to build the links.
    *
    * @throws \Drupal\jsonapi\Error\SerializableHttpException

@@ -831,4 +831,5 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       $this->container->get('plugin.manager.field.field_type')
     );
   }
+
 }

@@ -95,8 +95,8 @@ class ConditionOption implements QueryOptionInterface {
   /**
    * Returns the id of this option's parent.
    *
-   * @return string|NULL
-   *  Either the id of its parent or NULL.
+   * @return string|null
+   *   Either the id of its parent or NULL.
    */
   public function parentId() {
     return $this->parentId;

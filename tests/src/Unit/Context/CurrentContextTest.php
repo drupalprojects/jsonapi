@@ -9,14 +9,9 @@ use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\Sort;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
-
-use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
-use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\node\NodeInterface;
 use Drupal\Tests\UnitTestCase;
-
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Request;

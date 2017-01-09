@@ -3,6 +3,7 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValue;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
@@ -76,7 +77,7 @@ class RelationshipNormalizer extends NormalizerBase {
       'link_manager' => $this->linkManager,
       'resource_type' => $context['resource_type'],
     ];
-    return new Value\RelationshipNormalizerValue($normalizer_items, $cardinality, $link_context);
+    return new RelationshipNormalizerValue($normalizer_items, $cardinality, $link_context);
   }
 
   /**

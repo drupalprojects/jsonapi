@@ -24,7 +24,7 @@ class RequestCacheabilityDependency implements CacheableDependencyInterface {
   /**
    * Builds the list of URL query parameter names for the cache context.
    *
-   * @return {string[]}
+   * @return string[]
    *   The list of parameter names that vary the cache entry.
    */
   protected static function getQueryParamCacheContextList() {

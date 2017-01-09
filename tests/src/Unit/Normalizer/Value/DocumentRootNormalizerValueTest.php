@@ -23,7 +23,7 @@ use Prophecy\Argument;
  *
  * @group jsonapi
  */
-class DocumentRootNormalizerValueTest extends UnitTestCase{
+class DocumentRootNormalizerValueTest extends UnitTestCase {
 
   /**
    * The DocumentRootNormalizerValue object.

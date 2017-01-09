@@ -15,7 +15,7 @@ class JsonapiServiceProvider implements ServiceModifierInterface {
    */
   public function alter(ContainerBuilder $container) {
     if ($container->has('http_middleware.negotiation') && is_a($container->getDefinition('http_middleware.negotiation')
-        ->getClass(), '\Drupal\Core\StackMiddleware\NegotiationMiddleware', TRUE)
+      ->getClass(), '\Drupal\Core\StackMiddleware\NegotiationMiddleware', TRUE)
     ) {
       // @see http://www.iana.org/assignments/media-types/application/vnd.api+json
       $container->getDefinition('http_middleware.negotiation')
@@ -27,4 +27,3 @@ class JsonapiServiceProvider implements ServiceModifierInterface {
   }
 
 }
-

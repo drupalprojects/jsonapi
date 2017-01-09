@@ -2,14 +2,10 @@
 
 namespace Drupal\Tests\jsonapi\Unit\Normalizer\Value;
 
-use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Url;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue;
-use Drupal\jsonapi\Normalizer\Value\EntityNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValueInterface;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValueInterface;
@@ -31,7 +27,7 @@ class EntityNormalizerValueTest extends UnitTestCase {
   /**
    * The EntityNormalizerValue object.
    *
-   * @var EntityNormalizerValueInterface
+   * @var \Drupal\jsonapi\Normalizer\Value\EntityNormalizerValueInterface
    */
   protected $object;
 

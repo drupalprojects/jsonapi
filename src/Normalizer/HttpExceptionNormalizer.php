@@ -49,7 +49,7 @@ class HttpExceptionNormalizer extends SerializationNormalizerBase {
   /**
    * {@inheritdoc}
    */
-  public function normalize($object, $format = null, array $context = []) {
+  public function normalize($object, $format = NULL, array $context = []) {
     $errors = $this->buildErrorObjects($object);
 
     $errors = array_map(function($error) {
@@ -66,10 +66,10 @@ class HttpExceptionNormalizer extends SerializationNormalizerBase {
    * Builds the normalized JSON API error objects for the response.
    *
    * @param \Symfony\Component\HttpKernel\Exception\HttpException $exception
-   *  The Exception.
+   *   The Exception.
    *
    * @return array
-   *  The error objects to include in the response.
+   *   The error objects to include in the response.
    */
   protected function buildErrorObjects(HttpException $exception) {
     $error = [];
@@ -154,6 +154,5 @@ class HttpExceptionNormalizer extends SerializationNormalizerBase {
     );
     return empty($sections[$status_code]) ? $url : $url . $sections[$status_code];
   }
-
 
 }

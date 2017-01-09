@@ -45,7 +45,7 @@ class RelationshipItem {
    *   The JSON API resource type repository.
    * @param \Drupal\Core\Entity\EntityInterface $target_entity
    *   The entity this relationship points to.
-   * @param \Drupal\jsonapi\Normalizer\Relationship
+   * @param \Drupal\jsonapi\Normalizer\Relationship $parent
    *   The parent of this item.
    * @param string $target_key
    *   The key name of the target relationship.

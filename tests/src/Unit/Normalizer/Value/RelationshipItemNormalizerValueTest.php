@@ -37,4 +37,5 @@ class RelationshipItemNormalizerValueTest extends UnitTestCase {
       [[NULL], 'node', 'baz', NULL],
     ];
   }
+
 }

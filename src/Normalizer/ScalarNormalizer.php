@@ -2,6 +2,8 @@
 
 namespace Drupal\jsonapi\Normalizer;
 
+use Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValue;
+use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 
 /**
@@ -28,8 +30,8 @@ class ScalarNormalizer extends NormalizerBase {
    * {@inheritdoc}
    */
   public function normalize($object, $format = NULL, array $context = array()) {
-    $value = new Value\FieldItemNormalizerValue(['value' => $object]);
-    return new Value\FieldNormalizerValue([$value], 1);
+    $value = new FieldItemNormalizerValue(['value' => $object]);
+    return new FieldNormalizerValue([$value], 1);
   }
 
   /**

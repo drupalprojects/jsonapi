@@ -3,10 +3,8 @@
 namespace Drupal\Tests\jsonapi\Unit\Routing\Param;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
-use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\Tests\UnitTestCase;
-
 
 /**
  * Class FilterTest.

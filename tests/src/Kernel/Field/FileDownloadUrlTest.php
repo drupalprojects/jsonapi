@@ -14,7 +14,7 @@ use Drupal\KernelTests\KernelTestBase;
  *
  * @group jsonapi
  */
-class FileDownloadUrlTest extends KernelTestBase  {
+class FileDownloadUrlTest extends KernelTestBase {
 
   /**
    * {@inheritdoc}

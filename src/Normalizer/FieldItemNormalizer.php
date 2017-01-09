@@ -3,6 +3,7 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Field\FieldItemInterface;
+use Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValue;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 
 /**
@@ -32,7 +33,7 @@ class FieldItemNormalizer extends NormalizerBase {
     if (isset($context['langcode'])) {
       $values['lang'] = $context['langcode'];
     }
-    return new Value\FieldItemNormalizerValue($values);
+    return new FieldItemNormalizerValue($values);
   }
 
   /**

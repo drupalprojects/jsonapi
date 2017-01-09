@@ -5,8 +5,8 @@ namespace Drupal\jsonapi\Normalizer;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
+use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue;
 use Drupal\jsonapi\Resource\EntityCollectionInterface;
-use Drupal\jsonapi\Resource\DocumentWrapperInterface;
 use Drupal\jsonapi\LinkManager\LinkManagerInterface;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Symfony\Component\HttpFoundation\Request;
@@ -157,7 +157,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
       }, $entities);
     }
 
-    return new Value\DocumentRootNormalizerValue($normalizer_values, $context, $is_collection, [
+    return new DocumentRootNormalizerValue($normalizer_values, $context, $is_collection, [
       'link_manager' => $this->linkManager,
       'has_next_page' => $context['has_next_page'],
     ]);

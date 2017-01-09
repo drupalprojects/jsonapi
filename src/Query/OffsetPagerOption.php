@@ -59,5 +59,4 @@ class OffsetPagerOption implements QueryOptionInterface {
     return $query;
   }
 
-
 }

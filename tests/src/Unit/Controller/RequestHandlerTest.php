@@ -9,7 +9,6 @@ use Drupal\jsonapi\Controller\RequestHandler;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -23,7 +22,7 @@ use Symfony\Component\Serializer\SerializerInterface;
  *
  * @group jsonapi
  */
-class RequestHandlerTest extends UnitTestCase  {
+class RequestHandlerTest extends UnitTestCase {
 
   /**
    * @covers ::deserializeBody

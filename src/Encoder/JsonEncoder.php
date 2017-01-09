@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\jsonapi\Encoder\JsonEncoder.
- */
-
 namespace Drupal\jsonapi\Encoder;
 
 use Drupal\jsonapi\Normalizer\Value\ValueExtractorInterface;
@@ -44,6 +39,5 @@ class JsonEncoder extends SerializationJsonEncoder {
     }
     return parent::encode($data, $format, $context);
   }
-
 
 }

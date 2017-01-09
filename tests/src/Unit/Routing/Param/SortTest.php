@@ -4,7 +4,6 @@ namespace Drupal\Tests\jsonapi\Unit\Routing\Param;
 
 use Drupal\jsonapi\Routing\Param\Sort;
 use Drupal\Tests\UnitTestCase;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * Class SortTest.
