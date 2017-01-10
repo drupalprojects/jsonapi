@@ -8,6 +8,7 @@ use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\jsonapi\Context\CurrentContextInterface;
 use Drupal\jsonapi\Error\ErrorHandlerInterface;
 use Drupal\jsonapi\Error\SerializableHttpException;
+use Drupal\jsonapi\ResourceResponse;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
