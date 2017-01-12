@@ -42,7 +42,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The HTTP request object.
    *
-   * @return \Symfony\Component\HttpFoundation\Response
+   * @return \Drupal\Core\Cache\CacheableResponseInterface
    *   The response object.
    */
   public function handle(RouteMatchInterface $route_match, Request $request) {
@@ -89,6 +89,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     // grants system is caught and added to the response. This is surfaced when
     // executing the underlying entity query.
     $context = new RenderContext();
+    /** @var \Drupal\Core\Cache\CacheableResponseInterface $response */
     $response = $this->container->get('renderer')
       ->executeInRenderContext($context, function () use ($resource, $action, $parameters, $extra_parameters) {
         return call_user_func_array([$resource, $action], array_merge($parameters, $extra_parameters));
@@ -112,7 +113,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
-   * @param ResourceResponse $response
+   * @param \Drupal\Core\Cache\CacheableResponseInterface $response
    *   The response from the REST resource.
    * @param \Symfony\Component\Serializer\SerializerInterface $serializer
    *   The serializer to use.
@@ -121,7 +122,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
    * @param \Drupal\jsonapi\Error\ErrorHandler $error_handler
    *   The error handler service.
    *
-   * @return \Drupal\Core\Cache\CacheableResponse
+   * @return \Drupal\Core\Cache\CacheableResponseInterface
    *   The altered response.
    */
   protected function renderJsonApiResponse(Request $request, ResourceResponse $response, SerializerInterface $serializer, $format, ErrorHandler $error_handler) {
@@ -178,7 +179,6 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
    */
   public function deserializeBody(Request $request, SerializerInterface $serializer, $serialization_class, CurrentContext $current_context) {
     $received = $request->getContent();
-    $method = strtolower($request->getMethod());
     if (empty($received)) {
       return NULL;
     }
