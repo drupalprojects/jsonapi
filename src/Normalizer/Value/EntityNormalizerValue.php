@@ -2,6 +2,7 @@
 
 namespace Drupal\jsonapi\Normalizer\Value;
 
+use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 use Drupal\Core\Entity\EntityInterface;
 
@@ -10,7 +11,7 @@ use Drupal\Core\Entity\EntityInterface;
  *
  * @package Drupal\jsonapi\Normalizer\Value
  */
-class EntityNormalizerValue implements EntityNormalizerValueInterface {
+class EntityNormalizerValue implements ValueExtractorInterface, RefinableCacheableDependencyInterface  {
 
   use RefinableCacheableDependencyTrait;
 
@@ -45,7 +46,7 @@ class EntityNormalizerValue implements EntityNormalizerValueInterface {
   /**
    * The link manager.
    *
-   * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface
+   * @param \Drupal\jsonapi\LinkManager\LinkManager
    */
   protected $linkManager;
 
@@ -121,7 +122,10 @@ class EntityNormalizerValue implements EntityNormalizerValueInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the values.
+   *
+   * @return mixed
+   *   The values.
    */
   public function getValues() {
     return $this->values;
@@ -130,7 +134,7 @@ class EntityNormalizerValue implements EntityNormalizerValueInterface {
   /**
    * Gets a flattened list of includes in all the chain.
    *
-   * @return EntityNormalizerValueInterface
+   * @return \Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue[]
    *   The array of included relationships.
    */
   public function getIncludes() {

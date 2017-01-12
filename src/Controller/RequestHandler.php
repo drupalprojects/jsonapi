@@ -5,8 +5,8 @@ namespace Drupal\jsonapi\Controller;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\jsonapi\Context\CurrentContextInterface;
-use Drupal\jsonapi\Error\ErrorHandlerInterface;
+use Drupal\jsonapi\Context\CurrentContext;
+use Drupal\jsonapi\Error\ErrorHandler;
 use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\ResourceResponse;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
@@ -52,7 +52,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     // Deserialize incoming data if available.
     /* @var \Symfony\Component\Serializer\SerializerInterface $serializer */
     $serializer = $this->container->get('serializer');
-    /* @var \Drupal\jsonapi\Context\CurrentContextInterface $current_context */
+    /* @var \Drupal\jsonapi\Context\CurrentContext $current_context */
     $current_context = $this->container->get('jsonapi.current_context');
     $unserialized = $this->deserializeBody($request, $serializer, $route->getOption('serialization_class'), $current_context);
     $format = $request->getRequestFormat();
@@ -82,7 +82,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     // Only add the unserialized data if there is something there.
     $extra_parameters = $unserialized ? [$unserialized, $request] : [$request];
 
-    /** @var \Drupal\jsonapi\Error\ErrorHandlerInterface $error_handler */
+    /** @var \Drupal\jsonapi\Error\ErrorHandler $error_handler */
     $error_handler = $this->container->get('jsonapi.error_handler');
     $error_handler->register();
     // Execute the request in context so the cacheable metadata from the entity
@@ -118,13 +118,13 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
    *   The serializer to use.
    * @param string $format
    *   The response format.
-   * @param \Drupal\jsonapi\Error\ErrorHandlerInterface $error_handler
+   * @param \Drupal\jsonapi\Error\ErrorHandler $error_handler
    *   The error handler service.
    *
    * @return \Drupal\Core\Cache\CacheableResponse
    *   The altered response.
    */
-  protected function renderJsonApiResponse(Request $request, ResourceResponse $response, SerializerInterface $serializer, $format, ErrorHandlerInterface $error_handler) {
+  protected function renderJsonApiResponse(Request $request, ResourceResponse $response, SerializerInterface $serializer, $format, ErrorHandler $error_handler) {
     $data = $response->getResponseData();
     $context = new RenderContext();
 
@@ -170,13 +170,13 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
    *   The serializer for the deserialization of the input data.
    * @param string $serialization_class
    *   The class the input data needs to deserialize into.
-   * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
+   * @param \Drupal\jsonapi\Context\CurrentContext $current_context
    *   The current context
    *
    * @return mixed
    *   The deserialized data or a Response object in case of error.
    */
-  public function deserializeBody(Request $request, SerializerInterface $serializer, $serialization_class, CurrentContextInterface $current_context) {
+  public function deserializeBody(Request $request, SerializerInterface $serializer, $serialization_class, CurrentContext $current_context) {
     $received = $request->getContent();
     $method = strtolower($request->getMethod());
     if (empty($received)) {
@@ -252,18 +252,18 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
    *
    * @param \Symfony\Component\Routing\Route $route
    *   The matched route.
-   * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
+   * @param \Drupal\jsonapi\Context\CurrentContext $current_context
    *   The current context.
    *
    * @return \Drupal\jsonapi\Controller\EntityResource
    *   The instantiated resource.
    */
-  protected function resourceFactory(Route $route, CurrentContextInterface $current_context) {
+  protected function resourceFactory(Route $route, CurrentContext $current_context) {
     /** @var \Drupal\jsonapi\ResourceType\ResourceTypeRepository $resource_type_repository */
     $resource_type_repository = $this->container->get('jsonapi.resource_type.repository');
     /* @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager */
     $entity_type_manager = $this->container->get('entity_type.manager');
-    /* @var \Drupal\jsonapi\Query\QueryBuilderInterface $query_builder */
+    /* @var \Drupal\jsonapi\Query\QueryBuilder $query_builder */
     $query_builder = $this->container->get('jsonapi.query_builder');
     /* @var \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager */
     $field_manager = $this->container->get('entity_field.manager');

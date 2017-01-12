@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\jsonapi\Unit\Normalizer\Value;
 
+use Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue;
 use Drupal\Tests\UnitTestCase;
 
@@ -29,7 +30,7 @@ class FieldNormalizerValueTest extends UnitTestCase {
    */
   public function rasterizeValueProvider() {
     $uuid_raw = '4ae99eec-8b0e-41f7-9400-fbd65c174902';
-    $uuid_value = $this->prophesize('\Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValueInterface');
+    $uuid_value = $this->prophesize(FieldItemNormalizerValue::class);
     $uuid_value->rasterizeValue()->willReturn('4ae99eec-8b0e-41f7-9400-fbd65c174902');
     $uuid_value->getInclude()->willReturn(NULL);
     return [
@@ -42,8 +43,8 @@ class FieldNormalizerValueTest extends UnitTestCase {
    * @covers ::rasterizeIncludes
    */
   public function testRasterizeIncludes() {
-    $value = $this->prophesize('\Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValueInterface');
-    $include = $this->prophesize('\Drupal\jsonapi\Normalizer\Value\EntityNormalizerValueInterface');
+    $value = $this->prophesize(FieldItemNormalizerValue::class);
+    $include = $this->prophesize('\Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue');
     $include->rasterizeValue()->willReturn('Lorem');
     $value->getInclude()->willReturn($include->reveal());
     $object = new FieldNormalizerValue([$value->reveal()], 1);

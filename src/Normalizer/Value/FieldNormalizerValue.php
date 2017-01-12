@@ -44,7 +44,7 @@ class FieldNormalizerValue implements FieldNormalizerValueInterface {
   /**
    * Instantiate a FieldNormalizerValue object.
    *
-   * @param FieldItemNormalizerValueInterface[] $values
+   * @param \Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValue[] $values
    *   The normalized result.
    * @param int $cardinality
    *   The cardinality of the field list.

@@ -7,7 +7,7 @@ namespace Drupal\jsonapi\Normalizer\Value;
  *
  * @package Drupal\jsonapi\Normalizer\Value
  */
-class FieldItemNormalizerValue implements FieldItemNormalizerValueInterface {
+class FieldItemNormalizerValue implements ValueExtractorInterface {
 
   /**
    * Raw values.
@@ -19,7 +19,7 @@ class FieldItemNormalizerValue implements FieldItemNormalizerValueInterface {
   /**
    * Included entity objects.
    *
-   * @param EntityNormalizerValueInterface
+   * @param \Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue
    */
   protected $include;
 
@@ -51,14 +51,20 @@ class FieldItemNormalizerValue implements FieldItemNormalizerValueInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Add an include.
+   *
+   * @param ValueExtractorInterface $include
+   *   The included entity.
    */
   public function setInclude(ValueExtractorInterface $include) {
     $this->include = $include;
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the include.
+   *
+   * @return \Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue
+   *   The include.
    */
   public function getInclude() {
     return $this->include;

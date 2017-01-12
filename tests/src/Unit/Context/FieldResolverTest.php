@@ -7,7 +7,7 @@ use Drupal\Tests\UnitTestCase;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\jsonapi\Context\FieldResolver;
-use Drupal\jsonapi\Context\CurrentContextInterface;
+use Drupal\jsonapi\Context\CurrentContext;
 
 /**
  * Class FieldResolverTest.
@@ -23,7 +23,7 @@ class FieldResolverTest extends UnitTestCase {
   /**
    * A mock for the current context service.
    *
-   * @var \Drupal\jsonapi\Context\CurrentContextInterface
+   * @var \Drupal\jsonapi\Context\CurrentContext
    */
   protected $currentContext;
 
@@ -38,7 +38,7 @@ class FieldResolverTest extends UnitTestCase {
    * {@inheritdoc}
    */
   public function setUp() {
-    $current_context = $this->prophesize(CurrentContextInterface::class);
+    $current_context = $this->prophesize(CurrentContext::class);
 
     $current_context->getResourceType()
       ->willReturn(new ResourceType('lorem', $this->randomMachineName(), NULL));

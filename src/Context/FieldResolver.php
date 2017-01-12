@@ -12,12 +12,12 @@ use Drupal\jsonapi\Error\SerializableHttpException;
  *
  * @internal
  */
-class FieldResolver implements FieldResolverInterface {
+class FieldResolver {
 
   /**
    * The entity type id.
    *
-   * @var \Drupal\jsonapi\Context\CurrentContextInterface
+   * @var \Drupal\jsonapi\Context\CurrentContext
    */
   protected $currentContext;
 
@@ -31,18 +31,27 @@ class FieldResolver implements FieldResolverInterface {
   /**
    * Creates a FieldResolver instance.
    *
-   * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
+   * @param \Drupal\jsonapi\Context\CurrentContext $current_context
    *   The JSON API CurrentContext service.
    * @param \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager
    *   The field manager.
    */
-  public function __construct(CurrentContextInterface $current_context, EntityFieldManagerInterface $field_manager) {
+  public function __construct(CurrentContext $current_context, EntityFieldManagerInterface $field_manager) {
     $this->currentContext = $current_context;
     $this->fieldManager = $field_manager;
   }
 
   /**
-   * {@inheritdoc}
+   * Maps a Drupal field name to a public field name.
+   *
+   * Example:
+   *   'field_author.entity.field_first_name' -> 'author.firstName'.
+   *
+   * @param string $field_name
+   *   The Drupal field name to map to a public field name.
+   *
+   * @return string
+   *   The mapped field name.
    */
   public function resolveExternal($internal_field_name) {
     // Yet to be implemented.
@@ -50,7 +59,16 @@ class FieldResolver implements FieldResolverInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Maps a public field name to a Drupal field name.
+   *
+   * Example:
+   *   'author.firstName' -> 'field_author.entity.field_first_name'.
+   *
+   * @param string $field_name
+   *   The public field name to map to a Drupal field name.
+   *
+   * @return string
+   *   The mapped field name.
    */
   public function resolveInternal($external_field_name) {
     if (empty($external_field_name)) {

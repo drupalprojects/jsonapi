@@ -9,7 +9,7 @@ use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\Controller\EntityResource;
-use Drupal\jsonapi\Resource\EntityCollectionInterface;
+use Drupal\jsonapi\Resource\EntityCollection;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\Sort;
@@ -185,7 +185,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
 
     // Assertions.
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
-    $this->assertInstanceOf(EntityCollectionInterface::class, $response->getResponseData()->getData());
+    $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
     $this->assertEquals(1, $response->getResponseData()->getData()->getIterator()->current()->id());
     $this->assertEquals(['node:3', 'node_list'], $response->getCacheableMetadata()->getCacheTags());
   }
@@ -237,7 +237,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
 
     // Assertions.
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
-    $this->assertInstanceOf(EntityCollectionInterface::class, $response->getResponseData()->getData());
+    $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
     $this->assertCount(1, $response->getResponseData()->getData());
     $this->assertEquals(['config:node_type_list'], $response->getCacheableMetadata()->getCacheTags());
   }
@@ -290,7 +290,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
 
     // Assertions.
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
-    $this->assertInstanceOf(EntityCollectionInterface::class, $response->getResponseData()->getData());
+    $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
     $this->assertCount(2, $response->getResponseData()->getData());
     $this->assertEquals($response->getResponseData()->getData()->toArray()[0]->id(), 'lorem');
     $this->assertEquals(['config:node_type_list'], $response->getCacheableMetadata()->getCacheTags());
@@ -344,7 +344,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
 
     // Assertions.
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
-    $this->assertInstanceOf(EntityCollectionInterface::class, $response->getResponseData()->getData());
+    $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
     $data = $response->getResponseData()->getData();
     $this->assertCount(1, $data);
     $this->assertEquals(2, $data->toArray()[0]->id());
@@ -379,7 +379,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
 
     // Assertions.
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
-    $this->assertInstanceOf(EntityCollectionInterface::class, $response->getResponseData()->getData());
+    $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
     $this->assertEquals(0, $response->getResponseData()->getData()->count());
     $this->assertEquals(['node_list'], $response->getCacheableMetadata()->getCacheTags());
   }
@@ -400,7 +400,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $response = $entity_resource->getRelated($this->user, 'roles', $this->request->reveal());
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response
       ->getResponseData());
-    $this->assertInstanceOf(EntityCollectionInterface::class, $response
+    $this->assertInstanceOf(EntityCollection::class, $response
       ->getResponseData()
       ->getData());
     $this->assertEquals(['config:user_role_list'], $response

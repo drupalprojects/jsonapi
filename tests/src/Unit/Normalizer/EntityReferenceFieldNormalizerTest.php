@@ -13,7 +13,7 @@ use Drupal\field\Entity\FieldConfig;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\Normalizer\EntityReferenceFieldNormalizer;
-use Drupal\jsonapi\LinkManager\LinkManagerInterface;
+use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 
@@ -39,7 +39,7 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
    * {@inheritdoc}
    */
   public function setUp() {
-    $link_manager = $this->prophesize(LinkManagerInterface::class);
+    $link_manager = $this->prophesize(LinkManager::class);
     $field_manager = $this->prophesize(EntityFieldManagerInterface::class);
     $field_definition = $this->prophesize(FieldConfig::class);
     $item_definition = $this->prophesize(FieldItemDataDefinition::class);

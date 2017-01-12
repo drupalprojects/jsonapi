@@ -8,8 +8,8 @@ use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\JsonApiParamInterface;
-use Drupal\jsonapi\Context\CurrentContextInterface;
-use Drupal\jsonapi\Context\FieldResolverInterface;
+use Drupal\jsonapi\Context\CurrentContext;
+use Drupal\jsonapi\Context\FieldResolver;
 use Drupal\jsonapi\Routing\Param\Sort;
 
 /**
@@ -19,7 +19,7 @@ use Drupal\jsonapi\Routing\Param\Sort;
  *
  * @internal
  */
-class QueryBuilder implements QueryBuilderInterface {
+class QueryBuilder {
 
   /**
    * The entity type object that should be used for the query.
@@ -41,14 +41,14 @@ class QueryBuilder implements QueryBuilderInterface {
   /**
    * The JSON API current context service.
    *
-   * @var \Drupal\jsonapi\Context\CurrentContextInterface
+   * @var \Drupal\jsonapi\Context\CurrentContext
    */
   protected $currentContext;
 
   /**
    * The field resolver service.
    *
-   * @var \Drupal\jsonapi\Context\FieldResolverInterface
+   * @var \Drupal\jsonapi\Context\FieldResolver
    */
   protected $fieldResolver;
 
@@ -57,19 +57,27 @@ class QueryBuilder implements QueryBuilderInterface {
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   An instance of a QueryFactory.
-   * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
+   * @param \Drupal\jsonapi\Context\CurrentContext $current_context
    *   An instance of the current context service.
-   * @param \Drupal\jsonapi\Context\FieldResolverInterface $field_resolver
+   * @param \Drupal\jsonapi\Context\FieldResolver $field_resolver
    *   The field resolver service.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, CurrentContextInterface $current_context, FieldResolverInterface $field_resolver) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, CurrentContext $current_context, FieldResolver $field_resolver) {
     $this->entityTypeManager = $entity_type_manager;
     $this->currentContext = $current_context;
     $this->fieldResolver = $field_resolver;
   }
 
   /**
-   * {@inheritdoc}
+   * Creates a new Entity Query.
+   *
+   * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
+   *   The entity type for which to create a query.
+   * @param \Drupal\jsonapi\Routing\Param\JsonApiParamInterface[] $params
+   *   The JSON API parameters.
+   *
+   * @return \Drupal\Core\Entity\Query\QueryInterface
+   *   The new query.
    */
   public function newQuery(EntityTypeInterface $entity_type, array $params = []) {
     $this->entityType = $entity_type;

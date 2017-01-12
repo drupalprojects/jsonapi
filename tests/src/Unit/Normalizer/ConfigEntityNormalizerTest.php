@@ -7,7 +7,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\Normalizer\ConfigEntityNormalizer;
-use Drupal\jsonapi\LinkManager\LinkManagerInterface;
+use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Normalizer\ScalarNormalizer;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
@@ -35,7 +35,7 @@ class ConfigEntityNormalizerTest extends UnitTestCase {
    * {@inheritdoc}
    */
   public function setUp() {
-    $link_manager = $this->prophesize(LinkManagerInterface::class);
+    $link_manager = $this->prophesize(LinkManager::class);
 
     $resource_type_repository = $this->prophesize(ResourceTypeRepository::class);
     $resource_type_repository->get(Argument::type('string'), Argument::type('string'))

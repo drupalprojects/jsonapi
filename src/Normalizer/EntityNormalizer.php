@@ -10,7 +10,7 @@ use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Error\SerializableHttpException;
-use Drupal\jsonapi\LinkManager\LinkManagerInterface;
+use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Normalizer\Value\NullFieldNormalizerValue;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -37,7 +37,7 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
   /**
    * The link manager.
    *
-   * @var \Drupal\jsonapi\LinkManager\LinkManagerInterface
+   * @var \Drupal\jsonapi\LinkManager\LinkManager
    */
   protected $linkManager;
 
@@ -58,14 +58,14 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
   /**
    * Constructs an ContentEntityNormalizer object.
    *
-   * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface $link_manager
+   * @param \Drupal\jsonapi\LinkManager\LinkManager $link_manager
    *   The link manager.
    * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepository $resource_type_repository
    *   The JSON API resource type repository.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    */
-  public function __construct(LinkManagerInterface $link_manager, ResourceTypeRepository $resource_type_repository, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(LinkManager $link_manager, ResourceTypeRepository $resource_type_repository, EntityTypeManagerInterface $entity_type_manager) {
     $this->linkManager = $link_manager;
     $this->resourceTypeRepository = $resource_type_repository;
     $this->entityTypeManager = $entity_type_manager;

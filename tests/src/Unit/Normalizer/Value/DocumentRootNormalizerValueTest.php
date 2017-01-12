@@ -5,10 +5,10 @@ namespace Drupal\Tests\jsonapi\Unit\Normalizer\Value;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
 use Drupal\jsonapi\ResourceType\ResourceType;
-use Drupal\jsonapi\LinkManager\LinkManagerInterface;
+use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue;
-use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValueInterface;
-use Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValueInterface;
+use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizer;
+use Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValueInterface;
 use Drupal\node\NodeInterface;
 use Drupal\Tests\UnitTestCase;
@@ -28,7 +28,7 @@ class DocumentRootNormalizerValueTest extends UnitTestCase {
   /**
    * The DocumentRootNormalizerValue object.
    *
-   * @var DocumentRootNormalizerValueInterface
+   * @var DocumentRootNormalizerValue
    */
   protected $object;
 
@@ -41,7 +41,7 @@ class DocumentRootNormalizerValueTest extends UnitTestCase {
     $field1->getIncludes()->willReturn([]);
     $field1->getPropertyType()->willReturn('attributes');
     $field1->rasterizeValue()->willReturn('dummy_title');
-    $field2 = $this->prophesize(RelationshipNormalizerValueInterface::class);
+    $field2 = $this->prophesize(RelationshipNormalizerValue::class);
     $field2->getPropertyType()->willReturn('relationships');
     $field2->rasterizeValue()->willReturn(['data' => ['type' => 'node', 'id' => 2]]);
     $included[] = $this->prophesize(DocumentRootNormalizerValue::class);
@@ -87,7 +87,7 @@ class DocumentRootNormalizerValueTest extends UnitTestCase {
     $url->toString()->willReturn('dummy_entity_link');
     $url->setRouteParameter(Argument::any(), Argument::any())->willReturn($url->reveal());
     $entity->toUrl(Argument::type('string'), Argument::type('array'))->willReturn($url->reveal());
-    $link_manager = $this->prophesize(LinkManagerInterface::class);
+    $link_manager = $this->prophesize(LinkManager::class);
     $link_manager
       ->getEntityLink(Argument::any(), Argument::any(), Argument::type('array'), Argument::type('string'))
       ->willReturn('dummy_entity_link');
@@ -109,7 +109,7 @@ class DocumentRootNormalizerValueTest extends UnitTestCase {
   public function testGetIncludes() {
     $includes = $this->object->getIncludes();
     $includes = array_filter($includes, function ($included) {
-      return $included instanceof DocumentRootNormalizerValueInterface;
+      return $included instanceof DocumentRootNormalizerValue;
     });
     $this->assertCount(2, $includes);
   }

@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
  *
  * @internal
  */
-class CurrentContext implements CurrentContextInterface {
+class CurrentContext {
 
   /**
    * The JSON API resource type repository.
@@ -62,7 +62,10 @@ class CurrentContext implements CurrentContextInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the JSON API resource type for the current request.
+   *
+   * @return \Drupal\jsonapi\ResourceType\ResourceType
+   *   The JSON API resource type for the current request.
    */
   public function getResourceType() {
     if (!isset($this->resourceType)) {
@@ -77,7 +80,10 @@ class CurrentContext implements CurrentContextInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Checks if the request is on a relationship.
+   *
+   * @return bool
+   *   TRUE if the request is on a relationship. FALSE otherwise.
    */
   public function isOnRelationship() {
     return (bool) $this->routeMatch
@@ -86,7 +92,13 @@ class CurrentContext implements CurrentContextInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Get a value by key from the _json_api_params route parameter.
+   *
+   * @param string $parameter_key
+   *   The key by which to retrieve a route parameter.
+   *
+   * @return mixed
+   *   The JSON API provided parameter.
    */
   public function getJsonApiParameter($parameter_key) {
     $params = $this
@@ -98,14 +110,25 @@ class CurrentContext implements CurrentContextInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Determines, whether the JSONAPI extension was requested.
+   *
+   * @todo Find a better place for such a JSONAPI derived information.
+   *
+   * @param string $extension_name
+   *   The extension name.
+   *
+   * @return bool
+   *   Returns TRUE, if the extension has been found.
    */
   public function hasExtension($extension_name) {
     return in_array($extension_name, $this->getExtensions());
   }
 
   /**
-   * {@inheritdoc}
+   * Returns a list of requested extensions.
+   *
+   * @return string[]
+   *   The extension names.
    */
   public function getExtensions() {
     $content_type_header = $this

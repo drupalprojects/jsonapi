@@ -4,7 +4,7 @@ namespace Drupal\Tests\jsonapi\Unit\Controller;
 
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\jsonapi\ResourceType\ResourceType;
-use Drupal\jsonapi\Context\CurrentContextInterface;
+use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\Controller\RequestHandler;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
@@ -43,7 +43,7 @@ class RequestHandlerTest extends UnitTestCase {
       ->willThrow(new UnexpectedValueException('Foo'));
     $serializer->serialize(Argument::any(), Argument::any(), Argument::any())
       ->willReturn('{"errors":[{"status":422,"message":"Foo"}]}');
-    $current_context = $this->prophesize(CurrentContextInterface::class);
+    $current_context = $this->prophesize(CurrentContext::class);
     $current_context->getResourceType()
       ->willReturn(new ResourceType($this->randomMachineName(), $this->randomMachineName(), NULL));
     try {

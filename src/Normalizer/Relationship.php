@@ -7,7 +7,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
-use Drupal\jsonapi\Resource\EntityCollectionInterface;
+use Drupal\jsonapi\Resource\EntityCollection;
 
 /**
  * Use this class to create a relationship in your normalizer without having an
@@ -62,14 +62,14 @@ class Relationship implements AccessibleInterface {
    *   The name of the relationship.
    * @param int $cardinality
    *   The relationship cardinality.
-   * @param \Drupal\jsonapi\Resource\EntityCollectionInterface $entities
+   * @param \Drupal\jsonapi\Resource\EntityCollection $entities
    *   A collection of entities.
    * @param \Drupal\Core\Entity\EntityInterface $host_entity
    *   The host entity.
    * @param string $target_key
    *   The property name of the relationship id.
    */
-  public function __construct(ResourceTypeRepository $resource_type_repository, $field_name, $cardinality = FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED, EntityCollectionInterface $entities, EntityInterface $host_entity, $target_key = 'target_id') {
+  public function __construct(ResourceTypeRepository $resource_type_repository, $field_name, $cardinality = FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED, EntityCollection $entities, EntityInterface $host_entity, $target_key = 'target_id') {
     $this->resourceTypeRepository = $resource_type_repository;
     $this->propertyName = $field_name;
     $this->cardinality = $cardinality;

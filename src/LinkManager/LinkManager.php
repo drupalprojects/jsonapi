@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
  *
  * @package Drupal\jsonapi
  */
-class LinkManager implements LinkManagerInterface {
+class LinkManager {
 
   /**
    * @var \Symfony\Component\Routing\Matcher\RequestMatcherInterface
@@ -41,7 +41,20 @@ class LinkManager implements LinkManagerInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Gets a link for the entity.
+   *
+   * @param int $entity_id
+   *   The entity ID to generate the link for. Note: Depending on the
+   *   configuration this might be the UUID as well.
+   * @param \Drupal\jsonapi\ResourceType\ResourceType $resource_type
+   *   The JSON API resource type.
+   * @param array $route_parameters
+   *   Parameters for the route generation.
+   * @param string $key
+   *   A key to build the route identifier.
+   *
+   * @return string
+   *   The URL string.
    */
   public function getEntityLink($entity_id, ResourceType $resource_type, array $route_parameters, $key) {
     $route_parameters += [
@@ -53,7 +66,16 @@ class LinkManager implements LinkManagerInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Get the full URL for a given request object.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request object.
+   * @param array|null $query
+   *   The query parameters to use. Leave it empty to get the query from the
+   *   request object.
+   *
+   * @return string
+   *   The full URL.
    */
   public function getRequestLink(Request $request, $query = NULL) {
     $query = $query ?: (array) $request->query->getIterator();
@@ -70,7 +92,20 @@ class LinkManager implements LinkManagerInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Get the pager links for a given request object.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request object.
+   * @param array $link_context
+   *   An associative array with extra data to build the links.
+   *
+   * @throws \Drupal\jsonapi\Error\SerializableHttpException
+   *   When the offset and size are invalid.
+   *
+   * @return string[]
+   *   An array of URLs, with:
+   *   - a 'next' key if it is not the last page;
+   *   - 'prev' and 'first' keys if it's not the first page.
    */
   public function getPagerLinks(Request $request, array $link_context = []) {
     $params = $request->get('_json_api_params');

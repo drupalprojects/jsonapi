@@ -10,7 +10,7 @@ use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\Resource\EntityCollection;
 use Drupal\jsonapi\Error\SerializableHttpException;
-use Drupal\jsonapi\LinkManager\LinkManagerInterface;
+use Drupal\jsonapi\LinkManager\LinkManager;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
@@ -28,7 +28,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
   /**
    * The link manager.
    *
-   * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface
+   * @param \Drupal\jsonapi\LinkManager\LinkManager
    */
   protected $linkManager;
 
@@ -56,18 +56,18 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
   /**
    * Instantiates a EntityReferenceFieldNormalizer object.
    *
-   * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface $link_manager
+   * @param \Drupal\jsonapi\LinkManager\LinkManager $link_manager
    *   The link manager.
    * @param \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager
    *   The entity field manager.
    * @param \Drupal\Core\Field\FieldTypePluginManagerInterface $plugin_manager
    *   The plugin manager for fields.
    * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepository $resource_type_repository
-   *   The JSON API resource type repository.aaaa
+   *   The JSON API resource type repository.
    * @param \Drupal\Core\Entity\EntityRepositoryInterface $entity_repository
    *   The entity repository.
    */
-  public function __construct(LinkManagerInterface $link_manager, EntityFieldManagerInterface $field_manager, FieldTypePluginManagerInterface $plugin_manager, ResourceTypeRepository $resource_type_repository, EntityRepositoryInterface $entity_repository) {
+  public function __construct(LinkManager $link_manager, EntityFieldManagerInterface $field_manager, FieldTypePluginManagerInterface $plugin_manager, ResourceTypeRepository $resource_type_repository, EntityRepositoryInterface $entity_repository) {
     $this->linkManager = $link_manager;
     $this->fieldManager = $field_manager;
     $this->pluginManager = $plugin_manager;

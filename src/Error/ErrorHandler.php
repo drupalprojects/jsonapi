@@ -2,10 +2,36 @@
 
 namespace Drupal\jsonapi\Error;
 
-class ErrorHandler extends ErrorHandlerBase {
+class ErrorHandler {
 
   /**
-   * {@inheritdoc}
+   * Register the handler.
+   */
+  public function register() {
+    set_error_handler(get_called_class() . '::handle');
+  }
+
+  /**
+   * Go back to normal and restore the previous error handler.
+   */
+  public function restore() {
+    restore_error_handler();
+  }
+
+  /**
+   * Handle the PHP error with custom business logic.
+   *
+   * @param $error_level
+   *   The level of the error raised.
+   * @param $message
+   *   The error message.
+   * @param $filename
+   *   The filename that the error was raised in.
+   * @param $line
+   *   The line number the error was raised at.
+   * @param $context
+   *   An array that points to the active symbol table at the point the error
+   *   occurred.
    */
   public static function handle($error_level, $message, $filename, $line, $context) {
     $message = 'Unexpected PHP error: ' . $message;

@@ -3,6 +3,7 @@
 namespace Drupal\jsonapi\Normalizer\Value;
 
 use Drupal\Component\Utility\NestedArray;
+use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 use Drupal\jsonapi\RequestCacheabilityDependency;
 
@@ -11,7 +12,7 @@ use Drupal\jsonapi\RequestCacheabilityDependency;
  *
  * @package Drupal\jsonapi\Normalizer\Value
  */
-class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterface {
+class DocumentRootNormalizerValue implements ValueExtractorInterface, RefinableCacheableDependencyInterface  {
 
   use RefinableCacheableDependencyTrait;
 
@@ -46,7 +47,7 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
   /**
    * The link manager.
    *
-   * @var \Drupal\jsonapi\LinkManager\LinkManagerInterface
+   * @var \Drupal\jsonapi\LinkManager\LinkManager
    */
   protected $linkManager;
 
@@ -141,7 +142,7 @@ class DocumentRootNormalizerValue implements DocumentRootNormalizerValueInterfac
   /**
    * Gets a flattened list of includes in all the chain.
    *
-   * @return EntityNormalizerValueInterface[]
+   * @return \Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue[]
    *   The array of included relationships.
    */
   public function getIncludes() {

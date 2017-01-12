@@ -7,12 +7,12 @@ namespace Drupal\jsonapi\Normalizer\Value;
  *
  * @package Drupal\jsonapi\Normalizer\Value
  */
-class RelationshipNormalizerValue extends FieldNormalizerValue implements RelationshipNormalizerValueInterface {
+class RelationshipNormalizerValue extends FieldNormalizerValue {
 
   /**
    * The link manager.
    *
-   * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface
+   * @param \Drupal\jsonapi\LinkManager\LinkManager
    */
   protected $linkManager;
 
@@ -54,7 +54,7 @@ class RelationshipNormalizerValue extends FieldNormalizerValue implements Relati
     $this->linkManager = $link_context['link_manager'];
     $this->resourceType = $link_context['resource_type'];
     array_walk($values, function ($field_item_value) {
-      if (!$field_item_value instanceof RelationshipItemNormalizerValueInterface) {
+      if (!$field_item_value instanceof RelationshipItemNormalizerValue) {
         throw new \RuntimeException(sprintf('Unexpected normalizer item value for this %s.', get_called_class()));
       }
     });

@@ -15,13 +15,12 @@ use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
 use Drupal\jsonapi\Resource\EntityCollection;
-use Drupal\jsonapi\Resource\EntityCollectionInterface;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Error\SerializableHttpException;
 use Drupal\jsonapi\Error\UnprocessableHttpEntityException;
-use Drupal\jsonapi\Query\QueryBuilderInterface;
-use Drupal\jsonapi\Context\CurrentContextInterface;
+use Drupal\jsonapi\Query\QueryBuilder;
+use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\ResourceResponse;
 use Drupal\jsonapi\Routing\Param\JsonApiParamBase;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
@@ -59,14 +58,14 @@ class EntityResource {
   /**
    * The query builder service.
    *
-   * @var \Drupal\jsonapi\Query\QueryBuilderInterface
+   * @var \Drupal\jsonapi\Query\QueryBuilder
    */
   protected $queryBuilder;
 
   /**
    * The current context service.
    *
-   * @var \Drupal\jsonapi\Context\CurrentContextInterface
+   * @var \Drupal\jsonapi\Context\CurrentContext
    */
   protected $currentContext;
 
@@ -84,16 +83,16 @@ class EntityResource {
    *   The JSON API resource type.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
-   * @param \Drupal\jsonapi\Query\QueryBuilderInterface $query_builder
+   * @param \Drupal\jsonapi\Query\QueryBuilder $query_builder
    *   The query builder.
    * @param \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager
    *   The entity type field manager.
-   * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
+   * @param \Drupal\jsonapi\Context\CurrentContext $current_context
    *   The current context.
    * @param \Drupal\Core\Field\FieldTypePluginManagerInterface $plugin_manager
    *   The plugin manager for fields.
    */
-  public function __construct(ResourceType $resource_type, EntityTypeManagerInterface $entity_type_manager, QueryBuilderInterface $query_builder, EntityFieldManagerInterface $field_manager, CurrentContextInterface $current_context, FieldTypePluginManagerInterface $plugin_manager) {
+  public function __construct(ResourceType $resource_type, EntityTypeManagerInterface $entity_type_manager, QueryBuilder $query_builder, EntityFieldManagerInterface $field_manager, CurrentContext $current_context, FieldTypePluginManagerInterface $plugin_manager) {
     $this->resourceType = $resource_type;
     $this->entityTypeManager = $entity_type_manager;
     $this->queryBuilder = $query_builder;
@@ -590,7 +589,7 @@ class EntityResource {
   /**
    * Respond with an entity collection.
    *
-   * @param \Drupal\jsonapi\EntityCollectionInterface $entity_collection
+   * @param \Drupal\jsonapi\EntityCollection $entity_collection
    *   The collection of entites.
    * @param string $entity_type_id
    *   The entity type.
@@ -598,7 +597,7 @@ class EntityResource {
    * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    */
-  protected function respondWithCollection(EntityCollectionInterface $entity_collection, $entity_type_id) {
+  protected function respondWithCollection(EntityCollection $entity_collection, $entity_type_id) {
     $response = $this->buildWrappedResponse($entity_collection);
 
     // When a new change to any entity in the resource happens, we cannot ensure

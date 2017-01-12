@@ -4,10 +4,10 @@ namespace Drupal\Tests\jsonapi\Unit\Normalizer\Value;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\jsonapi\ResourceType\ResourceType;
-use Drupal\jsonapi\LinkManager\LinkManagerInterface;
+use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue;
-use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValueInterface;
-use Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValueInterface;
+use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue;
+use Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValueInterface;
 use Drupal\node\NodeInterface;
 use Drupal\Tests\UnitTestCase;
@@ -27,7 +27,7 @@ class EntityNormalizerValueTest extends UnitTestCase {
   /**
    * The EntityNormalizerValue object.
    *
-   * @var \Drupal\jsonapi\Normalizer\Value\EntityNormalizerValueInterface
+   * @var \Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue
    */
   protected $object;
 
@@ -40,10 +40,10 @@ class EntityNormalizerValueTest extends UnitTestCase {
     $field1->getIncludes()->willReturn([]);
     $field1->getPropertyType()->willReturn('attributes');
     $field1->rasterizeValue()->willReturn('dummy_title');
-    $field2 = $this->prophesize(RelationshipNormalizerValueInterface::class);
+    $field2 = $this->prophesize(RelationshipNormalizerValue::class);
     $field2->getPropertyType()->willReturn('relationships');
     $field2->rasterizeValue()->willReturn(['data' => ['type' => 'node', 'id' => 2]]);
-    $included[] = $this->prophesize(DocumentRootNormalizerValueInterface::class);
+    $included[] = $this->prophesize(DocumentRootNormalizerValue::class);
     $included[0]->getIncludes()->willReturn([]);
     $included[0]->rasterizeValue()->willReturn([
       'data' => [
@@ -54,7 +54,7 @@ class EntityNormalizerValueTest extends UnitTestCase {
     ]);
     $included[0]->getCacheContexts()->willReturn(['lorem', 'ipsum']);
     // Type & id duplicated on purpose.
-    $included[] = $this->prophesize(DocumentRootNormalizerValueInterface::class);
+    $included[] = $this->prophesize(DocumentRootNormalizerValue::class);
     $included[1]->getIncludes()->willReturn([]);
     $included[1]->rasterizeValue()->willReturn([
       'data' => [
@@ -63,7 +63,7 @@ class EntityNormalizerValueTest extends UnitTestCase {
         'attributes' => ['body' => 'dummy_body2'],
       ],
     ]);
-    $included[] = $this->prophesize(DocumentRootNormalizerValueInterface::class);
+    $included[] = $this->prophesize(DocumentRootNormalizerValue::class);
     $included[2]->getIncludes()->willReturn([]);
     $included[2]->rasterizeValue()->willReturn([
       'data' => [
@@ -81,7 +81,7 @@ class EntityNormalizerValueTest extends UnitTestCase {
     $entity->isNew()->willReturn(FALSE);
     $entity->getEntityTypeId()->willReturn('node');
     $entity->bundle()->willReturn('article');
-    $link_manager = $this->prophesize(LinkManagerInterface::class);
+    $link_manager = $this->prophesize(LinkManager::class);
     $link_manager
       ->getEntityLink(Argument::any(), Argument::any(), Argument::type('array'), Argument::type('string'))
       ->willReturn('dummy_entity_link');
@@ -154,7 +154,7 @@ class EntityNormalizerValueTest extends UnitTestCase {
   public function testGetIncludes() {
     $includes = $this->object->getIncludes();
     $includes = array_filter($includes, function ($included) {
-      return $included instanceof DocumentRootNormalizerValueInterface;
+      return $included instanceof DocumentRootNormalizerValue;
     });
     $this->assertCount(3, $includes);
   }

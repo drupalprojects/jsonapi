@@ -1,6 +1,8 @@
 <?php
 
 namespace Drupal\jsonapi\Normalizer\Value;
+
+use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 
 /**
@@ -8,7 +10,7 @@ use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
  *
  * @package Drupal\jsonapi\Normalizer\Value
  */
-class RelationshipItemNormalizerValue extends FieldItemNormalizerValue implements RelationshipItemNormalizerValueInterface {
+class RelationshipItemNormalizerValue extends FieldItemNormalizerValue implements RefinableCacheableDependencyInterface {
 
   use RefinableCacheableDependencyTrait;
 
@@ -46,7 +48,10 @@ class RelationshipItemNormalizerValue extends FieldItemNormalizerValue implement
   }
 
   /**
-   * {@inheritdoc}
+   * Sets the resource.
+   *
+   * @param string $resource
+   *   The resource to set.
    */
   public function setResource($resource) {
     $this->resource = $resource;

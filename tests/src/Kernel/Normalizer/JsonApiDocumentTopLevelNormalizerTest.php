@@ -6,7 +6,7 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\jsonapi\ResourceType\ResourceType;
-use Drupal\jsonapi\LinkManager\LinkManagerInterface;
+use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\node\Entity\Node;
@@ -125,7 +125,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
 
     $this->node->save();
 
-    $link_manager = $this->prophesize(LinkManagerInterface::class);
+    $link_manager = $this->prophesize(LinkManager::class);
     $link_manager
       ->getEntityLink(Argument::any(), Argument::any(), Argument::type('array'), Argument::type('string'))
       ->willReturn('dummy_entity_link');

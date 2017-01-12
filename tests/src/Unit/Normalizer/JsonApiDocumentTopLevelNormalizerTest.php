@@ -8,8 +8,8 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer;
-use Drupal\jsonapi\LinkManager\LinkManagerInterface;
-use Drupal\jsonapi\Context\CurrentContextInterface;
+use Drupal\jsonapi\LinkManager\LinkManager;
+use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Symfony\Component\Routing\Route;
@@ -33,8 +33,8 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
    * {@inheritdoc}
    */
   public function setUp() {
-    $link_manager = $this->prophesize(LinkManagerInterface::class);
-    $current_context_manager = $this->prophesize(CurrentContextInterface::class);
+    $link_manager = $this->prophesize(LinkManager::class);
+    $current_context_manager = $this->prophesize(CurrentContext::class);
 
     $entity_storage = $this->prophesize(EntityStorageInterface::class);
     $self = $this;

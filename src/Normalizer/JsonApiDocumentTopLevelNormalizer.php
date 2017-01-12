@@ -4,10 +4,10 @@ namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
-use Drupal\jsonapi\Context\CurrentContextInterface;
+use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue;
-use Drupal\jsonapi\Resource\EntityCollectionInterface;
-use Drupal\jsonapi\LinkManager\LinkManagerInterface;
+use Drupal\jsonapi\Resource\EntityCollection;
+use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -28,14 +28,14 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
   /**
    * The link manager to get the links.
    *
-   * @var \Drupal\jsonapi\LinkManager\LinkManagerInterface
+   * @var \Drupal\jsonapi\LinkManager\LinkManager
    */
   protected $linkManager;
 
   /**
    * The current JSON API request context.
    *
-   * @var \Drupal\jsonapi\Context\CurrentContextInterface
+   * @var \Drupal\jsonapi\Context\CurrentContext
    */
   protected $currentContext;
 
@@ -49,14 +49,14 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
   /**
    * Constructs an ContentEntityNormalizer object.
    *
-   * @param \Drupal\jsonapi\LinkManager\LinkManagerInterface $link_manager
+   * @param \Drupal\jsonapi\LinkManager\LinkManager $link_manager
    *   The link manager to get the links.
-   * @param \Drupal\jsonapi\Context\CurrentContextInterface $current_context
+   * @param \Drupal\jsonapi\Context\CurrentContext $current_context
    *   The current context.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    */
-  public function __construct(LinkManagerInterface $link_manager, CurrentContextInterface $current_context, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(LinkManager $link_manager, CurrentContext $current_context, EntityTypeManagerInterface $entity_type_manager) {
     $this->linkManager = $link_manager;
     $this->currentContext = $current_context;
     $this->entityTypeManager = $entity_type_manager;
@@ -135,7 +135,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
   /**
    * Build the normalizer value.
    *
-   * @return \Drupal\jsonapi\Normalizer\Value\EntityNormalizerValueInterface
+   * @return \Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue
    *   The normalizer value.
    */
   public function buildNormalizerValue($data, $format = NULL, array $context = array()) {
@@ -147,7 +147,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
       return $output;
     }
     else {
-      $is_collection = $data instanceof EntityCollectionInterface;
+      $is_collection = $data instanceof EntityCollection;
       // To improve the logical workflow deal with an array at all times.
       $entities = $is_collection ? $data->toArray() : [$data];
       $context['has_next_page'] = $is_collection ? $data->hasNextPage() : FALSE;
