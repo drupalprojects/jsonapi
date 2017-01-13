@@ -4,6 +4,7 @@ namespace Drupal\jsonapi\Controller;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Access\AccessibleInterface;
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -306,19 +307,25 @@ class EntityResource {
       return $this->getIndividual($field_list->entity, $request);
     }
     $collection_data = [];
+    $cacheable_metadata = new CacheableMetadata();
+    // Add the cacheable metadata from the host entity.
+    $cacheable_metadata->addCacheableDependency($entity);
     foreach ($field_list as $field_item) {
       /* @var \Drupal\Core\Entity\EntityInterface $entity_item */
       $entity_item = $field_item->entity;
       $collection_data[$entity_item->id()] = static::getEntityAndAccess($entity_item);
+      $cacheable_metadata->addCacheableDependency($entity_item);
     }
     $entity_collection = new EntityCollection(array_column($collection_data, 'entity'));
-    $entity_type_id = $field_list->getSetting('target_type');
-    $response = $this->respondWithCollection($entity_collection, $entity_type_id);
+    $response = $this->buildWrappedResponse($entity_collection);
 
     $access_info = array_column($collection_data, 'access');
     array_walk($access_info, function ($access) use ($response) {
       $response->addCacheableDependency($access);
     });
+    // $response does not contain the entity list cache tag. We add the
+    // cacheable metadata for the finite list of entities in the relationship.
+    $response->addCacheableDependency($cacheable_metadata);
 
     return $response;
   }

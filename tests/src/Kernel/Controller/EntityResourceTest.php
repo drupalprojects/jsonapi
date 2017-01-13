@@ -107,6 +107,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       'name' => 'user1',
       'mail' => 'user@localhost',
       'status' => 1,
+      'roles' => ['test_role_one', 'test_role_two'],
     ]);
     $this->createEntityReferenceField('node', 'article', 'field_relationships', 'Relationship', 'node', 'default', ['target_bundles' => ['article']], FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED);
     $this->user->save();
@@ -132,17 +133,29 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     ]);
     $this->node3->save();
 
+    $this->node4 = Node::create([
+      'type' => 'article',
+      'title' => 'Test node with related nodes',
+      'uid' => $this->user->id(),
+      'field_relationships' => [
+        ['target_id' => $this->node->id()],
+        ['target_id' => $this->node2->id()],
+        ['target_id' => $this->node3->id()],
+      ],
+    ]);
+    $this->node4->save();
+
     // Give anonymous users permission to view user profiles, so that we can
     // verify the cache tags of cached versions of user profile pages.
-    Role::create([
-      'id' => RoleInterface::ANONYMOUS_ID,
-      'permissions' => [
-        'access user profiles',
-        'access content',
-      ],
-    ])->save();
-
-    $this->request = $this->prophesize(Request::class);
+    array_map(function ($role_id) {
+      Role::create([
+        'id' => $role_id,
+        'permissions' => [
+          'access user profiles',
+          'access content',
+        ],
+      ])->save();
+    }, [RoleInterface::ANONYMOUS_ID, 'test_role_one', 'test_role_two']);
   }
 
 
@@ -151,7 +164,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    */
   public function testGetIndividual() {
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $response = $entity_resource->getIndividual($this->node, $this->request->reveal());
+    $response = $entity_resource->getIndividual($this->node, new Request());
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
     $this->assertEquals(1, $response->getResponseData()->getData()->id());
   }
@@ -165,23 +178,21 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $role->revokePermission('access content');
     $role->save();
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $entity_resource->getIndividual($this->node, $this->request->reveal());
+    $entity_resource->getIndividual($this->node, new Request());
   }
 
   /**
    * @covers ::getCollection
    */
   public function testGetCollection() {
-    // Fake the request.
-    $request = $this->prophesize(Request::class);
-    $params = $this->prophesize(ParameterBag::class);
-    $params->get('_route_params')->willReturn(['_json_api_params' => []]);
-    $request->attributes = $params->reveal();
-    $params->get('_json_api_params')->willReturn([]);
+    $request = new Request([], [], [
+      '_route_params' => ['_json_api_params' => []],
+      '_json_api_params' => [],
+    ]);
 
     // Get the response.
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $response = $entity_resource->getCollection($request->reveal());
+    $response = $entity_resource->getCollection($request);
 
     // Assertions.
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
@@ -355,27 +366,25 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    * @covers ::getCollection
    */
   public function testGetEmptyCollection() {
-    // Fake the request.
-    $request = $this->prophesize(Request::class);
-    $params = $this->prophesize(ParameterBag::class);
     $filter = new Filter(
       ['uuid' => ['value' => 'invalid']],
       'node',
       $this->container->get('entity_field.manager')
     );
-    $params->get('_route_params')->willReturn([
+    $request = new Request([], [], [
+      '_route_params' => [
+        '_json_api_params' => [
+          'filter' => $filter,
+        ],
+      ],
       '_json_api_params' => [
         'filter' => $filter,
       ],
     ]);
-    $params->get('_json_api_params')->willReturn([
-      'filter' => $filter,
-    ]);
-    $request->attributes = $params->reveal();
 
     // Get the response.
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $response = $entity_resource->getCollection($request->reveal());
+    $response = $entity_resource->getCollection($request);
 
     // Assertions.
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
@@ -390,22 +399,37 @@ class EntityResourceTest extends JsonapiKernelTestBase {
   public function testGetRelated() {
     // to-one relationship.
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $response = $entity_resource->getRelated($this->node, 'uid', $this->request->reveal());
+    $response = $entity_resource->getRelated($this->node, 'uid', new Request());
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
     $this->assertInstanceOf(User::class, $response->getResponseData()
       ->getData());
     $this->assertEquals(1, $response->getResponseData()->getData()->id());
 
     // to-many relationship.
-    $response = $entity_resource->getRelated($this->user, 'roles', $this->request->reveal());
+    $response = $entity_resource->getRelated($this->user, 'roles', new Request());
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response
       ->getResponseData());
     $this->assertInstanceOf(EntityCollection::class, $response
       ->getResponseData()
       ->getData());
-    $this->assertEquals(['config:user_role_list'], $response
+    $this->assertEquals([
+      'config:user.role.test_role_one',
+      'config:user.role.test_role_two',
+      'user:1',
+    ], $response
       ->getCacheableMetadata()
       ->getCacheTags());
+    // to-many relationship.
+    $response = $entity_resource->getRelated($this->node4, 'field_relationships', new Request());
+    $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response
+      ->getResponseData());
+    $this->assertInstanceOf(EntityCollection::class, $response
+      ->getResponseData()
+      ->getData());
+    $this->assertEquals(
+      ['node:1', 'node:2', 'node:3', 'node:4'],
+      $response->getCacheableMetadata()->getCacheTags()
+    );
   }
 
   /**
@@ -414,7 +438,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
   public function testGetRelationship() {
     // to-one relationship.
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $response = $entity_resource->getRelationship($this->node, 'uid', $this->request->reveal());
+    $response = $entity_resource->getRelationship($this->node, 'uid', new Request());
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
     $this->assertInstanceOf(
       EntityReferenceFieldItemListInterface::class,
@@ -446,11 +470,11 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ->grantPermission('create article content')
       ->save();
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $response = $entity_resource->createIndividual($node, $this->request->reveal());
+    $response = $entity_resource->createIndividual($node, new Request());
     // As a side effect, the node will also be saved.
     $this->assertNotEmpty($node->id());
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
-    $this->assertEquals(4, $response->getResponseData()->getData()->id());
+    $this->assertEquals(5, $response->getResponseData()->getData()->id());
     $this->assertEquals(201, $response->getStatusCode());
   }
 
@@ -467,7 +491,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ->save();
     $this->setExpectedException(HttpException::class, 'Unprocessable Entity: validation failed.');
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $entity_resource->createIndividual($node, $this->request->reveal());
+    $entity_resource->createIndividual($node, new Request());
   }
 
   /**
@@ -483,7 +507,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ->grantPermission('administer content types')
       ->save();
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $response = $entity_resource->createIndividual($node_type, $this->request->reveal());
+    $response = $entity_resource->createIndividual($node_type, new Request());
     // As a side effect, the node type will also be saved.
     $this->assertNotEmpty($node_type->id());
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
@@ -500,7 +524,6 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     Role::load(Role::ANONYMOUS_ID)
       ->grantPermission('edit any article content')
       ->save();
-    $request = $this->prophesize(Request::class);
     $payload = Json::encode([
       'data' => [
         'type' => 'article',
@@ -511,11 +534,11 @@ class EntityResourceTest extends JsonapiKernelTestBase {
         ],
       ],
     ]);
-    $request->getContent()->willReturn($payload);
+    $request = new Request([], [], [], [], [], [], $payload);
 
     // Create a new EntityResource that uses uuid.
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $response = $entity_resource->patchIndividual($this->node, $parsed_node, $request->reveal());
+    $response = $entity_resource->patchIndividual($this->node, $parsed_node, $request);
 
     // As a side effect, the node will also be saved.
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
@@ -565,7 +588,6 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     Role::load(Role::ANONYMOUS_ID)
       ->grantPermission('edit any article content')
       ->save();
-    $request = $this->prophesize(Request::class);
     $payload = Json::encode([
       'data' => [
         'type' => 'node_type',
@@ -573,10 +595,10 @@ class EntityResourceTest extends JsonapiKernelTestBase {
         'attributes' => $values,
       ],
     ]);
-    $request->getContent()->willReturn($payload);
+    $request = new Request([], [], [], [], [], [], $payload);
 
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $response = $entity_resource->patchIndividual($node_type, $parsed_node_type, $request->reveal());
+    $response = $entity_resource->patchIndividual($node_type, $parsed_node_type, $request);
 
     // As a side effect, the node will also be saved.
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
@@ -640,7 +662,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ->grantPermission('delete own article content')
       ->save();
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $response = $entity_resource->deleteIndividual($node, $this->request->reveal());
+    $response = $entity_resource->deleteIndividual($node, new Request());
     // As a side effect, the node will also be deleted.
     $count = $this->container->get('entity_type.manager')
       ->getStorage('node')
@@ -668,7 +690,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ->grantPermission('administer content types')
       ->save();
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $response = $entity_resource->deleteIndividual($node_type, $this->request->reveal());
+    $response = $entity_resource->deleteIndividual($node_type, new Request());
     // As a side effect, the node will also be deleted.
     $count = $this->container->get('entity_type.manager')
       ->getStorage('node_type')
@@ -695,7 +717,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ->save();
 
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $response = $entity_resource->createRelationship($this->node, 'field_relationships', $parsed_field_list, $this->request->reveal());
+    $response = $entity_resource->createRelationship($this->node, 'field_relationships', $parsed_field_list, new Request());
 
     // As a side effect, the node will also be saved.
     $this->assertNotEmpty($this->node->id());
@@ -722,7 +744,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ->save();
 
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $response = $entity_resource->patchRelationship($this->node, 'field_relationships', $parsed_field_list, $this->request->reveal());
+    $response = $entity_resource->patchRelationship($this->node, 'field_relationships', $parsed_field_list, new Request());
 
     // As a side effect, the node will also be saved.
     $this->assertNotEmpty($this->node->id());
@@ -765,7 +787,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ->save();
 
     $entity_resource = $this->buildEntityResource('node', 'article');
-    $response = $entity_resource->deleteRelationship($this->node, 'field_relationships', $parsed_field_list, $this->request->reveal());
+    $response = $entity_resource->deleteRelationship($this->node, 'field_relationships', $parsed_field_list, new Request());
 
     // As a side effect, the node will also be saved.
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());

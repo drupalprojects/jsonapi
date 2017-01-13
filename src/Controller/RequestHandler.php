@@ -146,6 +146,10 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
         $request,
         $cacheable_metadata
       ) {
+        // The serializer receives the response's cacheability metadata object
+        // as serialization context. Normalizers called by the serializer then
+        // refine this cacheability metadata, and thus they are effectively
+        // updating the response object's cacheability.
         return $serializer->serialize($data, $format, ['request' => $request, 'cacheable_metadata' => $cacheable_metadata]);
       });
     $error_handler->restore();
