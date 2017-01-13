@@ -198,7 +198,13 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
     $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
     $this->assertEquals(1, $response->getResponseData()->getData()->getIterator()->current()->id());
-    $this->assertEquals(['node:3', 'node_list'], $response->getCacheableMetadata()->getCacheTags());
+    $this->assertEquals([
+      'node:1',
+      'node:2',
+      'node:3',
+      'node:4',
+      'node_list'
+    ], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -359,7 +365,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $data = $response->getResponseData()->getData();
     $this->assertCount(1, $data);
     $this->assertEquals(2, $data->toArray()[0]->id());
-    $this->assertEquals(['node_list'], $response->getCacheableMetadata()->getCacheTags());
+    $this->assertEquals(['node:2', 'node_list'], $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
