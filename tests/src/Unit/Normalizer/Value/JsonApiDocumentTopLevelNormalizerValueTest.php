@@ -6,7 +6,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\LinkManager\LinkManager;
-use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue;
+use Drupal\jsonapi\Normalizer\Value\JsonApiDocumentTopLevelNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizer;
 use Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValueInterface;
@@ -15,20 +15,20 @@ use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 
 /**
- * Class DocumentRootNormalizerValueTest.
+ * Class JsonApiDocumentTopLevelNormalizerValueTest.
  *
  * @package Drupal\Tests\jsonapi\Unit\Normalizer\Value
  *
- * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue
+ * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\JsonApiDocumentTopLevelNormalizerValue
  *
  * @group jsonapi
  */
-class DocumentRootNormalizerValueTest extends UnitTestCase {
+class JsonApiDocumentTopLevelNormalizerValueTest extends UnitTestCase {
 
   /**
-   * The DocumentRootNormalizerValue object.
+   * The JsonApiDocumentTopLevelNormalizerValue object.
    *
-   * @var DocumentRootNormalizerValue
+   * @var JsonApiDocumentTopLevelNormalizerValue
    */
   protected $object;
 
@@ -44,7 +44,7 @@ class DocumentRootNormalizerValueTest extends UnitTestCase {
     $field2 = $this->prophesize(RelationshipNormalizerValue::class);
     $field2->getPropertyType()->willReturn('relationships');
     $field2->rasterizeValue()->willReturn(['data' => ['type' => 'node', 'id' => 2]]);
-    $included[] = $this->prophesize(DocumentRootNormalizerValue::class);
+    $included[] = $this->prophesize(JsonApiDocumentTopLevelNormalizerValue::class);
     $included[0]->getIncludes()->willReturn([]);
     $included[0]->rasterizeValue()->willReturn([
       'data' => [
@@ -55,7 +55,7 @@ class DocumentRootNormalizerValueTest extends UnitTestCase {
     ]);
     $included[0]->getCacheContexts()->willReturn(['lorem:ipsum']);
     // Type & id duplicated in purpose.
-    $included[] = $this->prophesize(DocumentRootNormalizerValue::class);
+    $included[] = $this->prophesize(JsonApiDocumentTopLevelNormalizerValue::class);
     $included[1]->getIncludes()->willReturn([]);
     $included[1]->rasterizeValue()->willReturn([
       'data' => [
@@ -64,7 +64,7 @@ class DocumentRootNormalizerValueTest extends UnitTestCase {
         'attributes' => ['body' => 'dummy_body2'],
       ],
     ]);
-    $included[] = $this->prophesize(DocumentRootNormalizerValue::class);
+    $included[] = $this->prophesize(JsonApiDocumentTopLevelNormalizerValue::class);
     $included[2]->getIncludes()->willReturn([]);
     $included[2]->rasterizeValue()->willReturn([
       'data' => [
@@ -91,7 +91,7 @@ class DocumentRootNormalizerValueTest extends UnitTestCase {
     $link_manager
       ->getEntityLink(Argument::any(), Argument::any(), Argument::type('array'), Argument::type('string'))
       ->willReturn('dummy_entity_link');
-    $this->object = $this->getMockBuilder(DocumentRootNormalizerValue::class)
+    $this->object = $this->getMockBuilder(JsonApiDocumentTopLevelNormalizerValue::class)
       ->setMethods(['addCacheableDependency'])
       ->setConstructorArgs([
         ['title' => $field1->reveal(), 'field_related' => $field2->reveal()],
@@ -109,7 +109,7 @@ class DocumentRootNormalizerValueTest extends UnitTestCase {
   public function testGetIncludes() {
     $includes = $this->object->getIncludes();
     $includes = array_filter($includes, function ($included) {
-      return $included instanceof DocumentRootNormalizerValue;
+      return $included instanceof JsonApiDocumentTopLevelNormalizerValue;
     });
     $this->assertCount(2, $includes);
   }

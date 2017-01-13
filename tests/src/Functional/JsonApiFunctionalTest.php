@@ -296,10 +296,11 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $first_include = reset($single_output['included']);
     $this->assertEquals(
       'user--user',
-      $first_include['data']['type']
+      $first_include['type']
     );
-    $this->assertTrue(empty($first_include['data']['attributes']['mail']));
-    $this->assertTrue(empty($first_include['data']['attributes']['pass']));
+    $this->assertFalse(empty($first_include['attributes']));
+    $this->assertTrue(empty($first_include['attributes']['mail']));
+    $this->assertTrue(empty($first_include['attributes']['pass']));
     // 12. Collection with one access denied
     $this->nodes[1]->set('status', FALSE);
     $this->nodes[1]->save();

@@ -5,7 +5,7 @@ namespace Drupal\jsonapi\Normalizer;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\jsonapi\Context\CurrentContext;
-use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue;
+use Drupal\jsonapi\Normalizer\Value\JsonApiDocumentTopLevelNormalizerValue;
 use Drupal\jsonapi\Resource\EntityCollection;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
@@ -126,6 +126,9 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
     $normalized = $value_extractor->rasterizeValue();
     $included = array_filter($value_extractor->rasterizeIncludes());
     if (!empty($included)) {
+      $included = array_map(function ($value) {
+        return $value['data'] === FALSE ? ['meta' => $value['meta']] : $value['data'];
+      }, $included);
       $normalized['included'] = $included;
     }
 
@@ -135,14 +138,14 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
   /**
    * Build the normalizer value.
    *
-   * @return \Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue
+   * @return \Drupal\jsonapi\Normalizer\Value\JsonApiDocumentTopLevelNormalizerValue
    *   The normalizer value.
    */
   public function buildNormalizerValue($data, $format = NULL, array $context = array()) {
     $context += $this->expandContext($context['request']);
     if ($data instanceof EntityReferenceFieldItemListInterface) {
       $output = $this->serializer->normalize($data, $format, $context);
-      // The only normalizer value that computes nested includes automatically is the DocumentRootNormalizerValue
+      // The only normalizer value that computes nested includes automatically is the JsonApiDocumentTopLevelNormalizerValue
       $output->setIncludes($output->getAllIncludes());
       return $output;
     }
@@ -157,7 +160,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
       }, $entities);
     }
 
-    return new DocumentRootNormalizerValue($normalizer_values, $context, $is_collection, [
+    return new JsonApiDocumentTopLevelNormalizerValue($normalizer_values, $context, $is_collection, [
       'link_manager' => $this->linkManager,
       'has_next_page' => $context['has_next_page'],
     ]);

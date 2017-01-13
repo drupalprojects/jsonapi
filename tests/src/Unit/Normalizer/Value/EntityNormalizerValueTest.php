@@ -6,7 +6,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue;
-use Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue;
+use Drupal\jsonapi\Normalizer\Value\JsonApiDocumentTopLevelNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValueInterface;
 use Drupal\node\NodeInterface;
@@ -43,7 +43,7 @@ class EntityNormalizerValueTest extends UnitTestCase {
     $field2 = $this->prophesize(RelationshipNormalizerValue::class);
     $field2->getPropertyType()->willReturn('relationships');
     $field2->rasterizeValue()->willReturn(['data' => ['type' => 'node', 'id' => 2]]);
-    $included[] = $this->prophesize(DocumentRootNormalizerValue::class);
+    $included[] = $this->prophesize(JsonApiDocumentTopLevelNormalizerValue::class);
     $included[0]->getIncludes()->willReturn([]);
     $included[0]->rasterizeValue()->willReturn([
       'data' => [
@@ -54,7 +54,7 @@ class EntityNormalizerValueTest extends UnitTestCase {
     ]);
     $included[0]->getCacheContexts()->willReturn(['lorem', 'ipsum']);
     // Type & id duplicated on purpose.
-    $included[] = $this->prophesize(DocumentRootNormalizerValue::class);
+    $included[] = $this->prophesize(JsonApiDocumentTopLevelNormalizerValue::class);
     $included[1]->getIncludes()->willReturn([]);
     $included[1]->rasterizeValue()->willReturn([
       'data' => [
@@ -63,7 +63,7 @@ class EntityNormalizerValueTest extends UnitTestCase {
         'attributes' => ['body' => 'dummy_body2'],
       ],
     ]);
-    $included[] = $this->prophesize(DocumentRootNormalizerValue::class);
+    $included[] = $this->prophesize(JsonApiDocumentTopLevelNormalizerValue::class);
     $included[2]->getIncludes()->willReturn([]);
     $included[2]->rasterizeValue()->willReturn([
       'data' => [
@@ -154,7 +154,7 @@ class EntityNormalizerValueTest extends UnitTestCase {
   public function testGetIncludes() {
     $includes = $this->object->getIncludes();
     $includes = array_filter($includes, function ($included) {
-      return $included instanceof DocumentRootNormalizerValue;
+      return $included instanceof JsonApiDocumentTopLevelNormalizerValue;
     });
     $this->assertCount(3, $includes);
   }

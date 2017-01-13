@@ -8,11 +8,11 @@ use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 use Drupal\jsonapi\RequestCacheabilityDependency;
 
 /**
- * Class DocumentRootNormalizerValue.
+ * Class JsonApiDocumentTopLevelNormalizerValue.
  *
  * @package Drupal\jsonapi\Normalizer\Value
  */
-class DocumentRootNormalizerValue implements ValueExtractorInterface, RefinableCacheableDependencyInterface  {
+class JsonApiDocumentTopLevelNormalizerValue implements ValueExtractorInterface, RefinableCacheableDependencyInterface  {
 
   use RefinableCacheableDependencyTrait;
 
@@ -59,7 +59,7 @@ class DocumentRootNormalizerValue implements ValueExtractorInterface, RefinableC
   protected $linkContext;
 
   /**
-   * Instantiates a DocumentRootNormalizerValue object.
+   * Instantiates a JsonApiDocumentTopLevelNormalizerValue object.
    *
    * @param \Drupal\Core\Entity\EntityInterface[] $values
    *   The data to normalize. It can be either a straight up entity or a
@@ -170,9 +170,7 @@ class DocumentRootNormalizerValue implements ValueExtractorInterface, RefinableC
   public function rasterizeIncludes() {
     // First gather all the includes in the chain.
     return array_map(function ($include) {
-      $value = $include->rasterizeValue();
-      // Included resources should only return their "data" elements
-      return $value['data'] === FALSE ? ['meta' => $value['meta']] : $value['data'];
+      return $include->rasterizeValue();
     }, $this->getIncludes());
   }
 
