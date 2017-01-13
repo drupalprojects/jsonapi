@@ -8,9 +8,7 @@ use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 use Drupal\jsonapi\RequestCacheabilityDependency;
 
 /**
- * Class JsonApiDocumentTopLevelNormalizerValue.
- *
- * @package Drupal\jsonapi\Normalizer\Value
+ * @internal
  */
 class JsonApiDocumentTopLevelNormalizerValue implements ValueExtractorInterface, RefinableCacheableDependencyInterface  {
 

@@ -11,10 +11,6 @@ use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 
 /**
- * Class EntityReferenceNormalizerValueTes.
- *
- * @package Drupal\Tests\jsonapi\Unit\Normalizer\Value
- *
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValue
  * @group jsonapi
  */

@@ -6,12 +6,7 @@ use Drupal\jsonapi\RequestCacheabilityDependency;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * Class RequestCacheabilityDependencyTest
- *
- * @package Drupal\Tests\jsonapi\Unit
- *
  * @coversDefaultClass \Drupal\jsonapi\RequestCacheabilityDependency
- *
  * @group jsonapi
  */
 class RequestCacheabilityDependencyTest extends UnitTestCase {

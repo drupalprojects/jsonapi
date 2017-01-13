@@ -7,6 +7,8 @@ use Drupal\Core\DependencyInjection\ServiceModifierInterface;
 
 /**
  * Adds api_json as known format.
+ *
+ * @internal
  */
 class JsonapiServiceProvider implements ServiceModifierInterface {
 

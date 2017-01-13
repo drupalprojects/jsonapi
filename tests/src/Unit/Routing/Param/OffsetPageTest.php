@@ -5,12 +5,7 @@ namespace Drupal\Tests\jsonapi\Unit\Routing\Param;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Drupal\Tests\UnitTestCase;
 
-
 /**
- * Class CursorPageTest.
- *
- * @package Drupal\jsonapi\Test\Unit
- *
  * @coversDefaultClass \Drupal\jsonapi\Routing\Param\OffsetPage
  * @group jsonapi
  */

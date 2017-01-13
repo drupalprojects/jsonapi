@@ -18,12 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 
 /**
- * Class CurrentContextTest.
- *
- * @package \Drupal\jsonapi\Test\Unit
- *
  * @coversDefaultClass \Drupal\jsonapi\Context\CurrentContext
- *
  * @group jsonapi
  */
 class CurrentContextTest extends UnitTestCase {

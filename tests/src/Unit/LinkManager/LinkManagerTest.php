@@ -13,12 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 
 /**
- * Class LinkManagerTest.
- *
- * @package Drupal\Tests\jsonapi\Unit\LinkManager
- *
  * @coversDefaultClass \Drupal\jsonapi\LinkManager\LinkManager
- *
  * @group jsonapi
  */
 class LinkManagerTest extends UnitTestCase {

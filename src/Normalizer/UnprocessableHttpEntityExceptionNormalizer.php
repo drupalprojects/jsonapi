@@ -7,16 +7,12 @@ use Drupal\jsonapi\Error\UnprocessableHttpEntityException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
- * Class UnprocessableHttpEntityExceptionNormalizer.
- *
  * Normalizes an UnprocessableHttpEntityException object for JSON output which
  * complies with the JSON API specification. A source pointer is added to help
  * client applications report validation errors, for example on an Entity edit
  * form.
  *
  * @see http://jsonapi.org/format/#error-objects
- *
- * @package Drupal\jsonapi\Normalizer
  */
 class UnprocessableHttpEntityExceptionNormalizer extends HttpExceptionNormalizer {
 

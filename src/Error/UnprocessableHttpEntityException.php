@@ -4,6 +4,9 @@ namespace Drupal\jsonapi\Error;
 
 use Drupal\Core\Entity\EntityConstraintViolationListInterface;
 
+/**
+ * @internal
+ */
 class UnprocessableHttpEntityException extends SerializableHttpException {
 
   /**

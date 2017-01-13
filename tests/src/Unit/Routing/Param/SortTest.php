@@ -6,10 +6,6 @@ use Drupal\jsonapi\Routing\Param\Sort;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * Class SortTest.
- *
- * @package Drupal\jsonapi\Test\Unit
- *
  * @coversDefaultClass \Drupal\jsonapi\Routing\Param\Sort
  * @group jsonapi
  */

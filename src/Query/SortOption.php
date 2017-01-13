@@ -3,10 +3,6 @@
 namespace Drupal\jsonapi\Query;
 
 /**
- * Class SortOption.
- *
- * @package \Drupal\jsonapi\Query
- *
  * @internal
  */
 class SortOption implements QueryOptionInterface {

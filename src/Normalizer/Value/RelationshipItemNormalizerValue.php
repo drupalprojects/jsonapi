@@ -6,9 +6,7 @@ use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 
 /**
- * Class FieldItemNormalizerValue.
- *
- * @package Drupal\jsonapi\Normalizer\Value
+ * @internal
  */
 class RelationshipItemNormalizerValue extends FieldItemNormalizerValue implements RefinableCacheableDependencyInterface {
 

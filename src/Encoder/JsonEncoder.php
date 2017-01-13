@@ -8,7 +8,7 @@ use Drupal\serialization\Encoder\JsonEncoder as SerializationJsonEncoder;
 /**
  * Encodes JSON API data.
  *
- * Simply respond to application/vnd.api+json format requests using encoder.
+ * @internal
  */
 class JsonEncoder extends SerializationJsonEncoder {
 

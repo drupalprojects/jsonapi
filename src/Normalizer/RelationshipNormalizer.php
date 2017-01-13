@@ -8,6 +8,10 @@ use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 
+/**
+ * Normalizer class for relationship elements. A relationship can be anything
+ * that points to an entity in a JSON API resource.
+ */
 class RelationshipNormalizer extends NormalizerBase {
 
   /**

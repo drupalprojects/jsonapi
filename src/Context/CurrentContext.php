@@ -7,11 +7,7 @@ use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
- * Class CurrentContext.
- *
  * Service for accessing information about the current JSON API request.
- *
- * @package \Drupal\jsonapi\Context
  *
  * @internal
  */

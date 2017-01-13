@@ -20,6 +20,8 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Acts as intermediate request forwarder for resource plugins.
+ *
+ * @internal
  */
 class RequestHandler implements ContainerAwareInterface, ContainerInjectionInterface {
 

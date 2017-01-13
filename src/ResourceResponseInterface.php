@@ -4,6 +4,8 @@ namespace Drupal\jsonapi;
 
 /**
  * Defines a common interface for resource responses.
+ *
+ * @internal
  */
 interface ResourceResponseInterface {
 

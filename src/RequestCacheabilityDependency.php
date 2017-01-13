@@ -6,7 +6,7 @@ use Drupal\Core\Cache\CacheableDependencyInterface;
 use Drupal\Core\Cache\UnchangingCacheableDependencyTrait;
 
 /**
- * Class RequestCacheabilityDependency.
+ * @internal
  */
 class RequestCacheabilityDependency implements CacheableDependencyInterface {
 

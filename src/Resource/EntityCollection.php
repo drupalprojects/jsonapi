@@ -3,11 +3,9 @@
 namespace Drupal\jsonapi\Resource;
 
 /**
- * Class EntityCollection.
- *
  * Wrapper to normalize collections with multiple entities.
  *
- * @package Drupal\jsonapi
+ * @internal
  */
 class EntityCollection implements \IteratorAggregate, \Countable {
 

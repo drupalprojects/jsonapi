@@ -3,8 +3,6 @@
 namespace Drupal\jsonapi\Normalizer\Value;
 
 /**
- * Class FieldNormalizerValue.
- *
- * @package Drupal\jsonapi\Normalizer\Value
+ * @internal
  */
 class HttpExceptionNormalizerValue extends FieldNormalizerValue {}

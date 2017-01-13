@@ -18,12 +18,7 @@ use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 
 /**
- * Class EntityReferenceFieldNormalizerTest.
- *
- * @package Drupal\Tests\serialization\Unit\Normalizer
- *
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\EntityReferenceFieldNormalizer
- *
  * @group jsonapi
  */
 class EntityReferenceFieldNormalizerTest extends UnitTestCase {

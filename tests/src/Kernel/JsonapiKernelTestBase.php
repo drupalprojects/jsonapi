@@ -7,9 +7,7 @@ use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\KernelTests\KernelTestBase;
 
 /**
- * Class JsonapiKernelTestBase.
- *
- * @package Drupal\Tests\jsonapi\Kernel
+ * @internal
  */
 abstract class JsonapiKernelTestBase extends KernelTestBase {
 

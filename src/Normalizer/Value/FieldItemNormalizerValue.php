@@ -3,9 +3,7 @@
 namespace Drupal\jsonapi\Normalizer\Value;
 
 /**
- * Class FieldItemNormalizerValue.
- *
- * @package Drupal\jsonapi\Normalizer\Value
+ * @internal
  */
 class FieldItemNormalizerValue implements ValueExtractorInterface {
 

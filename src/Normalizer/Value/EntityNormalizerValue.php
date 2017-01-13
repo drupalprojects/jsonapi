@@ -7,9 +7,7 @@ use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 use Drupal\Core\Entity\EntityInterface;
 
 /**
- * Class EntityNormalizerValue.
- *
- * @package Drupal\jsonapi\Normalizer\Value
+ * @internal
  */
 class EntityNormalizerValue implements ValueExtractorInterface, RefinableCacheableDependencyInterface  {
 

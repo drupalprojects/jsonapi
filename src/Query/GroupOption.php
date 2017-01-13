@@ -3,11 +3,7 @@
 namespace Drupal\jsonapi\Query;
 
 /**
- * Class GroupOption.
- *
  * A GroupOption can group other options before applying them to a query.
- *
- * @package \Drupal\jsonapi\Query\GroupOption
  *
  * @internal
  */

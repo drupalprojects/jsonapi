@@ -2,6 +2,12 @@
 
 namespace Drupal\jsonapi\Error;
 
+/**
+ * @see http://jsonapi.org/format/#errors
+ *
+ * @see \Drupal\jsonapi\Controller\RequestHandler::renderJsonApiResponse
+ * @internal
+ */
 class ErrorHandler {
 
   /**

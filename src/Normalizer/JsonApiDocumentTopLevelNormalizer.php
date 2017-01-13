@@ -15,8 +15,6 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * @see \Drupal\jsonapi\Resource\JsonApiDocumentTopLevel
- *
- * @internal
  */
 class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements DenormalizerInterface, NormalizerInterface {
 

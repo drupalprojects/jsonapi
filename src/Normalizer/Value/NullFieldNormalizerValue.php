@@ -4,6 +4,9 @@ namespace Drupal\jsonapi\Normalizer\Value;
 
 use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 
+/**
+ * @internal
+ */
 class NullFieldNormalizerValue implements FieldNormalizerValueInterface {
 
   use RefinableCacheableDependencyTrait;

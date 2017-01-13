@@ -18,10 +18,6 @@ use Symfony\Component\Routing\Route;
 
 
 /**
- * Class JsonApiParamEnhancerTest.
- *
- * @package Drupal\jsonapi\Test\Unit
- *
  * @coversDefaultClass \Drupal\jsonapi\Routing\JsonApiParamEnhancer
  * @group jsonapi
  * @group jsonapi_param_enhancer

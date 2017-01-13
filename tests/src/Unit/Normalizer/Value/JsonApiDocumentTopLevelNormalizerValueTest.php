@@ -15,12 +15,7 @@ use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 
 /**
- * Class JsonApiDocumentTopLevelNormalizerValueTest.
- *
- * @package Drupal\Tests\jsonapi\Unit\Normalizer\Value
- *
- * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\JsonApiDocumentTopLevelNormalizerValue
- *
+ * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\DocumentRootNormalizerValue
  * @group jsonapi
  */
 class JsonApiDocumentTopLevelNormalizerValueTest extends UnitTestCase {

@@ -7,10 +7,6 @@ use Drupal\jsonapi\Normalizer\Value\RelationshipItemNormalizerValue;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * Class EntityReferenceItemNormalizerValueTest.
- *
- * @package Drupal\Tests\jsonapi\Unit\Normalizer\Value
- *
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\RelationshipItemNormalizerValue
  * @group jsonapi
  */

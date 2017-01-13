@@ -3,9 +3,7 @@
 namespace Drupal\jsonapi\Normalizer\Value;
 
 /**
- * Interface ValueExtractorInterface.
- *
- * @package Drupal\jsonapi\Normalizer\Value
+ * @internal
  */
 interface ValueExtractorInterface {
 

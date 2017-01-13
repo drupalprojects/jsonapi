@@ -7,9 +7,7 @@ use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 
 /**
- * Class ScalarNormalizer.
- *
- * @package Drupal\jsonapi\Normalizer
+ * The normalizer used for scalar inputs.
  */
 class ScalarNormalizer extends NormalizerBase {
 

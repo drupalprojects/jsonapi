@@ -14,9 +14,7 @@ use Drupal\jsonapi\LinkManager\LinkManager;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
- * Class EntityReferenceFieldNormalizer.
- *
- * @package Drupal\jsonapi\Normalizer
+ * Normalizer class specific for entity reference field objects.
  */
 class EntityReferenceFieldNormalizer extends FieldNormalizer implements DenormalizerInterface {
 

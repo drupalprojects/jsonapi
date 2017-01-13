@@ -4,10 +4,6 @@ namespace Drupal\jsonapi\Routing\Param;
 use Drupal\jsonapi\Error\SerializableHttpException;
 
 /**
- * Class Page.
- *
- * @package Drupal\jsonapi\Routing\Param
- *
  * @internal
  */
 class OffsetPage extends JsonApiParamBase {

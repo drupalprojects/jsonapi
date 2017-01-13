@@ -11,9 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
 
 /**
- * Class LinkManager.
- *
- * @package Drupal\jsonapi
+ * @internal
  */
 class LinkManager {
 

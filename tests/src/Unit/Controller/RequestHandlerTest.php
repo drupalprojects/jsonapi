@@ -14,12 +14,7 @@ use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
- * Class RequestHandlerTest
- *
- * @package Drupal\Tests\jsonapi\Unit
- *
  * @coversDefaultClass \Drupal\jsonapi\Controller\RequestHandler
- *
  * @group jsonapi
  */
 class RequestHandlerTest extends UnitTestCase {

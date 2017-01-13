@@ -8,12 +8,7 @@ use Drupal\Tests\UnitTestCase;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
- * Class HttpExceptionNormalizerTest.
- *
- * @package Drupal\Tests\jsonapi\Unit\Normalizer
- *
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\HttpExceptionNormalizer
- *
  * @group jsonapi
  */
 class HttpExceptionNormalizerTest extends UnitTestCase {

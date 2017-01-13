@@ -10,12 +10,7 @@ use Drupal\jsonapi\Context\FieldResolver;
 use Drupal\jsonapi\Context\CurrentContext;
 
 /**
- * Class FieldResolverTest.
- *
- * @package \Drupal\jsonapi\Test\Unit
- *
  * @coversDefaultClass \Drupal\jsonapi\Context\FieldResolver
- *
  * @group jsonapi
  */
 class FieldResolverTest extends UnitTestCase {

@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\Response;
  * for data used here.
  *
  * @see \Drupal\rest\ModifiedResourceResponse
+ *
+ * @internal
  */
 class ResourceResponse extends Response implements CacheableResponseInterface, ResourceResponseInterface {
 

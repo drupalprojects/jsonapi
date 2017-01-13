@@ -5,9 +5,7 @@ namespace Drupal\jsonapi\Normalizer\Value;
 use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 
 /**
- * Class FieldNormalizerValueInterface.
- *
- * @package Drupal\jsonapi\Normalizer\Value
+ * @internal
  */
 interface FieldNormalizerValueInterface extends ValueExtractorInterface, RefinableCacheableDependencyInterface {
 

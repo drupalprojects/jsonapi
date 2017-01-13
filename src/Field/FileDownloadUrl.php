@@ -5,6 +5,9 @@ namespace Drupal\jsonapi\Field;
 use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Session\AccountInterface;
 
+/**
+ * @internal
+ */
 class FileDownloadUrl extends FieldItemList {
 
   /**

@@ -6,8 +6,6 @@ use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\jsonapi\Error\SerializableHttpException;
 
 /**
- * Contains FieldResolver.
- *
  * Service which resolves public field names to and from Drupal field names.
  *
  * @internal

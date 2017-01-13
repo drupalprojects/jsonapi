@@ -20,10 +20,6 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
 
 /**
- * Class JsonApiFunctionalTest
- *
- * @package Drupal\Tests\jsonapi\Functional
- *
  * @group jsonapi
  */
 class JsonApiFunctionalTest extends BrowserTestBase {

@@ -3,8 +3,6 @@
 namespace Drupal\jsonapi\Query;
 
 /**
- * Interface QueryOptionTreeItemInterface
- *
  * @internal
  */
 interface QueryOptionTreeItemInterface {

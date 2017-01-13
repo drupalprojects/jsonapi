@@ -7,12 +7,7 @@ use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * Class FilterTest.
- *
- * @package Drupal\jsonapi\Test\Unit
- *
  * @coversDefaultClass \Drupal\jsonapi\Routing\Param\Filter
- *
  * @group jsonapi
  * @group jsonapi_params
  */

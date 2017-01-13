@@ -3,9 +3,7 @@
 namespace Drupal\jsonapi\Normalizer\Value;
 
 /**
- * Class EntityReferenceListNormalizerValue.
- *
- * @package Drupal\jsonapi\Normalizer\Value
+ * @internal
  */
 class RelationshipNormalizerValue extends FieldNormalizerValue {
 

@@ -27,12 +27,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Route;
 
 /**
- * Class EntityResourceTest.
- *
- * @package Drupal\Tests\jsonapi\Kernel\Resource
- *
  * @coversDefaultClass \Drupal\jsonapi\Controller\EntityResource
- *
  * @group jsonapi
  */
 class EntityResourceTest extends JsonapiKernelTestBase {

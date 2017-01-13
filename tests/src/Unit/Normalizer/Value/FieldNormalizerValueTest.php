@@ -7,10 +7,6 @@ use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * Class FieldNormalizerValueTest.
- *
- * @package Drupal\Tests\jsonapi\Unit\Normalizer\Value
- *
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue
  * @group jsonapi
  */

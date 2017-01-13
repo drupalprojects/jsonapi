@@ -7,11 +7,7 @@ use Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue;
 
 /**
- * Class ConfigEntityNormalizer.
- *
- * Converts a configuration entity into the JSON API value rasterizable object.
- *
- * @package Drupal\jsonapi\Normalizer
+ * Converts the Drupal config entity object to a JSON API array structure.
  */
 class ConfigEntityNormalizer extends EntityNormalizer {
 

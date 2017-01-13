@@ -8,6 +8,8 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Validates custom parameter names.
+ *
+ * @internal
  */
 class CustomParameterNames implements AccessInterface {
 

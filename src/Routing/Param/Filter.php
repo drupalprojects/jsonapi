@@ -4,10 +4,6 @@ namespace Drupal\jsonapi\Routing\Param;
 use Drupal\jsonapi\Error\SerializableHttpException;
 
 /**
- * Class Filter.
- *
- * @package Drupal\jsonapi\Routing\Param
- *
  * @internal
  */
 class Filter extends JsonApiParamBase {

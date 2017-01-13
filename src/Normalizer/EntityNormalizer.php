@@ -16,7 +16,7 @@ use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
- * Converts the Drupal entity object structure to a HAL array structure.
+ * Converts the Drupal entity object to a JSON API array structure.
  */
 class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
 

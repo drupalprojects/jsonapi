@@ -11,14 +11,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
- * Class HttpExceptionNormalizer.
- *
  * Normalizes an HttpException object for JSON output which complies with the
  * JSON API specification.
  *
  * @see http://jsonapi.org/format/#error-objects
- *
- * @package Drupal\jsonapi\Normalizer
  */
 class HttpExceptionNormalizer extends SerializationNormalizerBase {
 

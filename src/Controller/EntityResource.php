@@ -29,9 +29,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Class EntityResource.
- *
- * @package Drupal\jsonapi\Resource
+ * @see \Drupal\jsonapi\Controller\RequestHandler
+ * @internal
  */
 class EntityResource {
 

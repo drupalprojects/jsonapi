@@ -14,12 +14,7 @@ use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 
 /**
- * Class EntityNormalizerValueTest.
- *
- * @package Drupal\Tests\jsonapi\Unit\Normalizer\Value
- *
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue
- *
  * @group jsonapi
  */
 class EntityNormalizerValueTest extends UnitTestCase {

@@ -8,6 +8,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
+/**
+ * @internal
+ */
 class DefaultExceptionSubscriber extends SerializationDefaultExceptionSubscriber {
 
   /**

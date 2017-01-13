@@ -2,12 +2,7 @@
 
 namespace Drupal\jsonapi\Query;
 
-
 /**
- * Class PagerOption.
- *
- * @package Drupal\jsonapi\Query
- *
  * @internal
  */
 class OffsetPagerOption implements QueryOptionInterface {

@@ -14,12 +14,7 @@ use Prophecy\Argument;
 use Symfony\Component\Serializer\Serializer;
 
 /**
- * Class DocumentRootNormalizerTest.
- *
- * @package Drupal\Tests\serialization\Unit\Normalizer
- *
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\ConfigEntityNormalizer
- *
  * @group jsonapi
  */
 class ConfigEntityNormalizerTest extends UnitTestCase {

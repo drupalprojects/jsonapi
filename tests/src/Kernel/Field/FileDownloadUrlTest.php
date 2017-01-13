@@ -6,12 +6,7 @@ use Drupal\file\Entity\File;
 use Drupal\KernelTests\KernelTestBase;
 
 /**
- * Class FileDownloadUrlTest
- *
- * @package Drupal\Tests\jsonapi\Kernel\Field
- *
  * @coversDefaultClass \Drupal\jsonapi\Field\FileDownloadUrl
- *
  * @group jsonapi
  */
 class FileDownloadUrlTest extends KernelTestBase {
