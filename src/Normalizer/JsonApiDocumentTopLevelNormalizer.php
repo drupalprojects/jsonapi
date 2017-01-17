@@ -2,6 +2,7 @@
 
 namespace Drupal\jsonapi\Normalizer;
 
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\jsonapi\Context\CurrentContext;
@@ -124,10 +125,16 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
     $normalized = $value_extractor->rasterizeValue();
     $included = array_filter($value_extractor->rasterizeIncludes());
     if (!empty($included)) {
-      $included = array_map(function ($value) {
-        return $value['data'] === FALSE ? ['meta' => $value['meta']] : $value['data'];
-      }, $included);
-      $normalized['included'] = $included;
+      $normalized['included'] = [];
+      foreach ($included as $included_item) {
+        if ($included_item['data'] === FALSE) {
+          unset($included_item['data']);
+          $normalized = NestedArray::mergeDeep($normalized, $included_item);
+        }
+        else {
+          $normalized['included'][] = $included_item['data'];
+        }
+      }
     }
 
     return $normalized;

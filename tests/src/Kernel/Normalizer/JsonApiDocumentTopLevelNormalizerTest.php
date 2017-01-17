@@ -221,12 +221,12 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     ], $normalized['data']['relationships']['uid']);
     $this->assertEquals(
       'Access checks failed for entity user:' . $this->user->id() . '.',
-      $normalized['included'][0]['meta']['errors'][0]['detail']
+      $normalized['meta']['errors'][0]['detail']
     );
-    $this->assertEquals(403, $normalized['included'][0]['meta']['errors'][0]['status']);
-    $this->assertEquals($this->term1->uuid(), $normalized['included'][1]['id']);
-    $this->assertEquals('taxonomy_term--tags', $normalized['included'][1]['type']);
-    $this->assertEquals($this->term1->label(), $normalized['included'][1]['attributes']['name']);
+    $this->assertEquals(403, $normalized['meta']['errors'][0]['status']);
+    $this->assertEquals($this->term1->uuid(), $normalized['included'][0]['id']);
+    $this->assertEquals('taxonomy_term--tags', $normalized['included'][0]['type']);
+    $this->assertEquals($this->term1->label(), $normalized['included'][0]['attributes']['name']);
     $this->assertTrue(!isset($normalized['included'][0]['attributes']['created']));
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
@@ -310,8 +310,9 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $this->assertStringMatchesFormat($this->node->uuid(), $normalized['data']['id']);
     $this->assertEquals($this->node->type->entity->uuid(), $normalized['data']['relationships']['type']['data']['id']);
     $this->assertEquals($this->user->uuid(), $normalized['data']['relationships']['uid']['data']['id']);
-    $this->assertTrue(empty($normalized['included'][0]['id']));
-    $this->assertEquals($this->term1->uuid(), $normalized['included'][1]['id']);
+    $this->assertFalse(empty($normalized['included'][0]['id']));
+    $this->assertFalse(empty($normalized['meta']['errors']));
+    $this->assertEquals($this->term1->uuid(), $normalized['included'][0]['id']);
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
     $this->assertSame(
