@@ -192,7 +192,7 @@ class EntityResource {
   public function patchIndividual(EntityInterface $entity, EntityInterface $parsed_entity, Request $request) {
     $entity_access = $entity->access('update', NULL, TRUE);
     if (!$entity_access->isAllowed()) {
-      throw new SerializableHttpException(403, 'The current user is not allowed to GET the selected resource.');
+      throw new SerializableHttpException(403, 'The current user is not allowed to PATCH the selected resource.');
     }
     $body = Json::decode($request->getContent());
     $data = $body['data'];
