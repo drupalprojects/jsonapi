@@ -4,7 +4,7 @@ namespace Drupal\jsonapi\Query;
 
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\jsonapi\Error\SerializableHttpException;
+use Drupal\jsonapi\Exception\SerializableHttpException;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Drupal\jsonapi\Routing\Param\Filter;
 use Drupal\jsonapi\Routing\Param\JsonApiParamInterface;

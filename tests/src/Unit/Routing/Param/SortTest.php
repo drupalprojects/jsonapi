@@ -52,7 +52,7 @@ class SortTest extends UnitTestCase {
   /**
    * @covers ::get
    * @dataProvider getFailProvider
-   * @expectedException \Drupal\jsonapi\Error\SerializableHttpException
+   * @expectedException \Drupal\jsonapi\Exception\SerializableHttpException
    */
   public function testGetFail($input) {
     $sort = new Sort($input);

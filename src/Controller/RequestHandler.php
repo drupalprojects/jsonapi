@@ -7,7 +7,7 @@ use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\Error\ErrorHandler;
-use Drupal\jsonapi\Error\SerializableHttpException;
+use Drupal\jsonapi\Exception\SerializableHttpException;
 use Drupal\jsonapi\ResourceResponse;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;

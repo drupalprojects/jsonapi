@@ -1,4 +1,18 @@
 services:
+  serializer.normalizer.htt_exception.jsonapi:
+    class: Drupal\jsonapi\Normalizer\HttpExceptionNormalizer
+    arguments: ['@current_user']
+    tags:
+      - { name: normalizer, priority: 1 }
+  serializer.normalizer.unprocessable_entity_exception.jsonapi:
+    class: Drupal\jsonapi\Normalizer\UnprocessableHttpEntityExceptionNormalizer
+    arguments: ['@current_user']
+    tags:
+      - { name: normalizer, priority: 2 }
+  serializer.normalizer.scalar.jsonapi:
+    class: Drupal\jsonapi\Normalizer\ScalarNormalizer
+    tags:
+      - { name: normalizer, priority: 5 }
   serializer.normalizer.entity_reference_item.jsonapi:
     class: Drupal\jsonapi\Normalizer\RelationshipItemNormalizer
     arguments: ['@jsonapi.resource_type.repository', '@serializer.normalizer.jsonapi_document_toplevel.jsonapi',]
@@ -8,19 +22,10 @@ services:
     class: Drupal\jsonapi\Normalizer\FieldItemNormalizer
     tags:
       - { name: normalizer, priority: 21 }
-  serializer.normalizer.scalar.jsonapi:
-    class: Drupal\jsonapi\Normalizer\ScalarNormalizer
-    tags:
-      - { name: normalizer, priority: 5 }
   serializer.normalizer.field.jsonapi:
     class: Drupal\jsonapi\Normalizer\FieldNormalizer
     tags:
       - { name: normalizer, priority: 21 }
-  serializer.normalizer.entity_reference_field.jsonapi:
-    class: Drupal\jsonapi\Normalizer\EntityReferenceFieldNormalizer
-    arguments: ['@jsonapi.link_manager', '@entity_field.manager', '@plugin.manager.field.field_type', '@jsonapi.resource_type.repository', '@entity.repository']
-    tags:
-      - { name: normalizer, priority: 31 }
   serializer.normalizer.relationship.jsonapi:
     class: Drupal\jsonapi\Normalizer\RelationshipNormalizer
     arguments: ['@jsonapi.resource_type.repository', '@jsonapi.link_manager']
@@ -41,16 +46,11 @@ services:
     arguments: ['@jsonapi.link_manager', '@jsonapi.current_context', '@entity_type.manager']
     tags:
       - { name: normalizer, priority: 22 }
-  serializer.normalizer.htt_exception.jsonapi:
-    class: Drupal\jsonapi\Normalizer\HttpExceptionNormalizer
-    arguments: ['@current_user']
+  serializer.normalizer.entity_reference_field.jsonapi:
+    class: Drupal\jsonapi\Normalizer\EntityReferenceFieldNormalizer
+    arguments: ['@jsonapi.link_manager', '@entity_field.manager', '@plugin.manager.field.field_type', '@jsonapi.resource_type.repository', '@entity.repository']
     tags:
-      - { name: normalizer, priority: 1 }
-  serializer.normalizer.unprocessable_entity_exception.jsonapi:
-    class: Drupal\jsonapi\Normalizer\UnprocessableHttpEntityExceptionNormalizer
-    arguments: ['@current_user']
-    tags:
-      - { name: normalizer, priority: 2 }
+      - { name: normalizer, priority: 31 }
   serializer.encoder.jsonapi:
     class: Drupal\jsonapi\Encoder\JsonEncoder
     tags:

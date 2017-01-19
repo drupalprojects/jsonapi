@@ -10,6 +10,9 @@ interface JsonApiParamInterface {
   /**
    * The key name.
    *
+   * This must be redefined with a unique value in each class that extends
+   * from JsonApiParamInterface.
+   *
    * @var string
    */
   const KEY_NAME = NULL;

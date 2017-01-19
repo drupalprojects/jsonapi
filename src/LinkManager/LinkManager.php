@@ -4,7 +4,7 @@ namespace Drupal\jsonapi\LinkManager;
 
 use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\jsonapi\ResourceType\ResourceType;
-use Drupal\jsonapi\Error\SerializableHttpException;
+use Drupal\jsonapi\Exception\SerializableHttpException;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -97,7 +97,7 @@ class LinkManager {
    * @param array $link_context
    *   An associative array with extra data to build the links.
    *
-   * @throws \Drupal\jsonapi\Error\SerializableHttpException
+   * @throws \Drupal\jsonapi\Exception\SerializableHttpException
    *   When the offset and size are invalid.
    *
    * @return string[]

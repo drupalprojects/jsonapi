@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\jsonapi\Error;
+namespace Drupal\jsonapi\Exception;
 
 use Drupal\Core\Entity\EntityConstraintViolationListInterface;
 

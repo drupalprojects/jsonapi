@@ -87,7 +87,7 @@ class FilterTest extends UnitTestCase {
 
   /**
    * @covers ::get
-   * @expectedException \Drupal\jsonapi\Error\SerializableHttpException
+   * @expectedException \Drupal\jsonapi\Exception\SerializableHttpException
    */
   public function testGetFail() {
     $pager = new Filter(

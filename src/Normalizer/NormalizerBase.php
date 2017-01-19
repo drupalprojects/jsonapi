@@ -27,14 +27,14 @@ abstract class NormalizerBase extends SerializationNormalizerBase {
    * {@inheritdoc}
    */
   public function supportsNormalization($data, $format = NULL) {
-    return in_array($format, $this->formats) && parent::supportsNormalization($data, $format);
+    return in_array($format, $this->formats, TRUE) && parent::supportsNormalization($data, $format);
   }
 
   /**
    * {@inheritdoc}
    */
   public function supportsDenormalization($data, $type, $format = NULL) {
-    if (in_array($format, $this->formats) && (class_exists($this->supportedInterfaceOrClass) || interface_exists($this->supportedInterfaceOrClass))) {
+    if (in_array($format, $this->formats, TRUE) && (class_exists($this->supportedInterfaceOrClass) || interface_exists($this->supportedInterfaceOrClass))) {
       $target = new \ReflectionClass($type);
       $supported = new \ReflectionClass($this->supportedInterfaceOrClass);
       if ($supported->isInterface()) {

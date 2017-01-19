@@ -668,7 +668,26 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $this->assertEquals("body.0.format: The value you selected is not a valid choice.", $updated_response['errors'][1]['detail']);
     $this->assertEquals("/data/attributes/title", $updated_response['errors'][0]['source']['pointer']);
     $this->assertEquals("/data/attributes/body/format", $updated_response['errors'][1]['source']['pointer']);
-    // 13. Successful DELETE.
+    // 13. PATCH with field that doesn't exist on Entity.
+    $body = [
+      'data' => [
+        'id' => $uuid,
+        'type' => 'node--article',
+        'attributes' => [
+          'field_that_doesnt_exist' => 'foobar',
+        ],
+      ],
+    ];
+    $response = $this->request('PATCH', $individual_url, [
+      'body' => Json::encode($body),
+      'auth' => [$this->user->getUsername(), $this->user->pass_raw],
+      'headers' => ['Content-Type' => 'application/vnd.api+json'],
+    ]);
+    $updated_response = Json::decode($response->getBody()->__toString());
+    $this->assertEquals(400, $response->getStatusCode());
+    $this->assertEquals("The provided field (field_that_doesnt_exist) does not exist in the entity with ID $uuid.",
+      $updated_response['errors']['0']['detail']);
+    // 14. Successful DELETE.
     $response = $this->request('DELETE', $individual_url, [
       'auth' => [$this->user->getUsername(), $this->user->pass_raw],
     ]);

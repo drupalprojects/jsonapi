@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\jsonapi\Error;
+namespace Drupal\jsonapi\Exception;
 
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Symfony\Component\HttpKernel\Exception\HttpException;

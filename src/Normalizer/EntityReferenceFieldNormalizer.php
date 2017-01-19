@@ -9,7 +9,7 @@ use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\Resource\EntityCollection;
-use Drupal\jsonapi\Error\SerializableHttpException;
+use Drupal\jsonapi\Exception\SerializableHttpException;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 

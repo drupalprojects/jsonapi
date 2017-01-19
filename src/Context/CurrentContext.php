@@ -97,12 +97,11 @@ class CurrentContext {
    *   The JSON API provided parameter.
    */
   public function getJsonApiParameter($parameter_key) {
-    $params = $this
+    return $this
       ->requestStack
       ->getCurrentRequest()
       ->attributes
-      ->get('_json_api_params');
-    return (isset($params[$parameter_key])) ? $params[$parameter_key] : NULL;
+      ->get("_json_api_params[$parameter_key]", NULL, TRUE);
   }
 
   /**

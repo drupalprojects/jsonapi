@@ -3,7 +3,7 @@
 namespace Drupal\jsonapi\Routing;
 
 use Drupal\Core\Routing\Enhancer\RouteEnhancerInterface;
-use Drupal\jsonapi\Error\SerializableHttpException;
+use Drupal\jsonapi\Exception\SerializableHttpException;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;

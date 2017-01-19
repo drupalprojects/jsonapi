@@ -33,6 +33,8 @@ class CustomParameterNames implements AccessInterface {
   /**
    * Validates the JSONAPI parameters.
    *
+   * @see http://jsonapi.org/format/#document-member-names-reserved-characters
+   *
    * @param string[] $json_api_params
    *   The JSONAPI parameters.
    *

@@ -1,7 +1,7 @@
 <?php
 
 namespace Drupal\jsonapi\Routing\Param;
-use Drupal\jsonapi\Error\SerializableHttpException;
+use Drupal\jsonapi\Exception\SerializableHttpException;
 
 /**
  * @internal

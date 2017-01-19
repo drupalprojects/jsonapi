@@ -72,9 +72,7 @@ class JsonApiDocumentTopLevelNormalizerValue implements ValueExtractorInterface,
    */
   public function __construct(array $values, array $context, $is_collection = FALSE, array $link_context) {
     $this->values = $values;
-    array_walk($values, function ($value) {
-      $this->addCacheableDependency($value);
-    });
+    array_walk($values, [$this, 'addCacheableDependency']);
     // Make sure that different sparse fieldsets are cached differently.
     $this->addCacheableDependency(new RequestCacheabilityDependency());
 
@@ -90,9 +88,7 @@ class JsonApiDocumentTopLevelNormalizerValue implements ValueExtractorInterface,
     }, $values);
     // Flatten the includes.
     $this->includes = array_reduce($this->includes, function ($carry, $includes) {
-      array_walk($includes, function ($include) {
-        $this->addCacheableDependency($include);
-      });
+      array_walk($includes, [$this, 'addCacheableDependency']);
       return array_merge($carry, $includes);
     }, []);
     // Filter the empty values.

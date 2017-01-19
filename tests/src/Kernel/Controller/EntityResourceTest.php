@@ -166,7 +166,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
 
   /**
    * @covers ::getIndividual
-   * @expectedException \Drupal\jsonapi\Error\SerializableHttpException
+   * @expectedException \Drupal\jsonapi\Exception\SerializableHttpException
    */
   public function testGetIndividualDenied() {
     $role = Role::load(RoleInterface::ANONYMOUS_ID);

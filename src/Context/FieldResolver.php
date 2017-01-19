@@ -3,7 +3,7 @@
 namespace Drupal\jsonapi\Context;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
-use Drupal\jsonapi\Error\SerializableHttpException;
+use Drupal\jsonapi\Exception\SerializableHttpException;
 
 /**
  * Service which resolves public field names to and from Drupal field names.

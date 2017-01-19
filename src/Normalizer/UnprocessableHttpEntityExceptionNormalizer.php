@@ -3,7 +3,7 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Session\AccountProxyInterface;
-use Drupal\jsonapi\Error\UnprocessableHttpEntityException;
+use Drupal\jsonapi\Exception\UnprocessableHttpEntityException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
@@ -37,7 +37,7 @@ class UnprocessableHttpEntityExceptionNormalizer extends HttpExceptionNormalizer
    * {@inheritdoc}
    */
   protected function buildErrorObjects(HttpException $exception) {
-    /** @var $exception \Drupal\jsonapi\Error\UnprocessableHttpEntityException */
+    /** @var $exception \Drupal\jsonapi\Exception\UnprocessableHttpEntityException */
     $errors = parent::buildErrorObjects($exception);
     $error = $errors[0];
     unset($error['links']);

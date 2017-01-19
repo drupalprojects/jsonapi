@@ -146,11 +146,7 @@ class GroupOption implements QueryOptionInterface, QueryOptionTreeItemInterface 
     // If any child GroupOptions or their children have the id return TRUE.
     return array_reduce($this->groupOptions, function ($has_child, $group) use ($id) {
       // If we already know that we have the child, skip evaluation and return.
-      if (!$has_child) {
-        // Determine if this group or any of its children match the $id.
-        $has_child = ($group->id() == $id || $group->hasChild($id));
-      }
-      return $has_child;
+      return $has_child || $group->id() == $id || $group->hasChild($id);
     }, FALSE);
   }
 

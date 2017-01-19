@@ -12,7 +12,7 @@ class EntityCollection implements \IteratorAggregate, \Countable {
   /**
    * Entity storage.
    *
-   * @var array
+   * @var \Drupal\Core\Entity\EntityInterface[]
    */
   protected $entities;
 
@@ -26,7 +26,7 @@ class EntityCollection implements \IteratorAggregate, \Countable {
   /**
    * Instantiates a EntityCollection object.
    *
-   * @param array $entities
+   * @param \Drupal\Core\Entity\EntityInterface[] $entities
    *   The entities for the collection.
    */
   public function __construct(array $entities) {

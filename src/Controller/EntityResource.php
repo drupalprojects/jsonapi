@@ -18,8 +18,8 @@ use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
 use Drupal\jsonapi\Resource\EntityCollection;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\ResourceType\ResourceType;
-use Drupal\jsonapi\Error\SerializableHttpException;
-use Drupal\jsonapi\Error\UnprocessableHttpEntityException;
+use Drupal\jsonapi\Exception\SerializableHttpException;
+use Drupal\jsonapi\Exception\UnprocessableHttpEntityException;
 use Drupal\jsonapi\Query\QueryBuilder;
 use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\ResourceResponse;
@@ -129,7 +129,7 @@ class EntityResource {
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity object.
    *
-   * @throws \Drupal\jsonapi\Error\SerializableHttpException
+   * @throws \Drupal\jsonapi\Exception\SerializableHttpException
    *   If validation errors are found.
    */
   protected function validate(EntityInterface $entity) {
@@ -248,8 +248,8 @@ class EntityResource {
     // Instantiate the query for the filtering.
     $entity_type_id = $this->resourceType->getEntityTypeId();
 
-    $params = $request->attributes->get('_route_params');
-    $query = $this->getCollectionQuery($entity_type_id, $params['_json_api_params']);
+    $params = $request->attributes->get('_route_params[_json_api_params]', NULL, TRUE);
+    $query = $this->getCollectionQuery($entity_type_id, $params);
 
     $results = $query->execute();
 
@@ -644,8 +644,11 @@ class EntityResource {
     // The update is different for configuration entities and content entities.
     if ($origin instanceof ContentEntityInterface && $destination instanceof ContentEntityInterface) {
       // First scenario: both are content entities.
-      if (!$destination_field_list = $destination->get($field_name)) {
-        throw new SerializableHttpException(400, sprintf('The provided field (%s) does not exist in the entity with ID %d.', $field_name, $destination->id()));
+      try {
+        $destination_field_list = $destination->get($field_name);
+      }
+      catch (\Exception $e) {
+        throw new SerializableHttpException(400, sprintf('The provided field (%s) does not exist in the entity with ID %s.', $field_name, $destination->uuid()));
       }
 
       $origin_field_list = $origin->get($field_name);
@@ -675,9 +678,7 @@ class EntityResource {
    *   Returns TRUE, if entity field is EntityReferenceItem.
    */
   protected function isRelationshipField($entity_field) {
-    /** @var \Drupal\Core\Field\FieldTypePluginManager $field_type_manager */
-    $field_type_manager = \Drupal::service('plugin.manager.field.field_type');
-    $class = $field_type_manager->getPluginClass($entity_field->getDataDefinition()->getType());
+    $class = $this->pluginManager->getPluginClass($entity_field->getDataDefinition()->getType());
     return ($class == EntityReferenceItem::class || is_subclass_of($class, EntityReferenceItem::class));
   }
 
