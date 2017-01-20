@@ -44,7 +44,7 @@ class CustomParameterNames implements AccessInterface {
     $valid = TRUE;
 
     foreach (array_keys($json_api_params) as $name) {
-      if (strpbrk($name, '+,.[]!”#$%&’()*/:;<=>?@^`{}~|')) {
+      if (strpbrk($name, "+,.[]!”#$%&’()*/:;<=>?@\\^`{}~|\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\xA\xB\xC\xD\xE\xF\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F")) {
         $valid = FALSE;
         break;
       }

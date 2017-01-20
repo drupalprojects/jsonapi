@@ -72,7 +72,7 @@ class CustomParameterNamesTest extends \PHPUnit_Framework_TestCase {
       '>',
       '?',
       '@',
-      '“',
+      '\\',
       '^',
       '`',
       '{',
@@ -82,6 +82,10 @@ class CustomParameterNamesTest extends \PHPUnit_Framework_TestCase {
     ];
     foreach ($unsafe_chars as $unsafe_char) {
       $data['unsafe-' . $unsafe_char] = ['kitt' . $unsafe_char . 'ens', FALSE];
+    }
+
+    for ($ascii = 0; $ascii <= 0x1F; $ascii++) {
+      $data['unsafe-' . $ascii] = ['kitt' . chr($ascii) . 'ens', FALSE];
     }
 
     return $data;
