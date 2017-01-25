@@ -715,6 +715,9 @@ class EntityResource {
    *     - access: the access object.
    */
   public static function getEntityAndAccess(EntityInterface $entity) {
+    /** @var \Drupal\Core\Entity\EntityRepositoryInterface $entity_repository */
+    $entity_repository = \Drupal::service('entity.repository');
+    $entity = $entity_repository->getTranslationFromContext($entity, NULL, ['operation' => 'entity_upcast']);
     $access = $entity->access('view', NULL, TRUE);
     // Accumulate the cacheability metadata for the access.
     $output = [

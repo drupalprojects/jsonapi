@@ -3,199 +3,19 @@
 namespace Drupal\Tests\jsonapi\Functional;
 
 use Drupal\Component\Serialization\Json;
-use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Url;
-use Drupal\field\Entity\FieldConfig;
-use Drupal\field\Entity\FieldStorageConfig;
-use Drupal\field\Tests\EntityReference\EntityReferenceTestTrait;
-use Drupal\file\Entity\File;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
-use Drupal\taxonomy\Entity\Term;
-use Drupal\taxonomy\Entity\Vocabulary;
-use Drupal\Tests\BrowserTestBase;
-use Drupal\Tests\image\Kernel\ImageFieldCreationTrait;
-use Drupal\user\Entity\Role;
-use Drupal\user\RoleInterface;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\ServerException;
 
 /**
  * @group jsonapi
  */
-class JsonApiFunctionalTest extends BrowserTestBase {
-
-  use EntityReferenceTestTrait;
-  use ImageFieldCreationTrait;
-
-  public static $modules = [
-    'basic_auth',
-    'jsonapi',
-    'serialization',
-    'node',
-    'image',
-    'taxonomy',
-    'link',
-  ];
-
-  /**
-   * @var \Drupal\user\Entity\User
-   */
-  protected $user;
-
-  /**
-   * @var \Drupal\user\Entity\User
-   */
-  protected $userCanViewProfiles;
-
-  /**
-   * @var \Drupal\node\Entity\Node[]
-   */
-  protected $nodes = [];
-
-  /**
-   * @var \Drupal\taxonomy\Entity\Term[]
-   */
-  protected $tags = [];
-
-  /**
-   * @var \Drupal\file\Entity\File[]
-   */
-  protected $files = [];
-
-  /**
-   * @var \GuzzleHttp\ClientInterface
-   */
-  protected $httpClient;
-
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function setUp() {
-    parent::setUp();
-
-    // Set up a HTTP client that accepts relative URLs.
-    $this->httpClient = $this->container->get('http_client_factory')
-      ->fromOptions(['base_uri' => $this->baseUrl]);
-
-    // Create Basic page and Article node types.
-    if ($this->profile != 'standard') {
-      $this->drupalCreateContentType(array(
-        'type' => 'article',
-        'name' => 'Article',
-      ));
-
-      // Setup vocabulary.
-      Vocabulary::create([
-        'vid' => 'tags',
-        'name' => 'Tags',
-      ])->save();
-
-      // Add tags and field_image to the article.
-      $this->createEntityReferenceField(
-        'node',
-        'article',
-        'field_tags',
-        'Tags',
-        'taxonomy_term',
-        'default',
-        [
-          'target_bundles' => [
-            'tags' => 'tags',
-          ],
-          'auto_create' => TRUE,
-        ],
-        FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED
-      );
-      $this->createImageField('field_image', 'article');
-    }
-
-    FieldStorageConfig::create(array(
-      'field_name' => 'field_link',
-      'entity_type' => 'node',
-      'type' => 'link',
-      'settings' => [],
-      'cardinality' => 1,
-    ))->save();
-
-    $field_config = FieldConfig::create([
-      'field_name' => 'field_link',
-      'label' => 'Link',
-      'entity_type' => 'node',
-      'bundle' => 'article',
-      'required' => FALSE,
-      'settings' => [],
-      'description' => '',
-    ]);
-    $field_config->save();
-
-    $this->user = $this->drupalCreateUser([
-      'create article content',
-      'edit any article content',
-      'delete any article content',
-    ]);
-
-    // Create a user that can
-    $this->userCanViewProfiles = $this->drupalCreateUser([
-      'access user profiles',
-    ]);
-
-    $this->grantPermissions(Role::load(RoleInterface::ANONYMOUS_ID), [
-      'access user profiles',
-      'administer taxonomy',
-    ]);
-
-    drupal_flush_all_caches();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function drupalGet($path, array $options = array(), array $headers = array()) {
-    // Make sure we don't forget the format parameter.
-    $options += ['query' => []];
-    $options['query'] += ['_format' => 'api_json'];
-
-    return parent::drupalGet($path, $options, $headers);
-  }
-
-  /**
-   * Performs a HTTP request. Wraps the Guzzle HTTP client.
-   *
-   * Why wrap the Guzzle HTTP client? Because any error response is returned via
-   * an exception, which would make the tests unnecessarily complex to read.
-   *
-   * @see \GuzzleHttp\ClientInterface::request()
-   *
-   * @param string $method
-   *   HTTP method.
-   * @param \Drupal\Core\Url $url
-   *   URL to request.
-   * @param array $request_options
-   *   Request options to apply.
-   *
-   * @return \Psr\Http\Message\ResponseInterface
-   */
-  protected function request($method, Url $url, array $request_options) {
-    $url->setOption('query', ['_format' => 'api_json']);
-    try {
-      $response = $this->httpClient->request($method, $url->toString(), $request_options);
-    }
-    catch (ClientException $e) {
-      $response = $e->getResponse();
-    }
-    catch (ServerException $e) {
-      $response = $e->getResponse();
-    }
-
-    return $response;
-  }
+class JsonApiFunctionalTest extends JsonApiFunctionalBaseTest {
 
   /**
    * Test the GET method.
    */
   public function testRead() {
-    $this->createDefaultContent(60, 5, TRUE, TRUE);
+    $this->createDefaultContent(60, 5, TRUE, TRUE, static::IS_NOT_MULTILINGUAL);
     // 1. Load all articles (1st page).
     $collection_output = Json::decode($this->drupalGet('/jsonapi/node/article'));
     $this->assertSession()->statusCodeEquals(200);
@@ -417,7 +237,7 @@ class JsonApiFunctionalTest extends BrowserTestBase {
    * Test POST, PATCH and DELETE.
    */
   public function testWrite() {
-    $this->createDefaultContent(0, 3, FALSE, FALSE);
+    $this->createDefaultContent(0, 3, FALSE, FALSE, static::IS_NOT_MULTILINGUAL);
     // 1. Successful post.
     $collection_url = Url::fromRoute('jsonapi.node--article.collection');
     $body = [
@@ -694,75 +514,6 @@ class JsonApiFunctionalTest extends BrowserTestBase {
     $this->assertEquals(204, $response->getStatusCode());
     $response = $this->request('GET', $individual_url, []);
     $this->assertEquals(404, $response->getStatusCode());
-  }
-
-  /**
-   * Creates default content to test the API.
-   *
-   * @param int $num_articles
-   *   Number of articles to create.
-   * @param int $num_tags
-   *   Number of tags to create.
-   * @param bool $article_has_image
-   *   Set to TRUE if you want to add an image to the generated articles.
-   * @param bool $article_has_link
-   *   Set to TRUE if you want to add a link to the generated articles.
-   */
-  protected function createDefaultContent($num_articles, $num_tags, $article_has_image, $article_has_link) {
-    $random = $this->getRandomGenerator();
-    for ($created_tags = 0; $created_tags < $num_tags; $created_tags++) {
-      $term = Term::create([
-        'vid' => 'tags',
-        'name' => $random->name(),
-      ]);
-      $term->save();
-      $this->tags[] = $term;
-    }
-    for ($created_nodes = 0; $created_nodes < $num_articles; $created_nodes++) {
-      // Get N random tags.
-      $selected_tags = mt_rand(1, $num_tags);
-      $tags = [];
-      while (count($tags) < $selected_tags) {
-        $tags[] = mt_rand(1, $num_tags);
-        $tags = array_unique($tags);
-      }
-      $values = [
-        'uid' => ['target_id' => $this->user->id()],
-        'type' => 'article',
-        'field_tags' => array_map(function ($tag) {
-          return ['target_id' => $tag];
-        }, $tags),
-      ];
-      if ($article_has_image) {
-        $file = File::create([
-          'uri' => 'vfs://' . $random->name() . '.png',
-        ]);
-        $file->setPermanent();
-        $file->save();
-        $this->files[] = $file;
-        $values['field_image'] = ['target_id' => $file->id()];
-      }
-      if ($article_has_link) {
-        $values['field_link'] = [
-          'title' => $this->getRandomGenerator()->name(),
-          'uri' => sprintf(
-            '%s://%s.%s',
-            'http' . (mt_rand(0, 2) > 1 ? '' : 's'),
-            $this->getRandomGenerator()->name(),
-            'org'
-          ),
-        ];
-      }
-      $this->nodes[] = $this->createNode($values);
-    }
-    if ($article_has_link) {
-      // Make sure that there is at least 1 https link for ::testRead() #19.
-      $this->nodes[0]->field_link = [
-        'title' => 'Drupal',
-        'uri' => 'https://drupal.org'
-      ];
-      $this->nodes[0]->save();
-    }
   }
 
 }
