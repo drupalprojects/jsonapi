@@ -79,10 +79,10 @@ services:
   jsonapi.field_resolver:
     class: Drupal\jsonapi\Context\FieldResolver
     arguments: ['@jsonapi.current_context', '@entity_field.manager']
-  access_check.jsonapi.custom_parameter_names:
-    class: Drupal\jsonapi\Access\CustomParameterNames
+  access_check.jsonapi.custom_query_parameter_names:
+    class: Drupal\jsonapi\Access\CustomParameterNamesAccessCheck
     tags:
-      - { name: access_check, applies_to: _custom_parameter_names }
+      - { name: access_check, applies_to: _json_api_custom_parameter_names }
   paramconverter.jsonapi.entity_uuid:
     class: Drupal\jsonapi\ParamConverter\EntityUuidConverter
     tags:

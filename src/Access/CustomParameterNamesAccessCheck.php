@@ -4,14 +4,17 @@ namespace Drupal\jsonapi\Access;
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Routing\Access\AccessInterface;
+use Drupal\jsonapi\JsonApiSpec;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Validates custom parameter names.
+ * Validates custom (implementation-specific) query parameter names.
+ *
+ * @see http://jsonapi.org/format/#query-parameters
  *
  * @internal
  */
-class CustomParameterNames implements AccessInterface {
+class CustomParameterNamesAccessCheck implements AccessInterface {
 
   /**
    * Validates the JSONAPI parameter names.
@@ -31,7 +34,7 @@ class CustomParameterNames implements AccessInterface {
   }
 
   /**
-   * Validates the JSONAPI parameters.
+   * Validates the JSON API query parameters.
    *
    * @see http://jsonapi.org/format/#document-member-names-reserved-characters
    *
@@ -41,21 +44,18 @@ class CustomParameterNames implements AccessInterface {
    * @return bool
    */
   protected function validate(array $json_api_params) {
-    $valid = TRUE;
-
     foreach (array_keys($json_api_params) as $name) {
-      if (strpbrk($name, "+,.[]!”#$%&’()*/:;<=>?@\\^`{}~|\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\xA\xB\xC\xD\xE\xF\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F")) {
-        $valid = FALSE;
-        break;
+      // Ignore reserved (official) query parameters.
+      if (in_array($name, JsonApiSpec::getReservedQueryParameters())) {
+        continue;
       }
 
-      if (strpbrk($name[0], '-_ ') || strpbrk($name[strlen($name) - 1], '-_ ')) {
-        $valid = FALSE;
-        break;
+      if (!JsonApiSpec::isValidCustomQueryParameter($name)) {
+        return FALSE;
       }
     }
 
-    return $valid;
+    return TRUE;
   }
 
 }
