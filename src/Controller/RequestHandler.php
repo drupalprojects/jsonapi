@@ -2,6 +2,7 @@
 
 namespace Drupal\jsonapi\Controller;
 
+use Drupal\Component\Serialization\Json;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Routing\RouteMatchInterface;
@@ -165,6 +166,8 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     $response->addCacheableDependency($this->container->get('config.factory')
       ->get('jsonapi.resource_info'));
 
+    assert('$this->validateResponse($response)', 'A JSON API response failed validation (see the logs for details). Please report this in the issue queue on drupal.org');
+
     return $response;
   }
 
@@ -287,6 +290,43 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
       $entity_repository
     );
     return $resource;
+  }
+
+  /**
+   * Validates a response against the JSON API specification.
+   *
+   * @param \Drupal\jsonapi\ResourceResponse $response
+   *   The response to validate.
+   *
+   * @return bool
+   *   FALSE if the response failed validation, otherwise TRUE.
+   */
+  protected static function validateResponse(ResourceResponse $response) {
+    if (!class_exists("\\JsonSchema\\Validator")) {
+      return TRUE;
+    }
+    // Do not use Json::decode here since it coerces the response into an
+    // associative array, which creates validation errors.
+    $response_data = json_decode($response->getContent());
+    if (empty($response_data)) {
+      return TRUE;
+    }
+
+    $validator = new \JsonSchema\Validator;
+    $schema_path = DRUPAL_ROOT . '/' . drupal_get_path('module', 'jsonapi') . '/schema.json';
+
+    $validator->check($response_data, (object)['$ref' => 'file://' . $schema_path]);
+
+    if (!$validator->isValid()) {
+      \Drupal::logger('jsonapi')->debug('Response failed validation: @data', [
+        '@data' => Json::encode($response_data),
+      ]);
+      \Drupal::logger('jsonapi')->debug('Validation errors: @errors', [
+        '@errors' => Json::encode($validator->getErrors()),
+      ]);
+    }
+
+    return $validator->isValid();
   }
 
 }
