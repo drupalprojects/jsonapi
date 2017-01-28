@@ -18,9 +18,9 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
 
 /**
- * @group jsonapi
+ * Provides helper methods for the JSON API module's functional tests.
  */
-abstract class JsonApiFunctionalBaseTest extends BrowserTestBase {
+abstract class JsonApiFunctionalTestBase extends BrowserTestBase {
 
   use EntityReferenceTestTrait;
   use ImageFieldCreationTrait;

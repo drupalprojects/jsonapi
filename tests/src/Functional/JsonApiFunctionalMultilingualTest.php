@@ -8,7 +8,7 @@ use Drupal\language\Entity\ConfigurableLanguage;
 /**
  * @group jsonapi
  */
-class JsonApiFunctionalMultilingualTest extends JsonApiFunctionalBaseTest {
+class JsonApiFunctionalMultilingualTest extends JsonApiFunctionalTestBase {
 
   public static $modules = [
     'basic_auth',

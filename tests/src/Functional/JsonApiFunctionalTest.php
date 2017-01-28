@@ -9,7 +9,7 @@ use Drupal\jsonapi\Routing\Param\OffsetPage;
 /**
  * @group jsonapi
  */
-class JsonApiFunctionalTest extends JsonApiFunctionalBaseTest {
+class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
 
   /**
    * Test the GET method.
