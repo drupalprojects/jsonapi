@@ -37,6 +37,7 @@ class JsonApiSpecTest extends UnitTestCase {
     $data['space-end'] = ['kittens ', FALSE];
 
     // Additional test cases.
+    // @todo When D8 requires PHP >= 7, convert to \u{10FFFF}.
     $data['unicode-above-u+0080-highest-allowed'] = ["12􏿿", TRUE];
     $data['single-character'] = ['a', TRUE];
 
@@ -88,6 +89,7 @@ class JsonApiSpecTest extends UnitTestCase {
   /**
    * @dataProvider providerTestIsValidCustomQueryParameter
    * @covers ::isValidCustomQueryParameter
+   * @covers ::isValidMemberName
    */
   public function testIsValidCustomQueryParameter($custom_query_parameter, $expected) {
     $this->assertSame($expected, JsonApiSpec::isValidCustomQueryParameter($custom_query_parameter));

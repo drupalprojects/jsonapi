@@ -14,10 +14,10 @@ use Symfony\Component\HttpFoundation\Request;
  *
  * @internal
  */
-class CustomParameterNamesAccessCheck implements AccessInterface {
+class CustomQueryParameterNamesAccessCheck implements AccessInterface {
 
   /**
-   * Validates the JSONAPI parameter names.
+   * Denies access when using invalid custom JSON API query parameter names.
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request.
@@ -34,23 +34,21 @@ class CustomParameterNamesAccessCheck implements AccessInterface {
   }
 
   /**
-   * Validates the JSON API query parameters.
-   *
-   * @see http://jsonapi.org/format/#document-member-names-reserved-characters
+   * Validates custom JSON API query parameters.
    *
    * @param string[] $json_api_params
-   *   The JSONAPI parameters.
+   *   The JSON API parameters.
    *
    * @return bool
    */
   protected function validate(array $json_api_params) {
-    foreach (array_keys($json_api_params) as $name) {
+    foreach (array_keys($json_api_params) as $query_parameter_name) {
       // Ignore reserved (official) query parameters.
-      if (in_array($name, JsonApiSpec::getReservedQueryParameters())) {
+      if (in_array($query_parameter_name, JsonApiSpec::getReservedQueryParameters())) {
         continue;
       }
 
-      if (!JsonApiSpec::isValidCustomQueryParameter($name)) {
+      if (!JsonApiSpec::isValidCustomQueryParameter($query_parameter_name)) {
         return FALSE;
       }
     }

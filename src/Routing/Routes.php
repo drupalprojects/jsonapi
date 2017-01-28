@@ -100,7 +100,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_bundle', $resource_type->getBundle())
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
-        ->setRequirement('_json_api_custom_parameter_names', 'TRUE')
+        ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setOption('serialization_class', JsonApiDocumentTopLevel::class)
         ->setMethods(['GET', 'POST']);
       $route_collection->addOptions($options);
@@ -114,7 +114,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_bundle', $resource_type->getBundle())
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
-        ->setRequirement('_json_api_custom_parameter_names', 'TRUE')
+        ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
         ->setOption('serialization_class', JsonApiDocumentTopLevel::class)
@@ -128,7 +128,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_bundle', $resource_type->getBundle())
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
-        ->setRequirement('_json_api_custom_parameter_names', 'TRUE')
+        ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
         ->setMethods(['GET']);
@@ -141,7 +141,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_bundle', $resource_type->getBundle())
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_format', 'api_json')
-        ->setRequirement('_json_api_custom_parameter_names', 'TRUE')
+        ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
         ->setOption('serialization_class', EntityReferenceFieldItemList::class)
