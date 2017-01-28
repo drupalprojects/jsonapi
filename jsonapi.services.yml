@@ -9,6 +9,11 @@ services:
     arguments: ['@current_user']
     tags:
       - { name: normalizer, priority: 2 }
+  serializer.normalizer.entity_access_exception.jsonapi:
+    class: Drupal\jsonapi\Normalizer\EntityAccessDeniedHttpExceptionNormalizer
+    arguments: ['@current_user']
+    tags:
+      - { name: normalizer, priority: 2 }
   serializer.normalizer.scalar.jsonapi:
     class: Drupal\jsonapi\Normalizer\ScalarNormalizer
     tags:

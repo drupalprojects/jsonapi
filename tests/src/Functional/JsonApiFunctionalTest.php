@@ -15,7 +15,10 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
    * Test the GET method.
    */
   public function testRead() {
-    $this->createDefaultContent(60, 5, TRUE, TRUE, static::IS_NOT_MULTILINGUAL);
+    $this->createDefaultContent(61, 5, TRUE, TRUE, static::IS_NOT_MULTILINGUAL);
+    // Unpublish the last entity, so we can check access.
+    $this->nodes[60]->setUnpublished()->save();
+
     // 1. Load all articles (1st page).
     $collection_output = Json::decode($this->drupalGet('/jsonapi/node/article'));
     $this->assertSession()->statusCodeEquals(200);
@@ -53,6 +56,14 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $this->assertSession()->statusCodeEquals(200);
     $this->assertArrayHasKey('type', $single_output['data']);
     $this->assertEquals($this->nodes[0]->getTitle(), $single_output['data']['attributes']['title']);
+
+    // 5.1 Single article with access denied.
+    $single_output = Json::decode($this->drupalGet('/jsonapi/node/article/' . $this->nodes[60]->uuid()));
+    $this->assertSession()->statusCodeEquals(403);
+
+    $this->assertEquals('/data', $single_output['errors'][0]['source']['pointer']);
+    $this->assertEquals('/node--article/' . $this->nodes[60]->uuid(), $single_output['errors'][0]['id']);
+
     // 6. Single relationship item.
     $single_output = Json::decode($this->drupalGet('/jsonapi/node/article/' . $uuid . '/relationships/type'));
     $this->assertSession()->statusCodeEquals(200);
@@ -127,6 +138,8 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $this->assertEquals(1, count($single_output['data']));
     $this->assertEquals(1, count($single_output['meta']['errors']));
     $this->assertEquals(403, $single_output['meta']['errors'][0]['status']);
+    $this->assertEquals('/node--article/' . $this->nodes[1]->uuid(), $single_output['meta']['errors'][0]['id']);
+    $this->assertFalse(empty($single_output['meta']['errors'][0]['source']['pointer']));
     $this->nodes[1]->set('status', TRUE);
     $this->nodes[1]->save();
     // 13. Test filtering when using short syntax.
@@ -294,6 +307,7 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $this->assertArrayHasKey('uuid', $created_response['data']['attributes']);
     $uuid = $created_response['data']['attributes']['uuid'];
     $this->assertEquals(2, count($created_response['data']['relationships']['field_tags']['data']));
+
     // 2. Authorization error.
     $response = $this->request('POST', $collection_url, [
       'body' => Json::encode($body),
@@ -303,6 +317,18 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $this->assertEquals(403, $response->getStatusCode());
     $this->assertNotEmpty($created_response['errors']);
     $this->assertEquals('Forbidden', $created_response['errors'][0]['title']);
+
+    // 2.1 Authorization error with a user without create permissions.
+    $response = $this->request('POST', $collection_url, [
+      'body' => Json::encode($body),
+      'auth' => [$this->userCanViewProfiles->getUsername(), $this->userCanViewProfiles->pass_raw],
+      'headers' => ['Content-Type' => 'application/vnd.api+json'],
+    ]);
+    $created_response = Json::decode($response->getBody()->__toString());
+    $this->assertEquals(403, $response->getStatusCode());
+    $this->assertNotEmpty($created_response['errors']);
+    $this->assertEquals('Forbidden', $created_response['errors'][0]['title']);
+
     // 3. Missing Content-Type error.
     $response = $this->request('POST', $collection_url, [
       'body' => Json::encode($body),
@@ -365,6 +391,25 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $updated_response = Json::decode($response->getBody()->__toString());
     $this->assertEquals(200, $response->getStatusCode());
     $this->assertEquals('My updated title', $updated_response['data']['attributes']['title']);
+
+    // 7.1 Unsuccessful PATCH due to access restrictions.
+    $body = [
+      'data' => [
+        'id' => $uuid,
+        'type' => 'node--article',
+        'attributes' => ['title' => 'My updated title'],
+      ],
+    ];
+    $individual_url = Url::fromRoute('jsonapi.node--article.individual', [
+      'node' => $uuid,
+    ]);
+    $response = $this->request('PATCH', $individual_url, [
+      'body' => Json::encode($body),
+      'auth' => [$this->userCanViewProfiles->getUsername(), $this->userCanViewProfiles->pass_raw],
+      'headers' => ['Content-Type' => 'application/vnd.api+json'],
+    ]);
+    $this->assertEquals(403, $response->getStatusCode());
+
     // 8. Field access forbidden check.
     $body = [
       'data' => [
@@ -384,6 +429,7 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $updated_response = Json::decode($response->getBody()->__toString());
     $this->assertEquals(403, $response->getStatusCode());
     $this->assertEquals('The current user is not allowed to PATCH the selected field (status).', $updated_response['errors'][0]['detail']);
+
     $node = \Drupal::entityManager()->loadEntityByUuid('node', $uuid);
     $this->assertEquals(1, $node->get('status')->value, 'Node status was not changed.');
     // 9. Successful POST to related endpoint.

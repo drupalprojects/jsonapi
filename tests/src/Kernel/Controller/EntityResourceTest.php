@@ -241,7 +241,8 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       $this->container->get('jsonapi.query_builder'),
       $field_manager,
       $current_context,
-      $this->container->get('plugin.manager.field.field_type')
+      $this->container->get('plugin.manager.field.field_type'),
+      $this->container->get('entity.repository')
     );
 
     // Get the response.
@@ -294,7 +295,8 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       $this->container->get('jsonapi.query_builder'),
       $field_manager,
       $current_context,
-      $this->container->get('plugin.manager.field.field_type')
+      $this->container->get('plugin.manager.field.field_type'),
+      $this->container->get('entity.repository')
     );
 
     // Get the response.
@@ -348,7 +350,8 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       $this->container->get('jsonapi.query_builder'),
       $field_manager,
       $current_context,
-      $this->container->get('plugin.manager.field.field_type')
+      $this->container->get('plugin.manager.field.field_type'),
+      $this->container->get('entity.repository')
     );
 
     // Get the response.
@@ -851,7 +854,8 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       $this->container->get('jsonapi.query_builder'),
       $this->container->get('entity_field.manager'),
       $current_context,
-      $this->container->get('plugin.manager.field.field_type')
+      $this->container->get('plugin.manager.field.field_type'),
+      $this->container->get('entity.repository')
     );
   }
 

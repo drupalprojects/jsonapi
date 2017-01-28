@@ -220,7 +220,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       ],
     ], $normalized['data']['relationships']['uid']);
     $this->assertEquals(
-      'Access checks failed for entity user:' . $this->user->id() . '.',
+      'The current user is not allowed to GET the selected resource.',
       $normalized['meta']['errors'][0]['detail']
     );
     $this->assertEquals(403, $normalized['meta']['errors'][0]['status']);
