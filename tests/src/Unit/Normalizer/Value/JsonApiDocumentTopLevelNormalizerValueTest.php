@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\jsonapi\Unit\Normalizer\Value;
 
+use Drupal\Component\DependencyInjection\Container;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
 use Drupal\jsonapi\ResourceType\ResourceType;
@@ -31,6 +32,15 @@ class JsonApiDocumentTopLevelNormalizerValueTest extends UnitTestCase {
    */
   protected function setUp() {
     parent::setUp();
+
+    $cache_contexts_manager = $this->getMockBuilder('Drupal\Core\Cache\Context\CacheContextsManager')
+      ->disableOriginalConstructor()
+      ->getMock();
+    $cache_contexts_manager->method('assertValidTokens')->willReturn(TRUE);
+    $container = new Container();
+    $container->set('cache_contexts_manager', $cache_contexts_manager);
+    \Drupal::setContainer($container);
+
     $field1 = $this->prophesize(FieldNormalizerValueInterface::class);
     $field1->getIncludes()->willReturn([]);
     $field1->getPropertyType()->willReturn('attributes');
