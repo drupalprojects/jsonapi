@@ -85,12 +85,16 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
     $cardinality = $definition
       ->getFieldStorageDefinition()
       ->getCardinality();
-    $entity_collection = new EntityCollection(array_map(function ($item) {
+    $entity_list = array_filter($field->getIterator()->getArrayCopy(), function ($item) {
+      return (bool) $item->get('entity')->getValue();
+    });
+    $entity_list = array_map(function ($item) {
       // Get the referenced entity.
       $entity = $item->get('entity')->getValue();
       // And get the translation in the requested language.
       return $this->entityRepository->getTranslationFromContext($entity);
-    }, (array) $field->getIterator()));
+    }, $entity_list);
+    $entity_collection = new EntityCollection($entity_list);
     $relationship = new Relationship($this->resourceTypeRepository, $field->getName(), $cardinality, $entity_collection, $field->getEntity(), $main_property);
     return $this->serializer->normalize($relationship, $format, $context);
   }
