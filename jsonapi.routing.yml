@@ -1,2 +1,11 @@
 route_callbacks:
   - '\Drupal\jsonapi\Routing\Routes::routes'
+
+jsonapi.resource_list:
+  path: '/jsonapi'
+  defaults:
+    _controller: 'Drupal\jsonapi\Controller\EntryPoint::index'
+  methods: [GET]
+  requirements:
+    _permission: 'access jsonapi resource list'
+    _format: 'api_json'
