@@ -41,7 +41,7 @@ class EntityAccessDeniedHttpExceptionNormalizer extends HttpExceptionNormalizer 
       $errors[0]['source']['pointer'] = $pointer;
 
       if ($reason) {
-        $errors[0]['detail']['message'] = $reason;
+        $errors[0]['detail'] = isset($errors[0]['detail']) ? $errors[0]['detail'] . ' ' . $reason : $reason;
       }
     }
 

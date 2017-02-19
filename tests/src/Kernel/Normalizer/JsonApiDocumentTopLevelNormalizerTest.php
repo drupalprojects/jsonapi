@@ -220,7 +220,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       ],
     ], $normalized['data']['relationships']['uid']);
     $this->assertEquals(
-      'The current user is not allowed to GET the selected resource.',
+      "The current user is not allowed to GET the selected resource. The 'access user profiles' permission is required and the user must be active.",
       $normalized['meta']['errors'][0]['detail']
     );
     $this->assertEquals(403, $normalized['meta']['errors'][0]['status']);

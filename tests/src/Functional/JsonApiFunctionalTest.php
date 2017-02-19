@@ -428,7 +428,8 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     ]);
     $updated_response = Json::decode($response->getBody()->__toString());
     $this->assertEquals(403, $response->getStatusCode());
-    $this->assertEquals('The current user is not allowed to PATCH the selected field (status).', $updated_response['errors'][0]['detail']);
+    $this->assertEquals("The current user is not allowed to PATCH the selected field (status). The 'administer nodes' permission is required.",
+      $updated_response['errors'][0]['detail']);
 
     $node = \Drupal::entityManager()->loadEntityByUuid('node', $uuid);
     $this->assertEquals(1, $node->get('status')->value, 'Node status was not changed.');
