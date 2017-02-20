@@ -34,7 +34,7 @@ class DefaultExceptionSubscriber extends SerializationDefaultExceptionSubscriber
     /** @var \Symfony\Component\HttpKernel\Exception\HttpException $exception */
     $exception = $event->getException();
     $format = $event->getRequest()->getRequestFormat();
-    if (!$this->serializer->supportsEncoding($format)) {
+    if ($format !== 'api_json') {
       return;
     }
     if (!$exception instanceof HttpException) {
@@ -52,7 +52,7 @@ class DefaultExceptionSubscriber extends SerializationDefaultExceptionSubscriber
     /** @var \Symfony\Component\HttpKernel\Exception\HttpException $exception */
     $exception = $event->getException();
     $format = $event->getRequest()->getRequestFormat();
-    if (!$this->serializer->supportsNormalization($exception, $format)) {
+    if ($format !== 'api_json') {
       return;
     }
     $encoded_content = $this->serializer->serialize($exception, $format, ['data_wrapper' => 'errors']);
