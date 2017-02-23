@@ -75,6 +75,27 @@ class Routes implements ContainerInjectionInterface {
   }
 
   /**
+   * Provides the entry point route.
+   */
+  public function entryPoint() {
+    $collection = new RouteCollection();
+
+    $route_collection = (new Route('/jsonapi', [
+      RouteObjectInterface::CONTROLLER_NAME => '\Drupal\jsonapi\Controller\EntryPoint::index',
+    ]))
+      ->setRequirement('_permission', 'access jsonapi resource list')
+      ->setRequirement('_format', 'api_json')
+      ->setMethods(['GET']);
+    $route_collection->addOptions([
+      '_auth' => $this->authProviderList(),
+      '_is_jsonapi' => TRUE,
+    ]);
+    $collection->add('jsonapi.resource_list', $route_collection);
+
+    return $collection;
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function routes() {
