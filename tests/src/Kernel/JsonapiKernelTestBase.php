@@ -12,6 +12,11 @@ use Drupal\KernelTests\KernelTestBase;
 abstract class JsonapiKernelTestBase extends KernelTestBase {
 
   /**
+   * {@inheritdoc}
+   */
+  public static $modules = ['jsonapi'];
+
+  /**
    * Creates a field of an entity reference field storage on the bundle.
    *
    * @param string $entity_type
