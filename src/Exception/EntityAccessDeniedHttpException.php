@@ -4,9 +4,13 @@ namespace Drupal\jsonapi\Exception;
 
 use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Access\AccessResultReasonInterface;
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Entity\EntityInterface;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class EntityAccessDeniedHttpException extends SerializableHttpException {
+class EntityAccessDeniedHttpException extends HttpException {
+
+  use DependencySerializationTrait;
 
   /**
    * The error which caused the 403.

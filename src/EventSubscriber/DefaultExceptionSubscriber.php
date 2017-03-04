@@ -2,7 +2,6 @@
 
 namespace Drupal\jsonapi\EventSubscriber;
 
-use Drupal\jsonapi\Exception\SerializableHttpException;
 use Drupal\serialization\EventSubscriber\DefaultExceptionSubscriber as SerializationDefaultExceptionSubscriber;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
@@ -38,7 +37,7 @@ class DefaultExceptionSubscriber extends SerializationDefaultExceptionSubscriber
       return;
     }
     if (!$exception instanceof HttpException) {
-      $exception = new SerializableHttpException(500, $exception->getMessage(), $exception);
+      $exception = new HttpException(500, $exception->getMessage(), $exception);
       $event->setException($exception);
     }
 

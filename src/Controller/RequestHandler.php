@@ -7,14 +7,13 @@ use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\jsonapi\Context\CurrentContext;
-use Drupal\jsonapi\Error\ErrorHandler;
-use Drupal\jsonapi\Exception\SerializableHttpException;
 use Drupal\jsonapi\ResourceResponse;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -85,9 +84,6 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     // Only add the unserialized data if there is something there.
     $extra_parameters = $unserialized ? [$unserialized, $request] : [$request];
 
-    /** @var \Drupal\jsonapi\Error\ErrorHandler $error_handler */
-    $error_handler = $this->container->get('jsonapi.error_handler');
-    $error_handler->register();
     // Execute the request in context so the cacheable metadata from the entity
     // grants system is caught and added to the response. This is surfaced when
     // executing the underlying entity query.
@@ -100,9 +96,8 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     if (!$context->isEmpty()) {
       $response->addCacheableDependency($context->pop());
     }
-    $error_handler->restore();
 
-    return $this->renderJsonApiResponse($request, $response, $serializer, $format, $error_handler);
+    return $this->renderJsonApiResponse($request, $response, $serializer, $format);
   }
 
   /**
@@ -122,13 +117,11 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
    *   The serializer to use.
    * @param string $format
    *   The response format.
-   * @param \Drupal\jsonapi\Error\ErrorHandler $error_handler
-   *   The error handler service.
    *
    * @return \Drupal\Core\Cache\CacheableResponseInterface
    *   The altered response.
    */
-  protected function renderJsonApiResponse(Request $request, ResourceResponse $response, SerializerInterface $serializer, $format, ErrorHandler $error_handler) {
+  protected function renderJsonApiResponse(Request $request, ResourceResponse $response, SerializerInterface $serializer, $format) {
     $data = $response->getResponseData();
     $context = new RenderContext();
 
@@ -139,8 +132,6 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     // HTML generation.
     $cacheable_metadata->addCacheContexts(static::$requiredCacheContexts);
 
-    // Make sure that any PHP error is surfaced as a serializable exception.
-    $error_handler->register();
     $output = $this->container->get('renderer')
       ->executeInRenderContext($context, function () use (
         $serializer,
@@ -155,7 +146,6 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
         // updating the response object's cacheability.
         return $serializer->serialize($data, $format, ['request' => $request, 'cacheable_metadata' => $cacheable_metadata]);
       });
-    $error_handler->restore();
     $response->setContent($output);
     if (!$context->isEmpty()) {
       $response->addCacheableDependency($context->pop());
@@ -200,8 +190,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
       ]);
     }
     catch (UnexpectedValueException $e) {
-      throw new SerializableHttpException(
-        422,
+      throw new UnprocessableEntityHttpException(
         sprintf('There was an error un-serializing the data. Message: %s.', $e->getMessage()),
         $e
       );

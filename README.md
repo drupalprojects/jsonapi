@@ -1,6 +1,12 @@
 # JSON API
 The jsonapi module exposes a [JSON API](http://jsonapi.org/) implementation for data stored in Drupal.
 
+The JSON API specification supports [_extensions_](http://jsonapi.org/extensions/). The following extensions are
+supported in this JSON API implementation:
+
+1. [Partial Success](https://gist.github.com/e0ipso/732712c3e573a6af1d83b25b9f0269c8), for when a resource collection is retrieved and only a subset of resources is accessible.
+2. [Fancy Filters](https://gist.github.com/e0ipso/efcc4e96ca2aed58e32948e4f70c2460), to specify the filter strategy exposed by this module.
+
 ## Installation
 
 Install the module as every other module.

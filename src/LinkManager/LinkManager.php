@@ -4,10 +4,10 @@ namespace Drupal\jsonapi\LinkManager;
 
 use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\jsonapi\ResourceType\ResourceType;
-use Drupal\jsonapi\Exception\SerializableHttpException;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
 
 /**
@@ -97,7 +97,7 @@ class LinkManager {
    * @param array $link_context
    *   An associative array with extra data to build the links.
    *
-   * @throws \Drupal\jsonapi\Exception\SerializableHttpException
+   * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
    *   When the offset and size are invalid.
    *
    * @return string[]
@@ -118,7 +118,7 @@ class LinkManager {
       $size = OffsetPage::$maxSize;
     }
     if ($size <= 0) {
-      throw new SerializableHttpException(400, sprintf('The page size needs to be a positive integer.'));
+      throw new BadRequestHttpException(sprintf('The page size needs to be a positive integer.'));
     }
     $query = (array) $request->query->getIterator();
     $links = [];

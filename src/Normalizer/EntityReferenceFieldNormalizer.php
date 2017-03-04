@@ -9,9 +9,9 @@ use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\Resource\EntityCollection;
-use Drupal\jsonapi\Exception\SerializableHttpException;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * Normalizer class specific for entity reference field objects.
@@ -112,7 +112,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
       $resource_type->getBundle()
     );
     if (empty($context['related']) || empty($field_definitions[$context['related']])) {
-      throw new SerializableHttpException(400, 'Invalid or missing related field.');
+      throw new BadRequestHttpException('Invalid or missing related field.');
     }
     /* @var \Drupal\field\Entity\FieldConfig $field_definition */
     $field_definition = $field_definitions[$context['related']];
@@ -127,7 +127,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
       // Make sure that the provided type is compatible with the targeted
       // resource.
       if (!in_array($value['type'], $target_resources)) {
-        throw new SerializableHttpException(400, sprintf(
+        throw new BadRequestHttpException(sprintf(
           'The provided type (%s) does not mach the destination resource types (%s).',
           $value['type'],
           implode(', ', $target_resources)
@@ -159,14 +159,14 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
   protected function massageRelationshipInput($data, $is_multiple) {
     if ($is_multiple) {
       if (!is_array($data['data'])) {
-        throw new SerializableHttpException(400, 'Invalid body payload for the relationship.');
+        throw new BadRequestHttpException('Invalid body payload for the relationship.');
       }
       // Leave the invalid elements.
       $invalid_elements = array_filter($data['data'], function ($element) {
         return empty($element['type']) || empty($element['id']);
       });
       if ($invalid_elements) {
-        throw new SerializableHttpException(400, 'Invalid body payload for the relationship.');
+        throw new BadRequestHttpException('Invalid body payload for the relationship.');
       }
     }
     else {
@@ -175,7 +175,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
         return ['data' => []];
       }
       if (empty($data['data']['type']) || empty($data['data']['id'])) {
-        throw new SerializableHttpException(400, 'Invalid body payload for the relationship.');
+        throw new BadRequestHttpException('Invalid body payload for the relationship.');
       }
       $data['data'] = [$data['data']];
     }

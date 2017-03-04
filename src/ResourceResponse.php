@@ -54,4 +54,10 @@ class ResourceResponse extends Response implements CacheableResponseInterface {
     return $this->responseData;
   }
 
+  // @todo Remove this in https://www.drupal.org/node/2855693
+  public function __sleep() {
+    $this->responseData = NULL;
+    return array_keys(get_object_vars($this));
+  }
+
 }

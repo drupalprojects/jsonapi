@@ -87,7 +87,7 @@ class FilterTest extends UnitTestCase {
 
   /**
    * @covers ::get
-   * @expectedException \Drupal\jsonapi\Exception\SerializableHttpException
+   * @expectedException \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
    */
   public function testGetFail() {
     $pager = new Filter(

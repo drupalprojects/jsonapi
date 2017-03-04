@@ -3,9 +3,9 @@
 namespace Drupal\jsonapi\Routing;
 
 use Drupal\Core\Routing\Enhancer\RouteEnhancerInterface;
-use Drupal\jsonapi\Exception\SerializableHttpException;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Route;
 
 /**
@@ -35,7 +35,7 @@ class RouteEnhancer implements RouteEnhancerInterface {
       // If the bundle in the loaded entity does not match the bundle in the
       // route (which is set based on the corresponding ResourceType), then
       // throw an exception.
-      throw new SerializableHttpException(404, sprintf('The loaded entity bundle (%s) does not match the configured resource (%s).', $retrieved_bundle, $configured_bundle));
+      throw new NotFoundHttpException(sprintf('The loaded entity bundle (%s) does not match the configured resource (%s).', $retrieved_bundle, $configured_bundle));
     }
     return $defaults;
   }

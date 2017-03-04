@@ -3,7 +3,7 @@
 namespace Drupal\jsonapi\Context;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
-use Drupal\jsonapi\Exception\SerializableHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * Service which resolves public field names to and from Drupal field names.
@@ -70,7 +70,7 @@ class FieldResolver {
    */
   public function resolveInternal($external_field_name) {
     if (empty($external_field_name)) {
-      throw new SerializableHttpException(400, 'No field name was provided for the filter.');
+      throw new BadRequestHttpException('No field name was provided for the filter.');
     }
     // Right now we are exposing all the fields with the name they have in
     // the Drupal backend. But this may change in the future.
@@ -85,10 +85,10 @@ class FieldResolver {
     $reference_breadcrumbs = [];
     while ($field_name = array_shift($parts)) {
       if (!$definitions = $this->fieldManager->getFieldStorageDefinitions($entity_type_id)) {
-        throw new SerializableHttpException(400, sprintf('Invalid nested filtering. There is no entity type "%s".', $entity_type_id));
+        throw new BadRequestHttpException(sprintf('Invalid nested filtering. There is no entity type "%s".', $entity_type_id));
       }
       if (empty($definitions[$field_name])) {
-        throw new SerializableHttpException(400, sprintf('Invalid nested filtering. Invalid entity reference "%s".', $field_name));
+        throw new BadRequestHttpException(sprintf('Invalid nested filtering. Invalid entity reference "%s".', $field_name));
       }
       array_push($reference_breadcrumbs, $field_name);
       // Update the entity type with the referenced type.

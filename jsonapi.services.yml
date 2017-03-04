@@ -94,8 +94,6 @@ services:
       # Priority 10, to ensure it runs before @paramconverter.entity.
       - { name: paramconverter, priority: 10 }
     arguments: ['@entity.manager']
-  jsonapi.error_handler:
-    class: Drupal\jsonapi\Error\ErrorHandler
   jsonapi.exception_subscriber:
     class: Drupal\jsonapi\EventSubscriber\DefaultExceptionSubscriber
     tags:

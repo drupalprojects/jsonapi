@@ -1,7 +1,8 @@
 <?php
 
 namespace Drupal\jsonapi\Routing\Param;
-use Drupal\jsonapi\Exception\SerializableHttpException;
+
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * @internal
@@ -41,7 +42,7 @@ class OffsetPage extends JsonApiParamBase {
    */
   protected function expand() {
     if (!is_array($this->original)) {
-      throw new SerializableHttpException(400, 'The page parameter needs to be an array.');
+      throw new BadRequestHttpException('The page parameter needs to be an array.');
     }
     $output = $this->original + ['limit' => static::$maxSize];
     $output['limit'] = $output['limit'] > static::$maxSize ?
