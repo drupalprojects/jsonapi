@@ -53,7 +53,7 @@ class FieldNormalizer extends NormalizerBase {
    * @return \Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue
    *   The array of normalized field items.
    */
-  protected function normalizeFieldItems(FieldItemListInterface $field, $format, $context) {
+  protected function normalizeFieldItems(FieldItemListInterface $field, $format, array $context) {
     $normalizer_items = array();
     if (!$field->isEmpty()) {
       foreach ($field as $field_item) {

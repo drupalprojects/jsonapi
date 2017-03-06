@@ -190,7 +190,7 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
    * @return Value\FieldNormalizerValueInterface
    *   The normalized value.
    */
-  protected function serializeField($field, $context, $format) {
+  protected function serializeField($field, array $context, $format) {
     /* @var \Drupal\Core\Field\FieldItemListInterface|\Drupal\jsonapi\Normalizer\Relationship $field */
     // Continue if the current user does not have access to view this field.
     $access = $field->access('view', $context['account'], TRUE);

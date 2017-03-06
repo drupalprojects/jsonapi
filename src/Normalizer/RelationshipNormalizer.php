@@ -100,7 +100,7 @@ class RelationshipNormalizer extends NormalizerBase {
    * @see EntityReferenceItemNormalizer::buildSubContext()
    * @todo This is duplicated code from the reference item. Reuse code instead.
    */
-  protected function buildSubContext($context, EntityInterface $entity, $host_field_name) {
+  protected function buildSubContext(array $context, EntityInterface $entity, $host_field_name) {
     // Swap out the context for the context of the referenced resource.
     $context['resource_type'] = $this->resourceTypeRepository
       ->get($entity->getEntityTypeId(), $entity->bundle());

@@ -29,7 +29,7 @@ class ConfigEntityNormalizer extends EntityNormalizer {
   /**
    * {@inheritdoc}
    */
-  protected function serializeField($field, $context, $format) {
+  protected function serializeField($field, array $context, $format) {
     $output = $this->serializer->normalize($field, $format, $context);
     if (is_array($output)) {
       $output = new FieldNormalizerValue(

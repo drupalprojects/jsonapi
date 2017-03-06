@@ -10,7 +10,7 @@ use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 interface FieldNormalizerValueInterface extends ValueExtractorInterface, RefinableCacheableDependencyInterface {
 
   /**
-   * Gets the includes
+   * Gets the includes.
    *
    * @return mixed
    *   The includes.

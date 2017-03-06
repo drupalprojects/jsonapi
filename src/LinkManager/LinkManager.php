@@ -150,7 +150,7 @@ class LinkManager {
    * @return array
    *   The pagination query param array.
    */
-  protected function getPagerQueries($link_id, $offset, $size, $query = []) {
+  protected function getPagerQueries($link_id, $offset, $size, array $query = []) {
     $extra_query = [];
     switch ($link_id) {
       case 'next':

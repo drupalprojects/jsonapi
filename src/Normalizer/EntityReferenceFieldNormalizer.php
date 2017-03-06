@@ -156,7 +156,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
    * @return array
    *   The massaged data array.
    */
-  protected function massageRelationshipInput($data, $is_multiple) {
+  protected function massageRelationshipInput(array $data, $is_multiple) {
     if ($is_multiple) {
       if (!is_array($data['data'])) {
         throw new BadRequestHttpException('Invalid body payload for the relationship.');
