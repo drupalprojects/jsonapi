@@ -34,6 +34,11 @@ class RestJsonApiUnsupported extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
+  protected static $resourceConfigId = 'entity.node';
+
+  /**
+   * {@inheritdoc}
+   */
   protected function setUpAuthorization($method) {
     switch ($method) {
       case 'GET':
@@ -74,7 +79,7 @@ class RestJsonApiUnsupported extends ResourceTestBase {
   public function testApiJsonNotSupportedInRest() {
     $this->assertSame(['json', 'xml'], $this->container->getParameter('serializer.formats'));
 
-    $this->provisionResource('entity.node', ['api_json'], []);
+    $this->provisionResource(['api_json'], []);
     $this->setUpAuthorization('GET');
 
     $url = Node::load(1)->toUrl()

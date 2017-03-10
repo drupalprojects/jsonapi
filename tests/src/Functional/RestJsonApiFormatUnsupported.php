@@ -34,6 +34,11 @@ class RestJsonApiFormatUnsupported extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
+  protected static $resourceConfigId = 'entity.node';
+
+  /**
+   * {@inheritdoc}
+   */
   protected function setUpAuthorization($method) {
     $this->grantPermissionsToTestedRole(['access content']);
   }
@@ -73,7 +78,7 @@ class RestJsonApiFormatUnsupported extends ResourceTestBase {
 
     // Second, verify that provisioning a REST resource that lists 'api_json' as
     // one of its formats
-    $this->provisionResource('entity.node', ['api_json'], []);
+    $this->provisionResource(['api_json'], []);
     $this->setUpAuthorization('GET');
     $url = Node::load(1)->toUrl()->setOption('query', ['_format' => 'api_json']);
     $response = $this->request('GET', $url, []);

@@ -99,3 +99,14 @@ services:
     tags:
       - { name: event_subscriber }
     arguments: ['@serializer', '%serializer.formats%']
+
+  logger.channel.jsonapi:
+    parent: logger.channel_base
+    arguments: ['jsonapi']
+
+  # Event subscribers.
+  jsonapi.resource_response.subscriber:
+    class: Drupal\jsonapi\EventSubscriber\ResourceResponseSubscriber
+    tags:
+      - { name: event_subscriber }
+    arguments: ['@serializer', '@renderer', '@logger.channel.jsonapi']

@@ -1,38 +1,39 @@
 <?php
 
-namespace Drupal\Tests\jsonapi\Kernel\Controller;
+namespace Drupal\Tests\jsonapi\Unit\EventSubscriber;
 
-use Drupal\jsonapi\ResourceResponse;
-use Drupal\Tests\jsonapi\Kernel\JsonapiKernelTestBase;
+use Drupal\Core\Logger\LoggerChannelInterface;
+use Drupal\Core\Render\RendererInterface;
+use Drupal\jsonapi\EventSubscriber\ResourceResponseSubscriber;
+use Drupal\rest\ResourceResponse;
+use Drupal\Tests\UnitTestCase;
+use Symfony\Component\Serializer\Serializer;
 
 /**
- * @coversDefaultClass \Drupal\jsonapi\Controller\RequestHandler
- * @group jsonapi
+ * @coversDefaultClass \Drupal\jsonapi\EventSubscriber\ResourceResponseSubscriber
+ * @group rest
  */
-class RequestHandlerTest extends JsonapiKernelTestBase {
+class ResourceResponseSubscriberTest extends UnitTestCase {
 
   /**
-   * {@inheritdoc}
+   * @covers ::validateResponse
    */
-  public static $modules = [
-    'node',
-    'field',
-    'jsonapi',
-    'serialization',
-    'system',
-    'user',
-  ];
+  public function testValidateResponse() {
+    $resource_response_subscriber = new ResourceResponseSubscriber(
+      $this->prophesize(Serializer::class)->reveal(),
+      $this->prophesize(RendererInterface::class)->reveal(),
+      $this->prophesize(LoggerChannelInterface::class)->reveal()
+    );
 
-  public function testResponseValidation() {
     // Check that the validation class is enabled.
     $this->assertTrue(
       class_exists("\\JsonSchema\\Validator"),
       'The JSON Schema validator is not present. Please make sure to install it using composer.'
     );
 
-    // Expose the protected RequestHandler::validateResponse() method.
-    $class = new \ReflectionClass('Drupal\jsonapi\Controller\RequestHandler');
-    $validate_response = $class->getMethod('validateResponse');
+    // Expose protected ResourceResponseSubscriber::validateResponse() method.
+    $object = new \ReflectionObject($resource_response_subscriber);
+    $validate_response = $object->getMethod('validateResponse');
     $validate_response->setAccessible(TRUE);
 
     // Test validation failure: no "type" in "data".
@@ -50,7 +51,7 @@ EOD;
     $response = new ResourceResponse();
     $response->setContent($json);
     $this->assertFalse(
-      $validate_response->invoke(NULL, $response),
+      $validate_response->invoke($resource_response_subscriber, $response),
       'Response validation failed to flag an invalid response.'
     );
 
@@ -71,7 +72,7 @@ EOD;
     $response = new ResourceResponse();
     $response->setContent($json);
     $this->assertFalse(
-      $validate_response->invoke(NULL, $response),
+      $validate_response->invoke($resource_response_subscriber, $response),
       'Response validation failed to flag an invalid response.'
     );
 
@@ -90,18 +91,17 @@ EOD;
 EOD;
     $response->setContent($json);
     $this->assertTrue(
-      $validate_response->invoke(NULL, $response),
+      $validate_response->invoke($resource_response_subscriber, $response),
       'Response validation flagged a valid response.'
     );
 
     // Test validation of an empty response passes.
     $response = new ResourceResponse();
     $this->assertTrue(
-      $validate_response->invoke(NULL, $response),
+      $validate_response->invoke($resource_response_subscriber, $response),
       'Response validation flagged a valid empty response.'
     );
 
   }
-
 
 }

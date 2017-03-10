@@ -2,12 +2,10 @@
 
 namespace Drupal\jsonapi\Controller;
 
-use Drupal\Component\Serialization\Json;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\jsonapi\Context\CurrentContext;
-use Drupal\jsonapi\ResourceResponse;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -57,7 +55,6 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     /* @var \Drupal\jsonapi\Context\CurrentContext $current_context */
     $current_context = $this->container->get('jsonapi.current_context');
     $unserialized = $this->deserializeBody($request, $serializer, $route->getOption('serialization_class'), $current_context);
-    $format = $request->getRequestFormat();
     if ($unserialized instanceof Response && !$unserialized->isSuccessful()) {
       return $unserialized;
     }
@@ -75,9 +72,6 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     }
 
     // Invoke the operation on the resource plugin.
-    // All REST routes are restricted to exactly one format, so instead of
-    // parsing it out of the Accept headers again, we can simply retrieve the
-    // format requirement. If there is no format associated, just pick JSON.
     $action = $this->action($route_match, $method);
     $resource = $this->resourceFactory($route, $current_context);
 
@@ -96,67 +90,6 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     if (!$context->isEmpty()) {
       $response->addCacheableDependency($context->pop());
     }
-
-    return $this->renderJsonApiResponse($request, $response, $serializer, $format);
-  }
-
-  /**
-   * Renders a resource response.
-   *
-   * Serialization can invoke rendering (e.g., generating URLs), but the
-   * serialization API does not provide a mechanism to collect the
-   * bubbleable metadata associated with that (e.g., language and other
-   * contexts), so instead, allow those to "leak" and collect them here in
-   * a render context.
-   *
-   * @param \Symfony\Component\HttpFoundation\Request $request
-   *   The request object.
-   * @param \Drupal\Core\Cache\CacheableResponseInterface $response
-   *   The response from the REST resource.
-   * @param \Symfony\Component\Serializer\SerializerInterface $serializer
-   *   The serializer to use.
-   * @param string $format
-   *   The response format.
-   *
-   * @return \Drupal\Core\Cache\CacheableResponseInterface
-   *   The altered response.
-   */
-  protected function renderJsonApiResponse(Request $request, ResourceResponse $response, SerializerInterface $serializer, $format) {
-    $data = $response->getResponseData();
-    $context = new RenderContext();
-
-    $cacheable_metadata = $response->getCacheableMetadata();
-    // Make sure to include the default cacheable metadata, since it won't be
-    // added if you don't user render arrays and the HtmlRenderer. We are not
-    // using the container variable '%renderer.config%' because is too tied to
-    // HTML generation.
-    $cacheable_metadata->addCacheContexts(static::$requiredCacheContexts);
-
-    $output = $this->container->get('renderer')
-      ->executeInRenderContext($context, function () use (
-        $serializer,
-        $data,
-        $format,
-        $request,
-        $cacheable_metadata
-      ) {
-        // The serializer receives the response's cacheability metadata object
-        // as serialization context. Normalizers called by the serializer then
-        // refine this cacheability metadata, and thus they are effectively
-        // updating the response object's cacheability.
-        return $serializer->serialize($data, $format, ['request' => $request, 'cacheable_metadata' => $cacheable_metadata]);
-      });
-    $response->setContent($output);
-    if (!$context->isEmpty()) {
-      $response->addCacheableDependency($context->pop());
-    }
-
-    $response->headers->set('Content-Type', $request->getMimeType($format));
-    // Add rest settings config's cache tags.
-    $response->addCacheableDependency($this->container->get('config.factory')
-      ->get('jsonapi.resource_info'));
-
-    assert('$this->validateResponse($response)', 'A JSON API response failed validation (see the logs for details). Please report this in the issue queue on drupal.org');
 
     return $response;
   }
@@ -279,43 +212,6 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
       $entity_repository
     );
     return $resource;
-  }
-
-  /**
-   * Validates a response against the JSON API specification.
-   *
-   * @param \Drupal\jsonapi\ResourceResponse $response
-   *   The response to validate.
-   *
-   * @return bool
-   *   FALSE if the response failed validation, otherwise TRUE.
-   */
-  protected static function validateResponse(ResourceResponse $response) {
-    if (!class_exists("\\JsonSchema\\Validator")) {
-      return TRUE;
-    }
-    // Do not use Json::decode here since it coerces the response into an
-    // associative array, which creates validation errors.
-    $response_data = json_decode($response->getContent());
-    if (empty($response_data)) {
-      return TRUE;
-    }
-
-    $validator = new \JsonSchema\Validator;
-    $schema_path = DRUPAL_ROOT . '/' . drupal_get_path('module', 'jsonapi') . '/schema.json';
-
-    $validator->check($response_data, (object)['$ref' => 'file://' . $schema_path]);
-
-    if (!$validator->isValid()) {
-      \Drupal::logger('jsonapi')->debug('Response failed validation: @data', [
-        '@data' => Json::encode($response_data),
-      ]);
-      \Drupal::logger('jsonapi')->debug('Validation errors: @errors', [
-        '@errors' => Json::encode($validator->getErrors()),
-      ]);
-    }
-
-    return $validator->isValid();
   }
 
 }
