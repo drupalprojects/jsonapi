@@ -65,8 +65,7 @@ class EntryPoint extends ControllerBase {
     /** @var \Drupal\Core\Cache\CacheableResponseInterface $response */
     $do_build_urls = function () {
       $self = Url::fromRoute('jsonapi.resource_list')
-        ->setOption('absolute', TRUE)
-        ->setOption('query', ['_format' => 'api_json']);
+        ->setOption('absolute', TRUE);
 
       return array_reduce($this->resourceTypeRepository->all(), function (array $carry, ResourceType $resource_type) {
         // TODO: Learn how to invalidate the cache for this page when a new entity
@@ -74,7 +73,6 @@ class EntryPoint extends ControllerBase {
         // $this->response->addCacheableDependency($definition);
         $url = Url::fromRoute(sprintf('jsonapi.%s.collection', $resource_type->getTypeName()));
         $url->setOption('absolute', TRUE);
-        $url->setOption('query', ['_format' => 'api_json']);
         $carry[$resource_type->getTypeName()] = $url->toString();
 
         return $carry;

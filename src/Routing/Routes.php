@@ -84,7 +84,6 @@ class Routes implements ContainerInjectionInterface {
       RouteObjectInterface::CONTROLLER_NAME => '\Drupal\jsonapi\Controller\EntryPoint::index',
     ]))
       ->setRequirement('_permission', 'access jsonapi resource list')
-      ->setRequirement('_format', 'api_json')
       ->setMethods(['GET']);
     $route_collection->addOptions([
       '_auth' => $this->authProviderList(),
@@ -120,7 +119,6 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_entity_type', $resource_type->getEntityTypeId())
         ->setRequirement('_bundle', $resource_type->getBundle())
         ->setRequirement('_permission', 'access content')
-        ->setRequirement('_format', 'api_json')
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setOption('serialization_class', JsonApiDocumentTopLevel::class)
         ->setMethods(['GET', 'POST']);
@@ -134,7 +132,6 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_entity_type', $resource_type->getEntityTypeId())
         ->setRequirement('_bundle', $resource_type->getBundle())
         ->setRequirement('_permission', 'access content')
-        ->setRequirement('_format', 'api_json')
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
@@ -148,7 +145,6 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_entity_type', $resource_type->getEntityTypeId())
         ->setRequirement('_bundle', $resource_type->getBundle())
         ->setRequirement('_permission', 'access content')
-        ->setRequirement('_format', 'api_json')
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
@@ -161,7 +157,6 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_entity_type', $resource_type->getEntityTypeId())
         ->setRequirement('_bundle', $resource_type->getBundle())
         ->setRequirement('_permission', 'access content')
-        ->setRequirement('_format', 'api_json')
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())

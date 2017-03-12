@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\jsonapi\Functional;
 
-use Drupal\Component\Serialization\Json;
 use Drupal\Core\Url;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
@@ -87,20 +86,7 @@ class RestJsonApiUnsupported extends ResourceTestBase {
     $request_options = [];
 
     $response = $this->request('GET', $url, $request_options);
-    $expected_body = Json::encode([
-      'errors' => [
-        [
-          'title' => 'Not Acceptable',
-          'status' => 406,
-          'detail' => 'Not acceptable format: api_json',
-          'links' => [
-            'info' => 'http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.7',
-          ],
-          'code' => 0,
-        ],
-      ],
-    ]);
-    $this->assertResourceResponse(406, $expected_body, $response);
+    $this->assertResourceErrorResponse(406, FALSE, $response);
   }
 
   protected function assertNormalizationEdgeCases($method, Url $url, array $request_options) {}

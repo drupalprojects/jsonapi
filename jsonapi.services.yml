@@ -87,7 +87,7 @@ services:
   access_check.jsonapi.custom_query_parameter_names:
     class: Drupal\jsonapi\Access\CustomQueryParameterNamesAccessCheck
     tags:
-      - { name: access_check, applies_to: _jsonapi_custom_query_parameter_names }
+      - { name: access_check, applies_to: _jsonapi_custom_query_parameter_names, needs_incoming_request: TRUE }
   paramconverter.jsonapi.entity_uuid:
     class: Drupal\jsonapi\ParamConverter\EntityUuidConverter
     tags:
@@ -99,6 +99,12 @@ services:
     tags:
       - { name: event_subscriber }
     arguments: ['@serializer', '%serializer.formats%']
+  jsonapi.http_middleware.format_setter:
+    class: Drupal\jsonapi\StackMiddleware\FormatSetter
+    tags:
+    # Set priority to 201 so it happens right before the page cache middleware
+    # has the opportunity to respond. http_middleware.page_cache is 200.
+      - { name: http_middleware, priority: 201, responder: true }
 
   logger.channel.jsonapi:
     parent: logger.channel_base

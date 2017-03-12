@@ -150,17 +150,6 @@ abstract class JsonApiFunctionalTestBase extends BrowserTestBase {
   }
 
   /**
-   * {@inheritdoc}
-   */
-  protected function drupalGet($path, array $options = array(), array $headers = array()) {
-    // Make sure we don't forget the format parameter.
-    $options += ['query' => []];
-    $options['query'] += ['_format' => 'api_json'];
-
-    return parent::drupalGet($path, $options, $headers);
-  }
-
-  /**
    * Performs a HTTP request. Wraps the Guzzle HTTP client.
    *
    * Why wrap the Guzzle HTTP client? Because any error response is returned via
@@ -178,7 +167,6 @@ abstract class JsonApiFunctionalTestBase extends BrowserTestBase {
    * @return \Psr\Http\Message\ResponseInterface
    */
   protected function request($method, Url $url, array $request_options) {
-    $url->setOption('query', ['_format' => 'api_json']);
     try {
       $response = $this->httpClient->request($method, $url->toString(), $request_options);
     }

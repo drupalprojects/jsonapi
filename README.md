@@ -24,7 +24,7 @@ Unlike the core REST module JSON API doesn't really require any kind of configur
 The jsonapi module exposes both config and content entity resources. On top of that it exposes one resource per bundle per entity. The default format appears like: `/jsonapi/{entity_type}/{bundle}/{uuid}?_format=api_json`
 
 The list of endpoints then looks like the following:
-* `/jsonapi/node/article?_format=api_json`: Exposes a collection of article content
-* `/jsonapi/node/article/{UUID}?_format=api_json`: Exposes an individual article
-* `/jsonapi/block?_format=api_json`: Exposes a collection of blocks
-* `/jsonapi/block/{block}?_format=api_json`: Exposes an individual block
+* `/jsonapi/node/article`: Exposes a collection of article content
+* `/jsonapi/node/article/{UUID}`: Exposes an individual article
+* `/jsonapi/block`: Exposes a collection of blocks
+* `/jsonapi/block/{block}`: Exposes an individual block
