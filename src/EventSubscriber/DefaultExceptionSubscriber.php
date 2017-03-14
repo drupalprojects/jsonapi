@@ -56,7 +56,7 @@ class DefaultExceptionSubscriber extends SerializationDefaultExceptionSubscriber
     }
     $encoded_content = $this->serializer->serialize($exception, 'api_json', ['data_wrapper' => 'errors']);
     $response = new Response($encoded_content, $status);
-    $response->headers->set('content-type', 'application/vnd.api+json');
+    $response->headers->set('Content-Type', 'application/vnd.api+json');
     $event->setResponse($response);
   }
 
@@ -74,7 +74,7 @@ class DefaultExceptionSubscriber extends SerializationDefaultExceptionSubscriber
     $format = $request->getRequestFormat();
     // The JSON API format is supported if the format is explicitly set or the
     // request is for a known JSON API route.
-    return $format == 'api_json' || ($route && $route->getOption('_is_jsonapi'));
+    return $format === 'api_json' || ($route && $route->getOption('_is_jsonapi'));
   }
 
 }

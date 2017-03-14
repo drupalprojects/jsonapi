@@ -102,9 +102,9 @@ services:
   jsonapi.http_middleware.format_setter:
     class: Drupal\jsonapi\StackMiddleware\FormatSetter
     tags:
-    # Set priority to 201 so it happens right before the page cache middleware
-    # has the opportunity to respond. http_middleware.page_cache is 200.
-      - { name: http_middleware, priority: 201, responder: true }
+      # Set priority to 201 so it happens right before the page cache
+      # middleware (priority 200)has the opportunity to respond.
+      - { name: http_middleware, priority: 201 }
 
   logger.channel.jsonapi:
     parent: logger.channel_base

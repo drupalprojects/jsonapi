@@ -244,19 +244,19 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     ]));
     $this->assertSession()->statusCodeEquals(200);
     $this->assertGreaterThanOrEqual(1, count($single_output['data']));
-    // 19. Test non-existing route without negotiation header.
+    // 19. Test non-existing route without 'Accept' header.
     $this->drupalGet('/jsonapi/node/article/broccoli');
     $this->assertSession()->statusCodeEquals(404);
-    // Without the Accept header we cannot know we want the 404 error formatted
-    // as JSON API.
+    // Without the 'Accept' header we cannot know we want the 404 error
+    // formatted as JSON API.
     $this->assertSession()->responseHeaderContains('Content-Type', 'text/html');
-    // 20. Test non-existing route with negotiation header.
+    // 20. Test non-existing route with 'Accept' header.
     $single_output = Json::decode($this->drupalGet('/jsonapi/node/article/broccoli', [], [
       'Accept' => 'application/vnd.api+json',
     ]));
     $this->assertEquals(404, $single_output['errors'][0]['status']);
     $this->assertSession()->statusCodeEquals(404);
-    // With the Accept header we can know we want the 404 error formatted as
+    // With the 'Accept' header we can know we want the 404 error formatted as
     // JSON API.
     $this->assertSession()->responseHeaderContains('Content-Type', 'application/vnd.api+json');
   }

@@ -6,8 +6,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 /**
- * If the request belongs to a JSON API managed route, then sets the api_json
- * format manually.
+ * Sets the 'api_json' format on all requests to JSON API-managed routes.
  */
 class FormatSetter implements HttpKernelInterface {
 
@@ -19,7 +18,7 @@ class FormatSetter implements HttpKernelInterface {
   protected $httpKernel;
 
   /**
-   * Constructs a PageCache object.
+   * Constructs a FormatSetter object.
    *
    * @param \Symfony\Component\HttpKernel\HttpKernelInterface $http_kernel
    *   The decorated kernel.
@@ -32,16 +31,34 @@ class FormatSetter implements HttpKernelInterface {
    * {@inheritdoc}
    */
   public function handle(Request $request, $type = self::MASTER_REQUEST, $catch = TRUE) {
-    // Check if the accept header is set to the official header.
-    $content_types = array_filter($request->getAcceptableContentTypes(), function ($accept) {
-      return strpos($accept, 'application/vnd.api+json') !== FALSE;
-    });
-    if (count($content_types)) {
-      // Manually set the format.
+    if (static::isJsonApiRequest($request)) {
       $request->setRequestFormat('api_json');
     }
 
     return $this->httpKernel->handle($request, $type, $catch);
+  }
+
+  /**
+   * Checks whether the current request is a JSON API request.
+   *
+   * Inspects:
+   * - request path (uses a heuristic, because e.g. language negotiation may use
+   *   path prefixes)
+   * - 'Accept' request header value
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The current request.
+   *
+   * @return bool
+   *   Whether the current request is a JSON API request.
+   */
+  protected static function isJsonApiRequest(Request $request) {
+    return strpos($request->getPathInfo(), '/jsonapi/') !== FALSE
+      &&
+      // Check if the 'Accept' header includes the JSON API MIME type.
+      count(array_filter($request->getAcceptableContentTypes(), function ($accept) {
+        return strpos($accept, 'application/vnd.api+json') === 0;
+      }));
   }
 
 }
