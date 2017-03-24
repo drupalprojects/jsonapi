@@ -54,6 +54,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     $serializer = $this->container->get('serializer');
     /* @var \Drupal\jsonapi\Context\CurrentContext $current_context */
     $current_context = $this->container->get('jsonapi.current_context');
+    $current_context->reset();
     $unserialized = $this->deserializeBody($request, $serializer, $route->getOption('serialization_class'), $current_context);
     if ($unserialized instanceof Response && !$unserialized->isSuccessful()) {
       return $unserialized;

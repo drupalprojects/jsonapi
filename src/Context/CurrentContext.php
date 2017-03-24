@@ -140,4 +140,11 @@ class CurrentContext {
     return [];
   }
 
+  /**
+   * Reset the internal caches.
+   */
+  public function reset() {
+    unset($this->resourceType);
+  }
+
 }
