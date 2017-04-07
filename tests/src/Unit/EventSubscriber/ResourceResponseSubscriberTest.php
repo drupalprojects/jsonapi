@@ -11,7 +11,7 @@ use Symfony\Component\Serializer\Serializer;
 
 /**
  * @coversDefaultClass \Drupal\jsonapi\EventSubscriber\ResourceResponseSubscriber
- * @group rest
+ * @group jsonapi
  */
 class ResourceResponseSubscriberTest extends UnitTestCase {
 
