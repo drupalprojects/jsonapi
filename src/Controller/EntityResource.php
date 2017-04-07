@@ -298,10 +298,10 @@ class EntityResource {
    *   The response.
    */
   public function getRelated(EntityInterface $entity, $related_field, Request $request) {
-    /* @var $field_list \Drupal\Core\Field\FieldItemListInterface */
     if (!($field_list = $entity->get($related_field)) || !$this->isRelationshipField($field_list)) {
       throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
     }
+    /* @var \Drupal\Core\Field\EntityReferenceFieldItemList $field_list */
     $is_multiple = $field_list
       ->getDataDefinition()
       ->getFieldStorageDefinition()
@@ -313,11 +313,10 @@ class EntityResource {
     $cacheable_metadata = new CacheableMetadata();
     // Add the cacheable metadata from the host entity.
     $cacheable_metadata->addCacheableDependency($entity);
-    foreach ($field_list as $field_item) {
-      /* @var \Drupal\Core\Entity\EntityInterface $entity_item */
-      $entity_item = $field_item->entity;
-      $collection_data[$entity_item->id()] = static::getEntityAndAccess($entity_item);
-      $cacheable_metadata->addCacheableDependency($entity_item);
+    foreach ($field_list->referencedEntities() as $referenced_entity) {
+      /* @var \Drupal\Core\Entity\EntityInterface $referenced_entity */
+      $collection_data[$referenced_entity->id()] = static::getEntityAndAccess($referenced_entity);
+       $cacheable_metadata->addCacheableDependency($referenced_entity);
     }
     $entity_collection = new EntityCollection(array_column($collection_data, 'entity'));
     $response = $this->buildWrappedResponse($entity_collection);
