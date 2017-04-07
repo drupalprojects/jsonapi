@@ -10,6 +10,7 @@ use Drupal\jsonapi\Routing\Param\JsonApiParamInterface;
 use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\Context\FieldResolver;
 use Drupal\jsonapi\Routing\Param\Sort;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * @internal
