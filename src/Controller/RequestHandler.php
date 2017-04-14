@@ -112,7 +112,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
    */
   public function deserializeBody(Request $request, SerializerInterface $serializer, $serialization_class, CurrentContext $current_context) {
     $received = $request->getContent();
-    if (empty($received)) {
+    if (empty($received) || $request->isMethodSafe()) {
       return NULL;
     }
     $format = $request->getContentType();
