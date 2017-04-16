@@ -430,6 +430,17 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
           $this->user2->id(),
         ],
       ],
+      // Good data, without any tags.
+      [
+        [
+          [],
+          $this->user2->uuid(),
+        ],
+        [
+          [],
+          $this->user2->id(),
+        ],
+      ],
       // Bad data in first tag.
       [
         [
@@ -476,10 +487,86 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         $this->assertEquals($expected['user_id'], $owner->id());
       }
       $tags = $node->get('field_tags')->getValue();
-      $this->assertEquals($expected['tag_ids'][0], $tags[0]['target_id']);
+      if (!empty($expected['tag_ids'][0])) {
+        $this->assertEquals($expected['tag_ids'][0], $tags[0]['target_id']);
+      }
+      else {
+        $this->assertArrayNotHasKey(0, $tags);
+      }
       if (!empty($expected['tag_ids'][1])) {
         $this->assertEquals($expected['tag_ids'][1], $tags[1]['target_id']);
       }
+      else {
+        $this->assertArrayNotHasKey(1, $tags);
+      }
+    }
+  }
+
+  /**
+   * Try to POST a node with related resource of invalid type, as well as one
+   * with no type.
+   */
+  public function testDenormalizeInvalidTypeAndNoType() {
+    $payload_data = [
+      'type' => 'node--article',
+      'data' => [
+        'attributes' => [
+          'title' => 'Testing article',
+          'id' => '33095485-70D2-4E51-A309-535CC5BC0115',
+        ],
+        'relationships' => [
+          'uid' => [
+            'data' => [
+              'type' => 'user--user',
+              'id' => $this->user2->uuid(),
+            ],
+          ],
+          'field_tags' => [
+            'data' => [
+              [
+                'type' => 'foobar',
+                'id' => $this->term1->uuid(),
+              ],
+            ],
+          ],
+        ],
+      ],
+    ];
+
+    // Test relationship member with invalid type.
+    $payload = Json::encode($payload_data);
+    list($request, $resource_type) = $this->generateProphecies('node', 'article');
+    $this->container->get('request_stack')->push($request);
+    try {
+      $this->container->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
+        ->denormalize(Json::decode($payload), JsonApiDocumentTopLevelNormalizer::class, 'api_json', [
+          'request' => $request,
+          'resource_type' => $resource_type,
+        ]);
+
+      $this->fail('No assertion thrown for invalid type');
+    }
+    catch (BadRequestHttpException $e) {
+      $this->assertEquals("Invalid type specified for related resource: 'foobar'", $e->getMessage());
+    }
+
+    // Test relationship member with no type.
+    unset($payload_data['data']['relationships']['field_tags']['data'][0]['type']);
+
+    $payload = Json::encode($payload_data);
+    list($request, $resource_type) = $this->generateProphecies('node', 'article');
+    $this->container->get('request_stack')->push($request);
+    try {
+      $this->container->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
+        ->denormalize(Json::decode($payload), JsonApiDocumentTopLevelNormalizer::class, 'api_json', [
+          'request' => $request,
+          'resource_type' => $resource_type,
+        ]);
+
+      $this->fail('No assertion thrown for missing type');
+    }
+    catch (BadRequestHttpException $e) {
+      $this->assertEquals("No type specified for related resource", $e->getMessage());
     }
   }
 
@@ -496,7 +583,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     list($input_tag_uuids, $input_user_uuid) = $input;
     list($expected_tag_ids, $expected_user_id) = $expected;
 
-    return [
+    $node = [
       [
         'type' => 'node--article',
         'data' => [
@@ -512,16 +599,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
               ],
             ],
             'field_tags' => [
-              'data' => [
-                [
-                  'type' => 'taxonomy_term--tags',
-                  'id' => $input_tag_uuids[0],
-                ],
-                [
-                  'type' => 'taxonomy_term--tags',
-                  'id' => $input_tag_uuids[1],
-                ],
-              ],
+              'data' => [],
             ],
           ],
         ],
@@ -531,6 +609,20 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         'user_id' => $expected_user_id,
       ],
     ];
+
+    if (isset($input_tag_uuids[0])) {
+      $node[0]['data']['relationships']['field_tags']['data'][0] = [
+        'type' => 'taxonomy_term--tags',
+        'id' => $input_tag_uuids[0],
+      ];
+    }
+    if (isset($input_tag_uuids[1])) {
+      $node[0]['data']['relationships']['field_tags']['data'][1] = [
+        'type' => 'taxonomy_term--tags',
+        'id' => $input_tag_uuids[1],
+      ];
+    }
+    return $node;
   }
 
   /**

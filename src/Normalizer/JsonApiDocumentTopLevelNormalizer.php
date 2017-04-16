@@ -2,6 +2,7 @@
 
 namespace Drupal\jsonapi\Normalizer;
 
+use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
@@ -11,6 +12,7 @@ use Drupal\jsonapi\Resource\EntityCollection;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
@@ -85,9 +87,20 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
 
       // Get an array of ids for every relationship.
       $relationships = array_map(function ($relationship) {
+        if (empty($relationship['data'])) {
+          return [];
+        }
         $id_list = array_column($relationship['data'], 'id');
+        if (empty($relationship['data'][0]['type'])) {
+          throw new BadRequestHttpException("No type specified for related resource");
+        }
         list($entity_type_id,) = explode('--', $relationship['data'][0]['type']);
-        $entity_storage = $this->entityTypeManager->getStorage($entity_type_id);
+        try {
+          $entity_storage = $this->entityTypeManager->getStorage($entity_type_id);
+        }
+        catch (PluginNotFoundException $e) {
+          throw new BadRequestHttpException("Invalid type specified for related resource: '" . $relationship['data'][0]['type'] . "'");
+        }
         // In order to maintain the order ($delta) of the relationships, we need
         // to load the entities and explore the uuid value.
         $related_entities = array_values($entity_storage->loadByProperties(['uuid' => $id_list]));
