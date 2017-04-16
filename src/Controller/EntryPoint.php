@@ -22,11 +22,6 @@ class EntryPoint extends ControllerBase {
   protected $resourceTypeRepository;
 
   /**
-   * @var \Drupal\Core\Cache\CacheableResponseInterface
-   */
-  protected $response;
-
-  /**
    * @var \Drupal\Core\Render\RendererInterface
    */
   protected $renderer;
@@ -34,13 +29,14 @@ class EntryPoint extends ControllerBase {
   /**
    * EntryPoint constructor.
    *
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
-   * @param \Drupal\Core\Cache\CacheableJsonResponse $response
+   * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepository $resource_type_repository
+   *   The resource type repository.
+   * @param \Drupal\Core\Render\RendererInterface $renderer
+   *   The renderer.
    */
-  public function __construct(ResourceTypeRepository $resource_type_repository, RendererInterface $renderer, CacheableJsonResponse $response) {
+  public function __construct(ResourceTypeRepository $resource_type_repository, RendererInterface $renderer) {
     $this->resourceTypeRepository = $resource_type_repository;
     $this->renderer = $renderer;
-    $this->response = $response;
   }
 
   /**
@@ -49,13 +45,14 @@ class EntryPoint extends ControllerBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('jsonapi.resource_type.repository'),
-      $container->get('renderer'),
-      new CacheableJsonResponse()
+      $container->get('renderer')
     );
   }
 
   /**
    * Controller to list all the resources.
+   *
+   * @return \Drupal\Core\Cache\CacheableJsonResponse
    */
   public function index() {
     // Execute the request in context so the cacheable metadata from the entity
@@ -64,32 +61,32 @@ class EntryPoint extends ControllerBase {
     $context = new RenderContext();
     /** @var \Drupal\Core\Cache\CacheableResponseInterface $response */
     $do_build_urls = function () {
-      $self = Url::fromRoute('jsonapi.resource_list')
-        ->setOption('absolute', TRUE);
+      $self = Url::fromRoute('jsonapi.resource_list')->setAbsolute();
 
       return array_reduce($this->resourceTypeRepository->all(), function (array $carry, ResourceType $resource_type) {
         // TODO: Learn how to invalidate the cache for this page when a new entity
         // type or bundle gets added, removed or updated.
         // $this->response->addCacheableDependency($definition);
-        $url = Url::fromRoute(sprintf('jsonapi.%s.collection', $resource_type->getTypeName()));
-        $url->setOption('absolute', TRUE);
+        $url = Url::fromRoute(sprintf('jsonapi.%s.collection', $resource_type->getTypeName()))
+          ->setAbsolute();
         $carry[$resource_type->getTypeName()] = $url->toString();
 
         return $carry;
       }, ['self' => $self->toString()]);
     };
     $urls = $this->renderer->executeInRenderContext($context, $do_build_urls);
-    if (!$context->isEmpty()) {
-      $this->response->addCacheableDependency($context->pop());
-    }
 
-    $this->response->setData(
-      [
+    $json_response = new CacheableJsonResponse([
         'data' => [],
         'links' => $urls
       ]
     );
-    return $this->response;
+
+    if (!$context->isEmpty()) {
+      $json_response->addCacheableDependency($context->pop());
+    }
+
+    return $json_response;
   }
 
 }
