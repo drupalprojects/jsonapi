@@ -23,6 +23,7 @@ use Drupal\user\RoleInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Route;
 
@@ -152,7 +153,6 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ])->save();
     }, [RoleInterface::ANONYMOUS_ID, 'test_role_one', 'test_role_two']);
   }
-
 
   /**
    * @covers ::getIndividual
@@ -517,6 +517,27 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
     $this->assertEquals('test', $response->getResponseData()->getData()->id());
     $this->assertEquals(201, $response->getStatusCode());
+  }
+
+  /**
+   * @covers ::createIndividual
+   */
+  public function testCreateIndividualDuplicateError() {
+    Role::load(Role::ANONYMOUS_ID)
+      ->grantPermission('create article content')
+      ->save();
+
+    $node = Node::create([
+      'type' => 'article',
+      'title' => 'Lorem ipsum',
+    ]);
+    $node->save();
+    $node->enforceIsNew();
+
+
+    $this->setExpectedException(ConflictHttpException::class, 'Conflict: Entity already exists.');
+    $entity_resource = $this->buildEntityResource('node', 'article');
+    $entity_resource->createIndividual($node, new Request());
   }
 
   /**

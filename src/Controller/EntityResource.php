@@ -4,7 +4,6 @@ namespace Drupal\jsonapi\Controller;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Access\AccessibleInterface;
-use Drupal\Core\Access\AccessResultReasonInterface;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
@@ -16,23 +15,21 @@ use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
+use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
-use Drupal\jsonapi\Resource\EntityCollection;
-use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
-use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Exception\UnprocessableHttpEntityException;
 use Drupal\jsonapi\Query\QueryBuilder;
-use Drupal\jsonapi\Context\CurrentContext;
+use Drupal\jsonapi\Resource\EntityCollection;
+use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\ResourceResponse;
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Routing\Param\JsonApiParamBase;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 /**
  * @see \Drupal\jsonapi\Controller\RequestHandler
@@ -178,6 +175,13 @@ class EntityResource {
       throw new EntityAccessDeniedHttpException($entity, $entity_access, '/data', 'The current user is not allowed to POST the selected resource.');
     }
     $this->validate($entity);
+
+    // Return a 409 Conflict response in accordance with the JSON API spec. See
+    // http://jsonapi.org/format/#crud-creating-responses-409.
+    if ($this->entityExists($entity)) {
+      throw new ConflictHttpException('Conflict: Entity already exists.');
+    }
+
     $entity->save();
     return $this->getIndividual($entity, $request, 201);
   }
@@ -738,6 +742,22 @@ class EntityResource {
     }
 
     return $output;
+  }
+
+  /**
+   * Checks if the given entity exists.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity for which to test existence.
+   *
+   * @return boolean
+   *   Whether the entity already has been created.
+   */
+  protected function entityExists(EntityInterface $entity) {
+    $entity_storage = $this->entityTypeManager->getStorage($entity->getEntityTypeId());
+    return !empty($entity_storage->loadByProperties([
+      'uuid' => $entity->uuid(),
+    ]));
   }
 
 }
