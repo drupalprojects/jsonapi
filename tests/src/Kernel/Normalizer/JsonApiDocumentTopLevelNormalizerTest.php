@@ -5,6 +5,7 @@ namespace Drupal\Tests\jsonapi\Kernel\Normalizer;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\file\Entity\File;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer;
@@ -14,6 +15,7 @@ use Drupal\node\Entity\NodeType;
 use Drupal\jsonapi\ResourceResponse;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
+use Drupal\Tests\image\Kernel\ImageFieldCreationTrait;
 use Drupal\Tests\jsonapi\Kernel\JsonapiKernelTestBase;
 use Drupal\user\Entity\Role;
 use Drupal\user\Entity\User;
@@ -31,6 +33,8 @@ use Symfony\Component\Routing\Route;
  */
 class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
 
+  use ImageFieldCreationTrait;
+
   /**
    * {@inheritdoc}
    */
@@ -43,6 +47,8 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     'taxonomy',
     'text',
     'user',
+    'file',
+    'image',
   ];
 
   /**
@@ -68,10 +74,12 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $this->installEntitySchema('node');
     $this->installEntitySchema('user');
     $this->installEntitySchema('taxonomy_term');
+    $this->installEntitySchema('file');
     // Add the additional table schemas.
     $this->installSchema('system', ['sequences']);
     $this->installSchema('node', ['node_access']);
     $this->installSchema('user', ['users_data']);
+    $this->installSchema('file', ['file_usage']);
     $type = NodeType::create([
       'type' => 'article',
     ]);
@@ -86,6 +94,9 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       ['target_bundles' => ['tags']],
       FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED
     );
+
+    $this->createImageField('field_image', 'article');
+
     $this->user = User::create([
       'name' => 'user1',
       'mail' => 'user@localhost',
@@ -113,6 +124,12 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $this->term1->save();
     $this->term2->save();
 
+    $this->file = File::create([
+      'uri' => 'public://example.png',
+      'filename' => 'example.png',
+    ]);
+    $this->file->save();
+
     $this->node = Node::create([
       'title' => 'dummy_title',
       'type' => 'article',
@@ -120,6 +137,15 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       'field_tags' => [
         ['target_id' => $this->term1->id()],
         ['target_id' => $this->term2->id()],
+      ],
+      'field_image' => [
+        [
+          'target_id' => $this->file->id(),
+          'alt' => 'test alt',
+          'title' => 'test title',
+          'width' => 10,
+          'height' => 11,
+        ],
       ],
     ]);
 
@@ -176,10 +202,10 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     list($request, $resource_type) = $this->generateProphecies('node', 'article');
     $request->query = new ParameterBag([
       'fields' => [
-        'node--article' => 'title,type,uid,field_tags',
+        'node--article' => 'title,type,uid,field_tags,field_image',
         'user--user' => 'name',
       ],
-      'include' => 'uid,field_tags',
+      'include' => 'uid,field_tags,field_image',
     ]);
 
     $response = new ResourceResponse();
@@ -208,6 +234,12 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       ],
     ], $normalized['data']['relationships']['type']);
     $this->assertTrue(!isset($normalized['data']['attributes']['created']));
+    $this->assertEquals([
+      'alt' => 'test alt',
+      'title' => 'test title',
+      'width' => 10,
+      'height' => 11,
+    ], $normalized['data']['relationships']['field_image']['data']['meta']);
     $this->assertSame('node--article', $normalized['data']['type']);
     $this->assertEquals([
       'data' => [
@@ -231,7 +263,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
     $this->assertSame(
-      ['node:1', 'taxonomy_term:1', 'taxonomy_term:2'],
+      ['file:1', 'node:1', 'taxonomy_term:1', 'taxonomy_term:2'],
       $response->getCacheableMetadata()->getCacheTags()
     );
     $this->assertSame(

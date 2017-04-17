@@ -39,6 +39,13 @@ class RelationshipItem {
   protected $parent;
 
   /**
+   * The list of metadata associated with this relationship item value.
+   *
+   * @var array
+   */
+  protected $metadata;
+
+  /**
    * Relationship item constructor.
    *
    * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepository $resource_type_repository
@@ -49,8 +56,10 @@ class RelationshipItem {
    *   The parent of this item.
    * @param string $target_key
    *   The key name of the target relationship.
+   * @param array $metadata
+   *   The list of metadata associated with this relationship item value.
    */
-  public function __construct(ResourceTypeRepository $resource_type_repository, EntityInterface $target_entity, Relationship $parent, $target_key = 'target_id') {
+  public function __construct(ResourceTypeRepository $resource_type_repository, EntityInterface $target_entity, Relationship $parent, $target_key = 'target_id', array $metadata = []) {
     $this->targetResourceType = $resource_type_repository->get(
       $target_entity->getEntityTypeId(),
       $target_entity->bundle()
@@ -58,6 +67,7 @@ class RelationshipItem {
     $this->targetKey = $target_key;
     $this->targetEntity = $target_entity;
     $this->parent = $parent;
+    $this->metadata = $metadata;
   }
 
   /**
@@ -86,7 +96,10 @@ class RelationshipItem {
    * @return string
    */
   public function getValue() {
-    return [$this->targetKey => $this->getTargetEntity()->uuid()];
+    return [
+      'target_uuid' => $this->getTargetEntity()->uuid(),
+      'meta' => $this->metadata,
+    ];
   }
 
   /**

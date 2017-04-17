@@ -85,17 +85,31 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
     $cardinality = $definition
       ->getFieldStorageDefinition()
       ->getCardinality();
-    $entity_list = array_filter($field->getIterator()->getArrayCopy(), function ($item) {
+    /** @var \Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem[] $entity_reference_item_list */
+    $entity_reference_item_list = array_filter(iterator_to_array($field), function ($item) {
       return (bool) $item->get('entity')->getValue();
     });
-    $entity_list = array_map(function ($item) {
+    $entity_list_metadata = [];
+    $entity_list = [];
+    foreach ($entity_reference_item_list as $item) {
+      // Prepare a list of additional properties stored by the field.
+      $metadata = [];
+      /** @var \Drupal\Core\TypedData\TypedDataInterface[] $properties */
+      $properties = $item->getProperties();
+      foreach ($properties as $property_key => $property) {
+        if ($property_key !== $main_property) {
+          $metadata[$property_key] = $property->getValue();
+        }
+      }
+      $entity_list_metadata[] = $metadata;
+
       // Get the referenced entity.
       $entity = $item->get('entity')->getValue();
       // And get the translation in the requested language.
-      return $this->entityRepository->getTranslationFromContext($entity);
-    }, $entity_list);
+      $entity_list[] = $this->entityRepository->getTranslationFromContext($entity);
+    }
     $entity_collection = new EntityCollection($entity_list);
-    $relationship = new Relationship($this->resourceTypeRepository, $field->getName(), $cardinality, $entity_collection, $field->getEntity(), $main_property);
+    $relationship = new Relationship($this->resourceTypeRepository, $field->getName(), $cardinality, $entity_collection, $field->getEntity(), $main_property, $entity_list_metadata);
     return $this->serializer->normalize($relationship, $format, $context);
   }
 

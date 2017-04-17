@@ -68,19 +68,23 @@ class Relationship implements AccessibleInterface {
    *   The host entity.
    * @param string $target_key
    *   The property name of the relationship id.
+   * @param array $entity_list_metadata
+   *   An array of additional properties stored by the field and that will be
+   *   added to the meta in the relationship.
    */
-  public function __construct(ResourceTypeRepository $resource_type_repository, $field_name, $cardinality = FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED, EntityCollection $entities, EntityInterface $host_entity, $target_key = 'target_id') {
+  public function __construct(ResourceTypeRepository $resource_type_repository, $field_name, $cardinality = FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED, EntityCollection $entities, EntityInterface $host_entity, $target_key = 'target_id', array $entity_list_metadata = array()) {
     $this->resourceTypeRepository = $resource_type_repository;
     $this->propertyName = $field_name;
     $this->cardinality = $cardinality;
     $this->hostEntity = $host_entity;
     $this->items = [];
-    foreach ($entities as $entity) {
+    foreach ($entities as $key => $entity) {
       $this->items[] = new RelationshipItem(
         $resource_type_repository,
         $entity,
         $this,
-        $target_key
+        $target_key,
+        $entity_list_metadata[$key]
       );
     }
   }

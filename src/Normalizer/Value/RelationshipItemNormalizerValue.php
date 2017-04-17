@@ -39,10 +39,16 @@ class RelationshipItemNormalizerValue extends FieldItemNormalizerValue implement
     if (!$value = parent::rasterizeValue()) {
       return $value;
     }
-    return [
+    $rasterized_value = [
       'type' => $this->resource->getTypeName(),
-      'id' => $value,
+      'id' => empty($value['target_uuid']) ? $value : $value['target_uuid'],
     ];
+
+    if (!empty($value['meta'])) {
+      $rasterized_value['meta'] = $value['meta'];
+    }
+
+    return $rasterized_value;
   }
 
   /**
