@@ -23,7 +23,6 @@ class NullFieldNormalizerValue implements FieldNormalizerValueInterface {
 
   public function setPropertyType($property_type) {
     $this->propertyType = $property_type;
-    return $this;
   }
 
   public function rasterizeValue() {
