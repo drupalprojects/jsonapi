@@ -95,7 +95,7 @@ class ResourceTypeRepository {
     if (empty($entity_type_id)) {
       throw new PreconditionFailedHttpException('Server error. The current route is malformed.');
     }
-    foreach ($this->all(TRUE) as $resource) {
+    foreach ($this->all() as $resource) {
       if ($resource->getEntityTypeId() == $entity_type_id && $resource->getBundle() == $bundle) {
         return $resource;
       }
