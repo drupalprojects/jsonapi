@@ -88,6 +88,52 @@ class ResourceType {
   }
 
   /**
+   * Translates the entity field name to the public field name.
+   *
+   * This is only here so we can allow polymorphic implementations to take a
+   * greater control on the field names.
+   *
+   * @return string
+   *   The public field name.
+   */
+  public function getPublicName($field_name) {
+    // By default the entity field name is the public field name.
+    return $field_name;
+  }
+
+  /**
+   * Translates the public field name to the entity field name.
+   *
+   * This is only here so we can allow polymorphic implementations to take a
+   * greater control on the field names.
+   *
+   * @return string
+   *   The internal field name as defined in the entity.
+   */
+  public function getInternalName($field_name) {
+    // By default the entity field name is the public field name.
+    return $field_name;
+  }
+
+  /**
+   * Checks if a field is enabled or not.
+   *
+   * This is only here so we can allow polymorphic implementations to take a
+   * greater control on the data model.
+   *
+   * @param string $field_name
+   *   The internal field name.
+   *
+   * @return bool
+   *   TRUE if the field is enabled and should be considered as part of the data
+   *   model. FALSE otherwise.
+   */
+  public function isFieldEnabled($field_name) {
+    // By default all fields are enabled.
+    return TRUE;
+  }
+
+  /**
    * Instantiates a ResourceType object.
    *
    * @param string $entity_type_id

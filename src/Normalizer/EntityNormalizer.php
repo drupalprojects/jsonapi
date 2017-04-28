@@ -88,11 +88,11 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
       $field_names = $context['sparse_fieldset'][$resource_type_name];
     }
     else {
-      $field_names = $this->getFieldNames($entity, $bundle);
+      $field_names = $this->getFieldNames($entity, $bundle, $resource_type);
     }
     /* @var Value\FieldNormalizerValueInterface[] $normalizer_values */
     $normalizer_values = [];
-    foreach ($this->getFields($entity, $bundle) as $field_name => $field) {
+    foreach ($this->getFields($entity, $bundle, $resource_type) as $field_name => $field) {
       if (!in_array($field_name, $field_names)) {
         continue;
       }
@@ -143,8 +143,19 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
       $data[$bundle_key] = $bundle;
     }
 
+    $data_internal = [];
+    // Translate the public fields into the entity fields.
+    foreach ($data as $public_field_name => $field_value) {
+      // Skip any disabled field.
+      if (!$resource_type->isFieldEnabled($public_field_name)) {
+        continue;
+      }
+      $internal_name = $resource_type->getInternalName($public_field_name);
+      $data_internal[$internal_name] = $field_value;
+    }
+
     return $this->entityTypeManager->getStorage($entity_type_id)
-      ->create($data);
+      ->create($data_internal);
   }
 
   /**
@@ -152,13 +163,15 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
    *
    * @param mixed $entity
    *   The entity.
+   * @param \Drupal\jsonapi\ResourceType\ResourceType $resource_type
+   *   The resource type.
    *
    * @return string[]
    *   The field names.
    */
-  protected function getFieldNames($entity, $bundle) {
+  protected function getFieldNames($entity, $bundle, ResourceType $resource_type) {
     /* @var \Drupal\Core\Entity\ContentEntityInterface $entity */
-    return array_keys($this->getFields($entity, $bundle));
+    return array_keys($this->getFields($entity, $bundle, $resource_type));
   }
 
   /**
@@ -168,13 +181,28 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
    *   The entity.
    * @param string $bundle
    *   The bundle id.
+   * @param \Drupal\jsonapi\ResourceType\ResourceType $resource_type
+   *   The resource type.
    *
    * @return array
    *   The fields.
    */
-  protected function getFields($entity, $bundle) {
+  protected function getFields($entity, $bundle, ResourceType $resource_type) {
+    $output = [];
+    $fields = $entity->getFields();
+    // Filter the array based on the field names.
+    $enabled_field_names = array_filter(
+      array_keys($fields),
+      [$resource_type, 'isFieldEnabled']
+    );
+    // Return a sub-array of $output containing the keys in $enabled_fields.
+    $input = array_intersect_key($fields, array_flip($enabled_field_names));
     /* @var \Drupal\Core\Entity\ContentEntityInterface $entity */
-    return $entity->getFields();
+    foreach ($input as $field_name => $field_value) {
+      $public_field_name = $resource_type->getPublicName($field_name);
+      $output[$public_field_name] = $field_value;
+    }
+    return $output;
   }
 
   /**

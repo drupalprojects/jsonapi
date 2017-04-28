@@ -1,10 +1,11 @@
 <?php
 
-namespace Drupal\Tests\jsonapi\Kernel;
+namespace Drupal\Tests\jsonapi\Kernel\Context;
 
 use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\Tests\jsonapi\Kernel\JsonapiKernelTestBase;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -168,6 +169,31 @@ class FieldResolverTest extends JsonapiKernelTestBase {
     $this->assertEquals('field_test_ref2.entity.field_test_text', $this->sut->resolveInternal('field_test_ref2.field_test_text'));
     $this->assertEquals('field_test_ref2.entity.field_test_text.value', $this->sut->resolveInternal('field_test_ref2.field_test_text.value'));
     $this->assertEquals('field_test_ref2.entity.field_test_text.format', $this->sut->resolveInternal('field_test_ref2.field_test_text.format'));
+  }
+
+  /**
+   * Expects an error when an invalid field is provided.
+   *
+   * @covers ::resolveInternal
+   *
+   * @expectedException \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+   */
+  public function testResolveInternalError() {
+    $request = Request::create('/jsonapi/entity_test_with_bundle/bundle1');
+    $route = \Drupal::service('router.route_provider')
+      ->getRouteByName('jsonapi.entity_test_with_bundle--bundle1.collection');
+    $request->attributes->set(
+      RouteObjectInterface::ROUTE_NAME,
+      'jsonapi.entity_test_with_bundle--bundle1.collection'
+    );
+    $request->attributes->set(RouteObjectInterface::ROUTE_OBJECT, $route);
+
+    \Drupal::requestStack()->push($request);
+
+    $original = 'host.fail!!.deep';
+    $not_expected = 'host.entity.fail!!.entity.deep';
+
+    $this->assertEquals($not_expected, $this->sut->resolveInternal($original));
   }
 
 }

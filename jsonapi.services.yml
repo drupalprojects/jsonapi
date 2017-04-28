@@ -83,7 +83,7 @@ services:
     arguments: ['@jsonapi.resource_type.repository', '@request_stack', '@current_route_match']
   jsonapi.field_resolver:
     class: Drupal\jsonapi\Context\FieldResolver
-    arguments: ['@jsonapi.current_context', '@entity_field.manager']
+    arguments: ['@jsonapi.current_context', '@entity_field.manager', '@entity_type.bundle.info', '@jsonapi.resource_type.repository']
   access_check.jsonapi.custom_query_parameter_names:
     class: Drupal\jsonapi\Access\CustomQueryParameterNamesAccessCheck
     tags:
