@@ -20,7 +20,7 @@ class RoutesTest extends UnitTestCase {
   /**
    * List of routes objects for the different scenarios.
    *
-   * @var Routes[]
+   * @var \Drupal\jsonapi\Routing\Routes[]
    */
   protected $routes;
 
@@ -42,7 +42,6 @@ class RoutesTest extends UnitTestCase {
 
     $this->routes['ok'] = Routes::create($container->reveal());
   }
-
 
   /**
    * @covers ::routes

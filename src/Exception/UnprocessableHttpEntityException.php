@@ -32,13 +32,13 @@ class UnprocessableHttpEntityException extends HttpException {
    * UnprocessableHttpEntityException constructor.
    *
    * @param \Exception|null $previous
-   *    The pervious error, if any, associated with the request.
+   *   The pervious error, if any, associated with the request.
    * @param array $headers
-   *    The headers associated with the request.
+   *   The headers associated with the request.
    * @param int $code
-   *    The HTTP status code associated with the request. Defaults to zero
+   *   The HTTP status code associated with the request. Defaults to zero.
    */
-  public function __construct(\Exception $previous = NULL, array $headers = array(), $code = 0) {
+  public function __construct(\Exception $previous = NULL, array $headers = [], $code = 0) {
     parent::__construct(422, "Unprocessable Entity: validation failed.", $previous, $headers, $code);
   }
 
@@ -46,7 +46,7 @@ class UnprocessableHttpEntityException extends HttpException {
    * Gets the constraint violations associated with this exception.
    *
    * @return \Drupal\Core\Entity\EntityConstraintViolationListInterface
-   *    The constraint violations.
+   *   The constraint violations.
    */
   public function getViolations() {
     return $this->violations;

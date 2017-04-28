@@ -94,13 +94,13 @@ class FieldResolver {
       // Update the entity type with the referenced type.
       $entity_type_id = $definitions[$field_name]->getSetting('target_type');
       // $field_name may not be a reference field. In that case we should treat
-      //the rest of the parts as complex fields.
+      // the rest of the parts as complex fields.
       if (empty($entity_type_id)) {
         // This is the path from the initial entity type to the entity type that
         // contains $field_name. This path is a set of entity references.
         $entity_path = implode('.entity.', $reference_breadcrumbs);
         // This is the path from the final entity type to the selected field
-        //column.
+        // column.
         $field_path = implode('.', $parts);
 
         return implode('.', array_filter([$entity_path, $field_path]));

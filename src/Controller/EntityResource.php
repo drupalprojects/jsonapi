@@ -320,7 +320,7 @@ class EntityResource {
     foreach ($field_list->referencedEntities() as $referenced_entity) {
       /* @var \Drupal\Core\Entity\EntityInterface $referenced_entity */
       $collection_data[$referenced_entity->id()] = static::getEntityAndAccess($referenced_entity);
-       $cacheable_metadata->addCacheableDependency($referenced_entity);
+      $cacheable_metadata->addCacheableDependency($referenced_entity);
     }
     $entity_collection = new EntityCollection(array_column($collection_data, 'entity'));
     $response = $this->buildWrappedResponse($entity_collection);
@@ -645,9 +645,9 @@ class EntityResource {
   /**
    * Takes a field from the origin entity and puts it to the destination entity.
    *
-   * @param EntityInterface $origin
+   * @param \Drupal\Core\Entity\EntityInterface $origin
    *   The entity that contains the field values.
-   * @param EntityInterface $destination
+   * @param \Drupal\Core\Entity\EntityInterface $destination
    *   The entity that needs to be updated.
    * @param string $field_name
    *   The name of the field to extract and update.
@@ -686,6 +686,7 @@ class EntityResource {
    *
    * @param object $entity_field
    *   Entity definition.
+   *
    * @return bool
    *   Returns TRUE, if entity field is EntityReferenceItem.
    */
@@ -750,7 +751,7 @@ class EntityResource {
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity for which to test existence.
    *
-   * @return boolean
+   * @return bool
    *   Whether the entity already has been created.
    */
   protected function entityExists(EntityInterface $entity) {

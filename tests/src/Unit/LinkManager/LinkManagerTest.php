@@ -1,6 +1,7 @@
 <?php
 
 namespace Drupal\Tests\jsonapi\Unit\LinkManager;
+
 use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Routing\Param\OffsetPage;
@@ -10,7 +11,6 @@ use Symfony\Cmf\Component\Routing\ChainRouterInterface;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
-
 
 /**
  * @coversDefaultClass \Drupal\jsonapi\LinkManager\LinkManager
@@ -40,7 +40,6 @@ class LinkManagerTest extends UnitTestCase {
     $this->linkManager = new LinkManager($router->reveal(), $url_generator->reveal());
   }
 
-
   /**
    * @covers ::getPagerLinks
    * @dataProvider getPagerLinksProvider
@@ -66,7 +65,7 @@ class LinkManagerTest extends UnitTestCase {
   }
 
   /**
-   * Data provider for testGetPagerLinks
+   * Data provider for testGetPagerLinks.
    *
    * @return array
    *   The data for the test method.
@@ -77,42 +76,50 @@ class LinkManagerTest extends UnitTestCase {
         'first' => ['offset' => 0, 'limit' => 4],
         'prev' => ['offset' => 0, 'limit' => 4],
         'next' => ['offset' => 5, 'limit' => 4],
-      ]],
+      ],
+      ],
       [6, 4, FALSE, [
         'first' => ['offset' => 0, 'limit' => 4],
         'prev' => ['offset' => 2, 'limit' => 4],
         'next' => NULL,
-      ]],
+      ],
+      ],
       [7, 4, FALSE, [
         'first' => ['offset' => 0, 'limit' => 4],
         'prev' => ['offset' => 3, 'limit' => 4],
         'next' => NULL,
-      ]],
+      ],
+      ],
       [10, 4, FALSE, [
         'first' => ['offset' => 0, 'limit' => 4],
         'prev' => ['offset' => 6, 'limit' => 4],
         'next' => NULL,
-      ]],
+      ],
+      ],
       [5, 4, TRUE, [
         'first' => ['offset' => 0, 'limit' => 4],
         'prev' => ['offset' => 1, 'limit' => 4],
         'next' => ['offset' => 9, 'limit' => 4],
-      ]],
+      ],
+      ],
       [0, 4, TRUE, [
         'first' => NULL,
         'prev' => NULL,
         'next' => ['offset' => 4, 'limit' => 4],
-      ]],
+      ],
+      ],
       [0, 1, FALSE, [
         'first' => NULL,
         'prev' => NULL,
         'next' => NULL,
-      ]],
+      ],
+      ],
       [0, 1, FALSE, [
         'first' => NULL,
         'prev' => NULL,
         'next' => NULL,
-      ]],
+      ],
+      ],
     ];
   }
 
@@ -140,7 +147,8 @@ class LinkManagerTest extends UnitTestCase {
         'prev' => NULL,
         'last' => NULL,
         'next' => NULL,
-      ]],
+      ],
+      ],
     ];
   }
 

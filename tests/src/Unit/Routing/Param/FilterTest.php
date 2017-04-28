@@ -30,56 +30,66 @@ class FilterTest extends UnitTestCase {
    */
   public function getProvider() {
     return [
-      [ // Tests filter[0][field]=foo&filter[0][value]=bar
+    // Tests filter[0][field]=foo&filter[0][value]=bar.
+      [
         [['path' => 'foo', 'value' => 'bar']],
-        [['condition' => [ 'path' => 'foo', 'value' => 'bar', 'operator' => '=']]],
+        [['condition' => ['path' => 'foo', 'value' => 'bar', 'operator' => '=']]],
       ],
-      [ // Tests filter[foo][value]=bar
+// Tests filter[foo][value]=bar.
+      [
         ['foo' => ['value' => 'bar']],
-        ['foo' => ['condition' => [ 'path' => 'foo', 'value' => 'bar', 'operator' => '=']]],
+        ['foo' => ['condition' => ['path' => 'foo', 'value' => 'bar', 'operator' => '=']]],
       ],
-      [ // Tests filter[foo][value]=bar&filter[foo][operator]=>
+      // Tests filter[foo][value]=bar&filter[foo][operator]=>.
+      [
         ['foo' => ['value' => 'bar', 'operator' => '>']],
-        ['foo' => ['condition' => [ 'path' => 'foo', 'value' => 'bar', 'operator' => '>']]],
+        ['foo' => ['condition' => ['path' => 'foo', 'value' => 'bar', 'operator' => '>']]],
       ],
-      [ // Tests filter[foo][value][]=1&filter[foo][value][]=2&filter[foo][value][]=3&filter[foo][operator]=NOT IN
+      // Tests filter[foo][value][]=1&filter[foo][value][]=2&filter[foo][value][]=3&filter[foo][operator]=NOT IN.
+      [
         ['foo' => ['value' => ['1', '2', '3'], 'operator' => 'NOT IN']],
-        ['foo' => ['condition' => [ 'path' => 'foo', 'value' => ['1', '2', '3'], 'operator' => 'NOT IN']]],
+        ['foo' => ['condition' => ['path' => 'foo', 'value' => ['1', '2', '3'], 'operator' => 'NOT IN']]],
       ],
-      [ // Tests filter[foo][value][]=1&filter[foo][value][]=10&filter[foo][operator]=BETWEEN
+      // Tests filter[foo][value][]=1&filter[foo][value][]=10&filter[foo][operator]=BETWEEN.
+      [
         ['foo' => ['value' => ['1', '10'], 'operator' => 'BETWEEN']],
-        ['foo' => ['condition' => [ 'path' => 'foo', 'value' => ['1', '10'], 'operator' => 'BETWEEN']]],
+        ['foo' => ['condition' => ['path' => 'foo', 'value' => ['1', '10'], 'operator' => 'BETWEEN']]],
       ],
-      [ // Tests filter[0][field]=foo&filter[0][value]=1&filter[0][operator]=>
+      // Tests filter[0][field]=foo&filter[0][value]=1&filter[0][operator]=>.
+      [
         [['path' => 'foo', 'value' => '1', 'operator' => '>']],
-        [['condition' => [ 'path' => 'foo', 'value' => '1', 'operator' => '>']]],
+        [['condition' => ['path' => 'foo', 'value' => '1', 'operator' => '>']]],
       ],
-      [ // Tests filter[0][condition][field]=foo&filter[0][condition][value]=1&filter[0][condition][operator]=>
-        [['condition' => [ 'path' => 'foo', 'value' => '1', 'operator' => '>']]],
-        [['condition' => [ 'path' => 'foo', 'value' => '1', 'operator' => '>']]],
+      // Tests filter[0][condition][field]=foo&filter[0][condition][value]=1&filter[0][condition][operator]=>.
+      [
+        [['condition' => ['path' => 'foo', 'value' => '1', 'operator' => '>']]],
+        [['condition' => ['path' => 'foo', 'value' => '1', 'operator' => '>']]],
       ],
-      [ // Tests filter[0][field]=foo&filter[0][value][]=bar&filter[0][value][]=baz
+      // Tests filter[0][field]=foo&filter[0][value][]=bar&filter[0][value][]=baz.
+      [
         [['path' => 'foo', 'value' => ['bar', 'baz']]],
-        [['condition' => [ 'path' => 'foo', 'value' => ['bar', 'baz'], 'operator' => '=']]],
+        [['condition' => ['path' => 'foo', 'value' => ['bar', 'baz'], 'operator' => '=']]],
       ],
       [
-        [ // Tests filter[0][field]=foo&filter[0][value]=bar&filter[1][condition][field]=baz&filter[1][condition][value]=zab&filter[1][condition][operator]=<>
+      // Tests filter[0][field]=foo&filter[0][value]=bar&filter[1][condition][field]=baz&filter[1][condition][value]=zab&filter[1][condition][operator]=<>.
+        [
           0 => ['path' => 'foo', 'value' => 'bar'],
-          1 => ['condition' => [ 'path' => 'baz', 'value' => 'zab', 'operator' => '<>']],
+          1 => ['condition' => ['path' => 'baz', 'value' => 'zab', 'operator' => '<>']],
         ],
         [
-          0 => ['condition' => [ 'path' => 'foo', 'value' => 'bar', 'operator' => '=']],
-          1 => ['condition' => [ 'path' => 'baz', 'value' => 'zab', 'operator' => '<>']],
+          0 => ['condition' => ['path' => 'foo', 'value' => 'bar', 'operator' => '=']],
+          1 => ['condition' => ['path' => 'baz', 'value' => 'zab', 'operator' => '<>']],
         ],
       ],
       [
-        [ // Tests filter[zero][field]=foo&filter[zero][value]=bar&filter[one][condition][field]=baz&filter[one][condition][value]=zab&filter[one][condition][operator]=<>
+      // Tests filter[zero][field]=foo&filter[zero][value]=bar&filter[one][condition][field]=baz&filter[one][condition][value]=zab&filter[one][condition][operator]=<>.
+        [
           'zero' => ['path' => 'foo', 'value' => 'bar'],
-          'one' => ['condition' => [ 'path' => 'baz', 'value' => 'zab', 'operator' => '<>']],
+          'one' => ['condition' => ['path' => 'baz', 'value' => 'zab', 'operator' => '<>']],
         ],
         [
-          'zero' => ['condition' => [ 'path' => 'foo', 'value' => 'bar', 'operator' => '=']],
-          'one' => ['condition' => [ 'path' => 'baz', 'value' => 'zab', 'operator' => '<>']],
+          'zero' => ['condition' => ['path' => 'foo', 'value' => 'bar', 'operator' => '=']],
+          'one' => ['condition' => ['path' => 'baz', 'value' => 'zab', 'operator' => '<>']],
         ],
       ],
     ];

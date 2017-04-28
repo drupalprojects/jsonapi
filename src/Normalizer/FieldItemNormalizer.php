@@ -23,12 +23,12 @@ class FieldItemNormalizer extends NormalizerBase {
    *
    * @var array
    */
-  protected $formats = array('api_json');
+  protected $formats = ['api_json'];
 
   /**
    * {@inheritdoc}
    */
-  public function normalize($field_item, $format = NULL, array $context = array()) {
+  public function normalize($field_item, $format = NULL, array $context = []) {
     /** @var \Drupal\Core\TypedData\TypedDataInterface $property */
     $values = [];
     // We normalize each individual property, so each can do their own casting,
@@ -46,7 +46,7 @@ class FieldItemNormalizer extends NormalizerBase {
   /**
    * {@inheritdoc}
    */
-  public function denormalize($data, $class, $format = NULL, array $context = array()) {
+  public function denormalize($data, $class, $format = NULL, array $context = []) {
     throw new UnexpectedValueException('Denormalization not implemented for JSON API');
   }
 

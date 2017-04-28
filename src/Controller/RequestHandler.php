@@ -63,7 +63,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     // Determine the request parameters that should be passed to the resource
     // plugin.
     $route_parameters = $route_match->getParameters();
-    $parameters = array();
+    $parameters = [];
 
     // Filter out all internal parameters starting with "_".
     foreach ($route_parameters as $key => $parameter) {
@@ -105,7 +105,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
    * @param string $serialization_class
    *   The class the input data needs to deserialize into.
    * @param \Drupal\jsonapi\Context\CurrentContext $current_context
-   *   The current context
+   *   The current context.
    *
    * @return mixed
    *   The deserialized data or a Response object in case of error.

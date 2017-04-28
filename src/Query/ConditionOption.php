@@ -19,7 +19,7 @@ class ConditionOption implements QueryOptionInterface {
   /**
    * A unique key representing the intended parent of this option.
    *
-   * @var string|NULL
+   * @var string|null
    */
   protected $parentId;
 

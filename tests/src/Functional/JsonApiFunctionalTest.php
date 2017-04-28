@@ -128,7 +128,7 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $this->assertFalse(empty($first_include['attributes']));
     $this->assertTrue(empty($first_include['attributes']['mail']));
     $this->assertTrue(empty($first_include['attributes']['pass']));
-    // 12. Collection with one access denied
+    // 12. Collection with one access denied.
     $this->nodes[1]->set('status', FALSE);
     $this->nodes[1]->save();
     $single_output = Json::decode($this->drupalGet('/jsonapi/node/article', [
@@ -353,7 +353,7 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $this->assertEquals(422, $response->getStatusCode());
     $this->assertNotEmpty($created_response['errors']);
     $this->assertEquals('Unprocessable Entity', $created_response['errors'][0]['title']);
-    // 4. Article with a duplicate ID
+    // 4. Article with a duplicate ID.
     $invalid_body = $body;
     $invalid_body['data']['attributes']['nid'] = 1;
     $response = $this->request('POST', $collection_url, [

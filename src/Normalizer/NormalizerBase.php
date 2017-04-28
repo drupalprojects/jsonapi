@@ -14,7 +14,7 @@ abstract class NormalizerBase extends SerializationNormalizerBase {
    *
    * @var array
    */
-  protected $formats = array('api_json');
+  protected $formats = ['api_json'];
 
   /**
    * The JSON API resource type repository.

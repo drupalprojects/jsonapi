@@ -2,6 +2,7 @@
 
 namespace Drupal\jsonapi\EventSubscriber;
 
+use JsonSchema\Validator;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\CacheableResponse;
 use Drupal\Core\Cache\CacheableResponseInterface;
@@ -185,10 +186,10 @@ class ResourceResponseSubscriber implements EventSubscriberInterface {
       return TRUE;
     }
 
-    $validator = new \JsonSchema\Validator;
-    $schema_path = dirname(dirname(__DIR__)) .'/schema.json';
+    $validator = new Validator();
+    $schema_path = dirname(dirname(__DIR__)) . '/schema.json';
 
-    $validator->check($response_data, (object)['$ref' => 'file://' . $schema_path]);
+    $validator->check($response_data, (object) ['$ref' => 'file://' . $schema_path]);
 
     if (!$validator->isValid()) {
       $this->logger->debug('Response failed validation: @data', [

@@ -16,7 +16,6 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 
-
 /**
  * @coversDefaultClass \Drupal\jsonapi\Routing\JsonApiParamEnhancer
  * @group jsonapi
@@ -51,7 +50,7 @@ class JsonApiParamEnhancerTest extends UnitTestCase {
     $route = $this->prophesize(Route::class);
     $route->getRequirement('_entity_type')->willReturn('dolor');
     $defaults = $object->enhance([
-      RouteObjectInterface::ROUTE_OBJECT => $route->reveal()
+      RouteObjectInterface::ROUTE_OBJECT => $route->reveal(),
     ], $request->reveal());
     $this->assertInstanceOf(Filter::class, $defaults['_json_api_params']['filter']);
     $this->assertInstanceOf(OffsetPage::class, $defaults['_json_api_params']['page']);

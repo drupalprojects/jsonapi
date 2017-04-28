@@ -10,7 +10,7 @@ use Drupal\jsonapi\JsonApiSpec;
 /**
  * @internal
  */
-class JsonApiDocumentTopLevelNormalizerValue implements ValueExtractorInterface, RefinableCacheableDependencyInterface  {
+class JsonApiDocumentTopLevelNormalizerValue implements ValueExtractorInterface, RefinableCacheableDependencyInterface {
 
   use RefinableCacheableDependencyTrait;
 

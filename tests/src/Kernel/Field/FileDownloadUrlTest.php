@@ -39,15 +39,15 @@ class FileDownloadUrlTest extends KernelTestBase {
     parent::setUp();
 
     $this->installEntitySchema('file');
-    $this->installSchema('file', array('file_usage'));
+    $this->installSchema('file', ['file_usage']);
 
     // Create a new file entity.
-    $this->file = File::create(array(
+    $this->file = File::create([
       'filename' => $this->filename,
       'uri' => sprintf('public://%s', $this->filename),
       'filemime' => 'text/plain',
       'status' => FILE_STATUS_PERMANENT,
-    ));
+    ]);
 
     $this->file->save();
   }

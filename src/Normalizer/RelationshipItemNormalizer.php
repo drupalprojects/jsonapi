@@ -56,7 +56,7 @@ class RelationshipItemNormalizer extends FieldItemNormalizer implements UuidRefe
   /**
    * {@inheritdoc}
    */
-  public function normalize($relationship_item, $format = NULL, array $context = array()) {
+  public function normalize($relationship_item, $format = NULL, array $context = []) {
     /* @var $relationship_item \Drupal\jsonapi\Normalizer\RelationshipItem */
     // TODO: We are always loading the referenced entity. Even if it is not
     // going to be included. That may be a performance issue. We do it because

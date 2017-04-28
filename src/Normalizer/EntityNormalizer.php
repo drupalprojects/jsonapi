@@ -32,7 +32,7 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
    *
    * @var array
    */
-  protected $formats = array('api_json');
+  protected $formats = ['api_json'];
 
   /**
    * The link manager.
@@ -74,7 +74,7 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
   /**
    * {@inheritdoc}
    */
-  public function normalize($entity, $format = NULL, array $context = array()) {
+  public function normalize($entity, $format = NULL, array $context = []) {
     // If the fields to use were specified, only output those field values.
     $context['resource_type'] = $resource_type = $this->resourceTypeRepository->get(
       $entity->getEntityTypeId(),
@@ -129,7 +129,7 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
   /**
    * {@inheritdoc}
    */
-  public function denormalize($data, $class, $format = NULL, array $context = array()) {
+  public function denormalize($data, $class, $format = NULL, array $context = []) {
     if (empty($context['resource_type']) || !$context['resource_type'] instanceof ResourceType) {
       throw new PreconditionFailedHttpException('Missing context during denormalization.');
     }

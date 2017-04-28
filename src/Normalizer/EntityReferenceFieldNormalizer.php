@@ -76,7 +76,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
   /**
    * {@inheritdoc}
    */
-  public function normalize($field, $format = NULL, array $context = array()) {
+  public function normalize($field, $format = NULL, array $context = []) {
     /* @var $field \Drupal\Core\Field\FieldItemListInterface */
     // Build the relationship object based on the Entity Reference and normalize
     // that object instead.
@@ -116,7 +116,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
   /**
    * {@inheritdoc}
    */
-  public function denormalize($data, $class, $format = NULL, array $context = array()) {
+  public function denormalize($data, $class, $format = NULL, array $context = []) {
     // If we get to here is through a write method on a relationship operation.
     /** @var \Drupal\jsonapi\ResourceType\ResourceType $resource_type */
     $resource_type = $context['resource_type'];

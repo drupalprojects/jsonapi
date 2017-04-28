@@ -23,12 +23,12 @@ class FieldNormalizer extends NormalizerBase {
    *
    * @var array
    */
-  protected $formats = array('api_json');
+  protected $formats = ['api_json'];
 
   /**
    * {@inheritdoc}
    */
-  public function normalize($field, $format = NULL, array $context = array()) {
+  public function normalize($field, $format = NULL, array $context = []) {
     /* @var \Drupal\Core\Field\FieldItemListInterface $field */
     return $this->normalizeFieldItems($field, $format, $context);
   }
@@ -36,7 +36,7 @@ class FieldNormalizer extends NormalizerBase {
   /**
    * {@inheritdoc}
    */
-  public function denormalize($data, $class, $format = NULL, array $context = array()) {
+  public function denormalize($data, $class, $format = NULL, array $context = []) {
     throw new UnexpectedValueException('Denormalization not implemented for JSON API');
   }
 
@@ -54,7 +54,7 @@ class FieldNormalizer extends NormalizerBase {
    *   The array of normalized field items.
    */
   protected function normalizeFieldItems(FieldItemListInterface $field, $format, array $context) {
-    $normalizer_items = array();
+    $normalizer_items = [];
     if (!$field->isEmpty()) {
       foreach ($field as $field_item) {
         $normalizer_items[] = $this->serializer->normalize($field_item, $format, $context);

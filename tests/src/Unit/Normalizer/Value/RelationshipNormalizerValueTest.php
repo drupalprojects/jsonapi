@@ -53,7 +53,8 @@ class RelationshipNormalizerValueTest extends UnitTestCase {
       [[$uid1->reveal()], 1, [
         'data' => ['type' => 'user', 'id' => 1],
         'links' => $links,
-      ]],
+      ],
+      ],
       [
         [$uid1->reveal(), $uid2->reveal()], 2, [
           'data' => [

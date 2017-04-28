@@ -68,7 +68,6 @@ abstract class JsonApiFunctionalTestBase extends BrowserTestBase {
    */
   protected $httpClient;
 
-
   /**
    * {@inheritdoc}
    */
@@ -81,10 +80,10 @@ abstract class JsonApiFunctionalTestBase extends BrowserTestBase {
 
     // Create Basic page and Article node types.
     if ($this->profile != 'standard') {
-      $this->drupalCreateContentType(array(
+      $this->drupalCreateContentType([
         'type' => 'article',
         'name' => 'Article',
-      ));
+      ]);
 
       // Setup vocabulary.
       Vocabulary::create([
@@ -111,13 +110,13 @@ abstract class JsonApiFunctionalTestBase extends BrowserTestBase {
       $this->createImageField('field_image', 'article');
     }
 
-    FieldStorageConfig::create(array(
+    FieldStorageConfig::create([
       'field_name' => 'field_link',
       'entity_type' => 'node',
       'type' => 'link',
       'settings' => [],
       'cardinality' => 1,
-    ))->save();
+    ])->save();
 
     $field_config = FieldConfig::create([
       'field_name' => 'field_link',
@@ -136,7 +135,7 @@ abstract class JsonApiFunctionalTestBase extends BrowserTestBase {
       'delete any article content',
     ]);
 
-    // Create a user that can
+    // Create a user that can.
     $this->userCanViewProfiles = $this->drupalCreateUser([
       'access user profiles',
     ]);
@@ -259,7 +258,7 @@ abstract class JsonApiFunctionalTestBase extends BrowserTestBase {
       // Make sure that there is at least 1 https link for ::testRead() #19.
       $this->nodes[0]->field_link = [
         'title' => 'Drupal',
-        'uri' => 'https://drupal.org'
+        'uri' => 'https://drupal.org',
       ];
       $this->nodes[0]->save();
     }

@@ -26,7 +26,7 @@ class RelationshipNormalizer extends NormalizerBase {
    *
    * @var array
    */
-  protected $formats = array('api_json');
+  protected $formats = ['api_json'];
 
   /**
    * The link manager.
@@ -51,7 +51,7 @@ class RelationshipNormalizer extends NormalizerBase {
   /**
    * {@inheritdoc}
    */
-  public function denormalize($data, $class, $format = NULL, array $context = array()) {
+  public function denormalize($data, $class, $format = NULL, array $context = []) {
     throw new UnexpectedValueException('Denormalization not implemented for JSON API');
   }
 
@@ -68,9 +68,9 @@ class RelationshipNormalizer extends NormalizerBase {
    * @return \Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValue
    *   The array of normalized field items.
    */
-  public function normalize($relationship, $format = NULL, array $context = array()) {
+  public function normalize($relationship, $format = NULL, array $context = []) {
     /* @var \Drupal\jsonapi\Normalizer\Relationship $relationship */
-    $normalizer_items = array();
+    $normalizer_items = [];
     foreach ($relationship->getItems() as $relationship_item) {
       $normalizer_items[] = $this->serializer->normalize($relationship_item, $format, $context);
     }

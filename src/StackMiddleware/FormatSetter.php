@@ -44,7 +44,7 @@ class FormatSetter implements HttpKernelInterface {
    * Inspects:
    * - request path (uses a heuristic, because e.g. language negotiation may use
    *   path prefixes)
-   * - 'Accept' request header value
+   * - 'Accept' request header value.
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The current request.

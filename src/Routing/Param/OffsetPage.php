@@ -36,7 +36,6 @@ class OffsetPage extends JsonApiParamBase {
     }
   }
 
-
   /**
    * {@inheritdoc}
    */

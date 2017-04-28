@@ -66,7 +66,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
   /**
    * {@inheritdoc}
    */
-  public function denormalize($data, $class, $format = NULL, array $context = array()) {
+  public function denormalize($data, $class, $format = NULL, array $context = []) {
     $context += [
       'on_relationship' => $this->currentContext->isOnRelationship(),
     ];
@@ -129,7 +129,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
   /**
    * {@inheritdoc}
    */
-  public function normalize($object, $format = NULL, array $context = array()) {
+  public function normalize($object, $format = NULL, array $context = []) {
     $context += ['resource_type' => $this->currentContext->getResourceType()];
     $value_extractor = $this->buildNormalizerValue($object->getData(), $format, $context);
     if (!empty($context['cacheable_metadata'])) {
@@ -159,11 +159,11 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
    * @return \Drupal\jsonapi\Normalizer\Value\JsonApiDocumentTopLevelNormalizerValue
    *   The normalizer value.
    */
-  public function buildNormalizerValue($data, $format = NULL, array $context = array()) {
+  public function buildNormalizerValue($data, $format = NULL, array $context = []) {
     $context += $this->expandContext($context['request']);
     if ($data instanceof EntityReferenceFieldItemListInterface) {
       $output = $this->serializer->normalize($data, $format, $context);
-      // The only normalizer value that computes nested includes automatically is the JsonApiDocumentTopLevelNormalizerValue
+      // The only normalizer value that computes nested includes automatically is the JsonApiDocumentTopLevelNormalizerValue.
       $output->setIncludes($output->getAllIncludes());
       return $output;
     }
@@ -187,19 +187,19 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
   /**
    * Expand the context information based on the current request context.
    *
-   * @param Request $request
+   * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request to get the URL params from to expand the context.
    *
    * @return array
    *   The expanded context.
    */
   protected function expandContext(Request $request) {
-    $context = array(
+    $context = [
       'account' => NULL,
       'sparse_fieldset' => NULL,
       'resource_type' => NULL,
       'include' => array_filter(explode(',', $request->query->get('include'))),
-    );
+    ];
     if (isset($this->currentContext)) {
       $context['resource_type'] = $this->currentContext->getResourceType();
     }

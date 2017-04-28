@@ -47,7 +47,7 @@ class HttpExceptionNormalizer extends NormalizerBase {
   public function normalize($object, $format = NULL, array $context = []) {
     $errors = $this->buildErrorObjects($object);
 
-    $errors = array_map(function($error) {
+    $errors = array_map(function ($error) {
       return new FieldItemNormalizerValue([$error]);
     }, $errors);
 
@@ -93,7 +93,7 @@ class HttpExceptionNormalizer extends NormalizerBase {
       ];
     }
 
-    return [ $error ];
+    return [$error];
   }
 
   /**
@@ -105,7 +105,7 @@ class HttpExceptionNormalizer extends NormalizerBase {
   protected function getInfoUrl($status_code) {
     // Depending on the error code we'll return a different URL.
     $url = 'http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html';
-    $sections = array(
+    $sections = [
       '100' => '#sec10.1.1',
       '101' => '#sec10.1.2',
       '200' => '#sec10.2.1',
@@ -146,7 +146,7 @@ class HttpExceptionNormalizer extends NormalizerBase {
       '503' => '#sec10.5.4',
       '504' => '#sec10.5.5',
       '505' => '#sec10.5.6',
-    );
+    ];
     return empty($sections[$status_code]) ? $url : $url . $sections[$status_code];
   }
 

@@ -23,11 +23,10 @@ class ScalarNormalizer extends NormalizerBase {
     return (!$data || is_scalar($data)) && in_array($format, $this->formats);
   }
 
-
   /**
    * {@inheritdoc}
    */
-  public function normalize($object, $format = NULL, array $context = array()) {
+  public function normalize($object, $format = NULL, array $context = []) {
     $value = new FieldItemNormalizerValue(['value' => $object]);
     return new FieldNormalizerValue([$value], 1);
   }
@@ -35,7 +34,7 @@ class ScalarNormalizer extends NormalizerBase {
   /**
    * {@inheritdoc}
    */
-  public function denormalize($data, $class, $format = NULL, array $context = array()) {
+  public function denormalize($data, $class, $format = NULL, array $context = []) {
     throw new UnexpectedValueException('Denormalization not implemented for JSON API');
   }
 

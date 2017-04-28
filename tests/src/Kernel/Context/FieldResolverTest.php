@@ -143,7 +143,6 @@ class FieldResolverTest extends JsonapiKernelTestBase {
     ])->save();
   }
 
-
   public function testResolveInternal() {
     $request = Request::create('/jsonapi/entity_test_with_bundle/bundle1');
     $route = \Drupal::service('router.route_provider')->getRouteByName('jsonapi.entity_test_with_bundle--bundle1.collection');

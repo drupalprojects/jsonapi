@@ -23,7 +23,7 @@ class JsonApiDocumentTopLevelNormalizerValueTest extends UnitTestCase {
   /**
    * The JsonApiDocumentTopLevelNormalizerValue object.
    *
-   * @var JsonApiDocumentTopLevelNormalizerValue
+   * @var \Drupal\jsonapi\Normalizer\Value\JsonApiDocumentTopLevelNormalizerValue
    */
   protected $object;
 
@@ -101,7 +101,7 @@ class JsonApiDocumentTopLevelNormalizerValueTest extends UnitTestCase {
         ['title' => $field1->reveal(), 'field_related' => $field2->reveal()],
         $context,
         $entity->reveal(),
-        ['link_manager' => $link_manager->reveal()]
+        ['link_manager' => $link_manager->reveal()],
       ])
       ->getMock();
     $this->object->method('addCacheableDependency');

@@ -20,7 +20,6 @@ use Drupal\Tests\jsonapi\Kernel\JsonapiKernelTestBase;
 use Drupal\user\Entity\Role;
 use Drupal\user\Entity\User;
 use Drupal\user\RoleInterface;
-use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
@@ -67,7 +66,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
   protected $node2;
 
   /**
-   * An unpublished node
+   * An unpublished node.
    *
    * @var \Drupal\node\Entity\Node
    */
@@ -198,7 +197,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       'node:2',
       'node:3',
       'node:4',
-      'node_list'
+      'node_list',
     ], $response->getCacheableMetadata()->getCacheTags());
   }
 
@@ -533,7 +532,6 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     ]);
     $node->save();
     $node->enforceIsNew();
-
 
     $this->setExpectedException(ConflictHttpException::class, 'Conflict: Entity already exists.');
     $entity_resource = $this->buildEntityResource('node', 'article');

@@ -77,9 +77,9 @@ class EntryPoint extends ControllerBase {
     $urls = $this->renderer->executeInRenderContext($context, $do_build_urls);
 
     $json_response = new CacheableJsonResponse([
-        'data' => [],
-        'links' => $urls
-      ]
+      'data' => [],
+      'links' => $urls,
+    ]
     );
 
     if (!$context->isEmpty()) {

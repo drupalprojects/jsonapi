@@ -170,7 +170,6 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     ])->save();
   }
 
-
   /**
    * {@inheritdoc}
    */
@@ -281,7 +280,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       'fields' => [
         'user--user' => 'name,roles',
       ],
-      'include' => 'roles'
+      'include' => 'roles',
     ]);
     $document_wrapper = $this->prophesize(JsonApiDocumentTopLevel::class);
     $author = $this->node->get('uid')->entity;
@@ -365,7 +364,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         'node--article' => 'title,type,uid',
         'user--user' => 'name',
       ],
-      'include' => 'uid'
+      'include' => 'uid',
     ]);
 
     $response = new ResourceResponse();
@@ -401,7 +400,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       'fields' => [
         'node_type--node_type' => 'uuid,display_submitted',
       ],
-      'include' => NULL
+      'include' => NULL,
     ]);
 
     $response = new ResourceResponse();
@@ -492,7 +491,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         ],
         [
           [$this->term1->id()],
-          NULL
+          NULL,
         ],
       ],
     ];

@@ -9,7 +9,7 @@ use Drupal\Core\Entity\EntityInterface;
 /**
  * @internal
  */
-class EntityNormalizerValue implements ValueExtractorInterface, RefinableCacheableDependencyInterface  {
+class EntityNormalizerValue implements ValueExtractorInterface, RefinableCacheableDependencyInterface {
 
   use RefinableCacheableDependencyTrait;
 
@@ -62,7 +62,7 @@ class EntityNormalizerValue implements ValueExtractorInterface, RefinableCacheab
    *   relationship.
    */
   public function __construct(array $values, array $context, EntityInterface $entity, array $link_context) {
-    $this->values = array_filter($values, function($value) {
+    $this->values = array_filter($values, function ($value) {
       return !($value instanceof NullFieldNormalizerValue);
     });
     $this->context = $context;

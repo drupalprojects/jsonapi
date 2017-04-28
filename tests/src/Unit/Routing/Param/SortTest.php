@@ -29,12 +29,14 @@ class SortTest extends UnitTestCase {
       ['-lorem', [['path' => 'lorem', 'direction' => 'DESC', 'langcode' => NULL]]],
       ['-lorem,ipsum', [
         ['path' => 'lorem', 'direction' => 'DESC', 'langcode' => NULL],
-        ['path' => 'ipsum', 'direction' => 'ASC', 'langcode' => NULL]
-      ]],
+        ['path' => 'ipsum', 'direction' => 'ASC', 'langcode' => NULL],
+      ],
+      ],
       ['-lorem,-ipsum', [
         ['path' => 'lorem', 'direction' => 'DESC', 'langcode' => NULL],
-        ['path' => 'ipsum', 'direction' => 'DESC', 'langcode' => NULL]
-      ]],
+        ['path' => 'ipsum', 'direction' => 'DESC', 'langcode' => NULL],
+      ],
+      ],
       [[
         ['path' => 'lorem', 'langcode' => NULL],
         ['path' => 'ipsum', 'langcode' => 'ca'],
@@ -45,7 +47,8 @@ class SortTest extends UnitTestCase {
         ['path' => 'ipsum', 'direction' => 'ASC', 'langcode' => 'ca'],
         ['path' => 'dolor', 'direction' => 'ASC', 'langcode' => 'ca'],
         ['path' => 'sit', 'direction' => 'DESC', 'langcode' => 'ca'],
-      ]],
+      ],
+      ],
     ];
   }
 

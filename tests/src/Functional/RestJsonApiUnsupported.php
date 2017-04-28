@@ -43,6 +43,7 @@ class RestJsonApiUnsupported extends ResourceTestBase {
       case 'GET':
         $this->grantPermissionsToTestedRole(['access content']);
         break;
+
       default:
         throw new \UnexpectedValueException();
     }
@@ -89,8 +90,19 @@ class RestJsonApiUnsupported extends ResourceTestBase {
     $this->assertResourceErrorResponse(406, FALSE, $response);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   protected function assertNormalizationEdgeCases($method, Url $url, array $request_options) {}
+
+  /**
+   * {@inheritdoc}
+   */
   protected function getExpectedUnauthorizedAccessMessage($method) {}
+
+  /**
+   * {@inheritdoc}
+   */
   protected function getExpectedBcUnauthorizedAccessMessage($method) {}
 
 }

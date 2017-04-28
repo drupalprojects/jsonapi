@@ -95,7 +95,6 @@ class EntityNormalizerValueTest extends UnitTestCase {
     $this->object->method('addCacheableDependency');
   }
 
-
   /**
    * @covers ::rasterizeValue
    */
