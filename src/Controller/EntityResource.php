@@ -302,6 +302,7 @@ class EntityResource {
    *   The response.
    */
   public function getRelated(EntityInterface $entity, $related_field, Request $request) {
+    $related_field = $this->resourceType->getInternalName($related_field);
     if (!($field_list = $entity->get($related_field)) || !$this->isRelationshipField($field_list)) {
       throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
     }
@@ -352,6 +353,7 @@ class EntityResource {
    *   The response.
    */
   public function getRelationship(EntityInterface $entity, $related_field, Request $request, $response_code = 200) {
+    $related_field = $this->resourceType->getInternalName($related_field);
     if (!($field_list = $entity->get($related_field)) || !$this->isRelationshipField($field_list)) {
       throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
     }
@@ -376,6 +378,7 @@ class EntityResource {
    *   The response.
    */
   public function createRelationship(EntityInterface $entity, $related_field, $parsed_field_list, Request $request) {
+    $related_field = $this->resourceType->getInternalName($related_field);
     if ($parsed_field_list instanceof Response) {
       // This usually means that there was an error, so there is no point on
       // processing further.
@@ -425,6 +428,7 @@ class EntityResource {
    *   The response.
    */
   public function patchRelationship(EntityInterface $entity, $related_field, $parsed_field_list, Request $request) {
+    $related_field = $this->resourceType->getInternalName($related_field);
     if ($parsed_field_list instanceof Response) {
       // This usually means that there was an error, so there is no point on
       // processing further.

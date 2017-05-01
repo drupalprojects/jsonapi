@@ -11,6 +11,7 @@ use Drupal\jsonapi\Normalizer\Value\JsonApiDocumentTopLevelNormalizerValue;
 use Drupal\jsonapi\Resource\EntityCollection;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -160,7 +161,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
    *   The normalizer value.
    */
   public function buildNormalizerValue($data, $format = NULL, array $context = []) {
-    $context += $this->expandContext($context['request']);
+    $context += $this->expandContext($context['request'], $context['resource_type']);
     if ($data instanceof EntityReferenceFieldItemListInterface) {
       $output = $this->serializer->normalize($data, $format, $context);
       // The only normalizer value that computes nested includes automatically is the JsonApiDocumentTopLevelNormalizerValue.
@@ -189,20 +190,31 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request to get the URL params from to expand the context.
+   * @param \Drupal\jsonapi\ResourceType\ResourceType $resource_type
+   *   The resource type to translate to internal fields.
    *
    * @return array
    *   The expanded context.
    */
-  protected function expandContext(Request $request) {
+  protected function expandContext(Request $request, ResourceType $resource_type) {
+    // Translate ALL the includes from the public field names to the internal.
+    $includes = array_filter(explode(',', $request->query->get('include')));
+    $public_includes = array_map(function ($include_str) use ($resource_type) {
+      $field_names = explode('.', $include_str);
+      return implode('.', array_map(
+        function ($field_name) use ($resource_type) {
+          return $resource_type->getInternalName($field_name);
+        },
+        $field_names
+      ));
+    }, $includes);
+    // Build the expanded context.
     $context = [
       'account' => NULL,
       'sparse_fieldset' => NULL,
       'resource_type' => NULL,
-      'include' => array_filter(explode(',', $request->query->get('include'))),
+      'include' => $public_includes,
     ];
-    if (isset($this->currentContext)) {
-      $context['resource_type'] = $this->currentContext->getResourceType();
-    }
     if ($request->query->get('fields')) {
       $context['sparse_fieldset'] = array_map(function ($item) {
         return explode(',', $item);

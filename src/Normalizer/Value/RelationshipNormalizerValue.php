@@ -69,7 +69,10 @@ class RelationshipNormalizerValue extends FieldNormalizerValue {
       return $this->cardinality == 1 ? ['data' => NULL] : ['data' => []];
     }
     // Generate the links for the relationship.
-    $route_parameters = ['related' => $this->fieldName];
+    $route_parameters = [
+      // Make sure to point to the public facing fields.
+      'related' => $this->resourceType->getPublicName($this->fieldName),
+    ];
     return [
       'data' => $value,
       'links' => [
