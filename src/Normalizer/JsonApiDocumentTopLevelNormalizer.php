@@ -91,6 +91,9 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
         if (empty($relationship['data'])) {
           return [];
         }
+        if (empty($relationship['data'][0]['id'])) {
+          throw new BadRequestHttpException("No id specified for related resource");
+        }
         $id_list = array_column($relationship['data'], 'id');
         if (empty($relationship['data'][0]['type'])) {
           throw new BadRequestHttpException("No type specified for related resource");
