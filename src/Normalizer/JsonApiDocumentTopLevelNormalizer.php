@@ -49,7 +49,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
   protected $entityTypeManager;
 
   /**
-   * Constructs an ContentEntityNormalizer object.
+   * Constructs a JsonApiDocumentTopLevelNormalizer object.
    *
    * @param \Drupal\jsonapi\LinkManager\LinkManager $link_manager
    *   The link manager to get the links.

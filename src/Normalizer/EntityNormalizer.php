@@ -56,7 +56,7 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
   protected $entityTypeManager;
 
   /**
-   * Constructs an ContentEntityNormalizer object.
+   * Constructs an EntityNormalizer object.
    *
    * @param \Drupal\jsonapi\LinkManager\LinkManager $link_manager
    *   The link manager.
