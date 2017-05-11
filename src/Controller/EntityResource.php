@@ -183,7 +183,17 @@ class EntityResource {
     }
 
     $entity->save();
-    return $this->getIndividual($entity, $request, 201);
+
+    // Build response object.
+    $response = $this->getIndividual($entity, $request, 201);
+
+    // According to JSON API specification, when a new entity was created
+    // we should send "Location" header to the frontend.
+    $entity_url = $entity->url('canonical', ['absolute' => TRUE]);
+    $response->headers->set('Location', $entity_url);
+
+    // Return response object with updated headers info.
+    return $response;
   }
 
   /**

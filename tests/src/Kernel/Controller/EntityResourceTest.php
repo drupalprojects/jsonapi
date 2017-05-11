@@ -479,6 +479,8 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
     $this->assertEquals(5, $response->getResponseData()->getData()->id());
     $this->assertEquals(201, $response->getStatusCode());
+    $node_url = $node->url('canonical', ['absolute' => TRUE]);
+    $this->assertEqual($node_url, $response->headers->get('Location'));
   }
 
   /**
