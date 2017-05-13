@@ -241,7 +241,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       $field_manager,
       $current_context,
       $this->container->get('plugin.manager.field.field_type'),
-      $this->container->get('entity.repository')
+      $this->container->get('jsonapi.link_manager')
     );
 
     // Get the response.
@@ -295,7 +295,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       $field_manager,
       $current_context,
       $this->container->get('plugin.manager.field.field_type'),
-      $this->container->get('entity.repository')
+      $this->container->get('jsonapi.link_manager')
     );
 
     // Get the response.
@@ -350,7 +350,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       $field_manager,
       $current_context,
       $this->container->get('plugin.manager.field.field_type'),
-      $this->container->get('entity.repository')
+      $this->container->get('jsonapi.link_manager')
     );
 
     // Get the response.
@@ -479,8 +479,6 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
     $this->assertEquals(5, $response->getResponseData()->getData()->id());
     $this->assertEquals(201, $response->getStatusCode());
-    $node_url = $node->url('canonical', ['absolute' => TRUE]);
-    $this->assertEqual($node_url, $response->headers->get('Location'));
   }
 
   /**
@@ -876,7 +874,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       $this->container->get('entity_field.manager'),
       $current_context,
       $this->container->get('plugin.manager.field.field_type'),
-      $this->container->get('entity.repository')
+      $this->container->get('jsonapi.link_manager')
     );
   }
 

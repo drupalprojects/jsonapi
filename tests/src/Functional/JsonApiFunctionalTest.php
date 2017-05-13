@@ -322,6 +322,7 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $this->assertArrayHasKey('uuid', $created_response['data']['attributes']);
     $uuid = $created_response['data']['attributes']['uuid'];
     $this->assertEquals(2, count($created_response['data']['relationships']['field_tags']['data']));
+    $this->assertEquals($created_response['data']['links']['self'], $response->getHeader('Location')[0]);
 
     // 2. Authorization error.
     $response = $this->request('POST', $collection_url, [

@@ -18,6 +18,7 @@ use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
 use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
 use Drupal\jsonapi\Exception\UnprocessableHttpEntityException;
+use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Query\QueryBuilder;
 use Drupal\jsonapi\Resource\EntityCollection;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
@@ -80,6 +81,13 @@ class EntityResource {
   protected $pluginManager;
 
   /**
+   * The link manager service.
+   *
+   * @var \Drupal\jsonapi\LinkManager\LinkManager
+   */
+  protected $linkManager;
+
+  /**
    * Instantiates a EntityResource object.
    *
    * @param \Drupal\jsonapi\ResourceType\ResourceType $resource_type
@@ -94,14 +102,17 @@ class EntityResource {
    *   The current context.
    * @param \Drupal\Core\Field\FieldTypePluginManagerInterface $plugin_manager
    *   The plugin manager for fields.
+   * @param \Drupal\jsonapi\LinkManager\LinkManager $link_manager
+   *   The link manager service.
    */
-  public function __construct(ResourceType $resource_type, EntityTypeManagerInterface $entity_type_manager, QueryBuilder $query_builder, EntityFieldManagerInterface $field_manager, CurrentContext $current_context, FieldTypePluginManagerInterface $plugin_manager) {
+  public function __construct(ResourceType $resource_type, EntityTypeManagerInterface $entity_type_manager, QueryBuilder $query_builder, EntityFieldManagerInterface $field_manager, CurrentContext $current_context, FieldTypePluginManagerInterface $plugin_manager, LinkManager $link_manager) {
     $this->resourceType = $resource_type;
     $this->entityTypeManager = $entity_type_manager;
     $this->queryBuilder = $query_builder;
     $this->fieldManager = $field_manager;
     $this->currentContext = $current_context;
     $this->pluginManager = $plugin_manager;
+    $this->linkManager = $link_manager;
   }
 
   /**
@@ -189,7 +200,12 @@ class EntityResource {
 
     // According to JSON API specification, when a new entity was created
     // we should send "Location" header to the frontend.
-    $entity_url = $entity->url('canonical', ['absolute' => TRUE]);
+    $entity_url = $this->linkManager->getEntityLink(
+      $entity->uuid(),
+      $this->resourceType,
+      [],
+      'individual'
+    );
     $response->headers->set('Location', $entity_url);
 
     // Return response object with updated headers info.
