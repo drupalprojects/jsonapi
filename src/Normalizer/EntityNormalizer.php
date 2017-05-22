@@ -143,19 +143,8 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
       $data[$bundle_key] = $bundle;
     }
 
-    $data_internal = [];
-    // Translate the public fields into the entity fields.
-    foreach ($data as $public_field_name => $field_value) {
-      // Skip any disabled field.
-      if (!$resource_type->isFieldEnabled($public_field_name)) {
-        continue;
-      }
-      $internal_name = $resource_type->getInternalName($public_field_name);
-      $data_internal[$internal_name] = $field_value;
-    }
-
     return $this->entityTypeManager->getStorage($entity_type_id)
-      ->create($data_internal);
+      ->create($this->prepareInput($data, $resource_type));
   }
 
   /**
@@ -163,6 +152,8 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
    *
    * @param mixed $entity
    *   The entity.
+   * @param string $bundle
+   *   The entity bundle.
    * @param \Drupal\jsonapi\ResourceType\ResourceType $resource_type
    *   The resource type.
    *
@@ -238,6 +229,32 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
     }
 
     return $output;
+  }
+
+  /**
+   * Prepares the input data to create the entity.
+   *
+   * @param array $data
+   *   The input data to modify.
+   * @param \Drupal\jsonapi\ResourceType\ResourceType $resource_type
+   *   Contains the info about the resource type.
+   *
+   * @return array
+   *   The modified input data.
+   */
+  protected function prepareInput(array $data, ResourceType $resource_type) {
+    $data_internal = [];
+    // Translate the public fields into the entity fields.
+    foreach ($data as $public_field_name => $field_value) {
+      // Skip any disabled field.
+      if (!$resource_type->isFieldEnabled($public_field_name)) {
+        continue;
+      }
+      $internal_name = $resource_type->getInternalName($public_field_name);
+      $data_internal[$internal_name] = $field_value;
+    }
+
+    return $data_internal;
   }
 
 }
