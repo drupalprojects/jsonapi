@@ -206,7 +206,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    */
   public function testGetFilteredCollection() {
     $field_manager = $this->container->get('entity_field.manager');
-    $filter = new Filter(['type' => ['value' => 'article']], 'node_type', $field_manager);
+    $filter = new Filter(['type' => ['value' => 'article']]);
     // The fake route.
     $route = new Route(NULL, [], [
       '_entity_type' => 'node',
@@ -369,11 +369,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    * @covers ::getCollection
    */
   public function testGetEmptyCollection() {
-    $filter = new Filter(
-      ['uuid' => ['value' => 'invalid']],
-      'node',
-      $this->container->get('entity_field.manager')
-    );
+    $filter = new Filter(['uuid' => ['value' => 'invalid']]);
     $request = new Request([], [], [
       '_route_params' => [
         '_json_api_params' => [
