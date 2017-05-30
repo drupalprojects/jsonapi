@@ -403,7 +403,10 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $this->assertInstanceOf(User::class, $response->getResponseData()
       ->getData());
     $this->assertEquals(1, $response->getResponseData()->getData()->id());
-
+    $this->assertEquals(
+      ['node:1'],
+      $response->getCacheableMetadata()->getCacheTags()
+    );
     // to-many relationship.
     $response = $entity_resource->getRelated($this->user, 'roles', new Request());
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response

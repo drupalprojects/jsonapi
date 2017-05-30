@@ -332,18 +332,20 @@ class EntityResource {
     if (!($field_list = $entity->get($related_field)) || !$this->isRelationshipField($field_list)) {
       throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
     }
+    // Add the cacheable metadata from the host entity.
+    $cacheable_metadata = CacheableMetadata::createFromObject($entity);
     /* @var \Drupal\Core\Field\EntityReferenceFieldItemList $field_list */
     $is_multiple = $field_list
       ->getDataDefinition()
       ->getFieldStorageDefinition()
       ->isMultiple();
     if (!$is_multiple) {
-      return $this->getIndividual($field_list->entity, $request);
+      $response = $this->getIndividual($field_list->entity, $request);
+      // Add cacheable metadata for host entity to individual response.
+      $response->addCacheableDependency($cacheable_metadata);
+      return $response;
     }
     $collection_data = [];
-    $cacheable_metadata = new CacheableMetadata();
-    // Add the cacheable metadata from the host entity.
-    $cacheable_metadata->addCacheableDependency($entity);
     foreach ($field_list->referencedEntities() as $referenced_entity) {
       /* @var \Drupal\Core\Entity\EntityInterface $referenced_entity */
       $collection_data[$referenced_entity->id()] = static::getEntityAndAccess($referenced_entity);
