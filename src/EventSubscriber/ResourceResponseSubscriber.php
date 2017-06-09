@@ -6,10 +6,10 @@ use JsonSchema\Validator;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\CacheableResponse;
 use Drupal\Core\Cache\CacheableResponseInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\jsonapi\ResourceResponse;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
@@ -53,7 +53,7 @@ class ResourceResponseSubscriber implements EventSubscriberInterface {
   /**
    * The JSON API logger channel.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   * @var \Psr\Log\LoggerInterface
    */
   protected $logger;
 
@@ -64,10 +64,10 @@ class ResourceResponseSubscriber implements EventSubscriberInterface {
    *   The serializer.
    * @param \Drupal\Core\Render\RendererInterface $renderer
    *   The renderer.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   The JSON API logger channel.
    */
-  public function __construct(SerializerInterface $serializer, RendererInterface $renderer, LoggerChannelInterface $logger) {
+  public function __construct(SerializerInterface $serializer, RendererInterface $renderer, LoggerInterface $logger) {
     $this->serializer = $serializer;
     $this->renderer = $renderer;
     $this->logger = $logger;

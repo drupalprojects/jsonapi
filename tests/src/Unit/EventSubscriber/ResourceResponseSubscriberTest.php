@@ -2,11 +2,11 @@
 
 namespace Drupal\Tests\jsonapi\Unit\EventSubscriber;
 
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\jsonapi\EventSubscriber\ResourceResponseSubscriber;
 use Drupal\rest\ResourceResponse;
 use Drupal\Tests\UnitTestCase;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Serializer;
 
 /**
@@ -22,7 +22,7 @@ class ResourceResponseSubscriberTest extends UnitTestCase {
     $resource_response_subscriber = new ResourceResponseSubscriber(
       $this->prophesize(Serializer::class)->reveal(),
       $this->prophesize(RendererInterface::class)->reveal(),
-      $this->prophesize(LoggerChannelInterface::class)->reveal()
+      $this->prophesize(LoggerInterface::class)->reveal()
     );
 
     // Check that the validation class is enabled.
