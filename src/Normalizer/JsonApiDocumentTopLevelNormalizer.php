@@ -175,19 +175,30 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
     }
     else {
       $is_collection = $data instanceof EntityCollection;
+      $include_count = $context['resource_type']->includeCount();
       // To improve the logical workflow deal with an array at all times.
       $entities = $is_collection ? $data->toArray() : [$data];
       $context['has_next_page'] = $is_collection ? $data->hasNextPage() : FALSE;
+
+      if ($include_count) {
+        $context['total_count'] = $is_collection ? $data->getTotalCount() : 1;
+      }
       $serializer = $this->serializer;
       $normalizer_values = array_map(function ($entity) use ($format, $context, $serializer) {
         return $serializer->normalize($entity, $format, $context);
       }, $entities);
     }
 
-    return new JsonApiDocumentTopLevelNormalizerValue($normalizer_values, $context, $is_collection, [
+    $link_context = [
       'link_manager' => $this->linkManager,
       'has_next_page' => $context['has_next_page'],
-    ]);
+    ];
+
+    if ($include_count) {
+      $link_context['total_count'] = $context['total_count'];
+    }
+
+    return new JsonApiDocumentTopLevelNormalizerValue($normalizer_values, $context, $is_collection, $link_context);
   }
 
   /**

@@ -77,7 +77,7 @@ class QueryBuilder {
    */
   public function newQuery(EntityTypeInterface $entity_type, array $params = []) {
     $this->entityType = $entity_type;
-
+    $this->options = [];
     $this->configureFromContext($params);
 
     $query = $this->entityTypeManager

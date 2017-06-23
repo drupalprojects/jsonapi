@@ -127,9 +127,15 @@ class JsonApiDocumentTopLevelNormalizerValue implements ValueExtractorInterface,
       $rasterized['links'] = [
         'self' => $this->linkManager->getRequestLink($request),
       ];
-      // If this is a collection we need to append the pager links.
+      // If this is a collection we need to append the pager data.
       if ($this->isCollection) {
+        // Add the pager links.
         $rasterized['links'] += $this->linkManager->getPagerLinks($request, $this->linkContext);
+
+        // Add the pre-calculated total count to the meta section.
+        if (isset($this->context['total_count'])) {
+          $rasterized['meta']['count'] = $this->context['total_count'];
+        }
       }
     }
     return $rasterized;

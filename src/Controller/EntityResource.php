@@ -303,6 +303,17 @@ class EntityResource {
     $collection_data = $this->loadEntitiesWithAccess($storage, $results);
     $entity_collection = new EntityCollection(array_column($collection_data, 'entity'));
     $entity_collection->setHasNextPage($has_next_page);
+
+    // Calculate all the results and pass them to the EntityCollectionInterface.
+    if ($this->resourceType->includeCount()) {
+      $total_results = $this
+        ->getCollectionCountQuery($entity_type_id, $params)
+        ->count()
+        ->execute();
+
+      $entity_collection->setTotalCount($total_results);
+    }
+
     $response = $this->respondWithCollection($entity_collection, $entity_type_id);
 
     // Add cacheable metadata for the access result.

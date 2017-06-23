@@ -24,6 +24,13 @@ class EntityCollection implements \IteratorAggregate, \Countable {
   protected $hasNextPage;
 
   /**
+   * Holds the total count of entities.
+   *
+   * @var int
+   */
+  protected $count;
+
+  /**
    * Instantiates a EntityCollection object.
    *
    * @param \Drupal\Core\Entity\EntityInterface[] $entities
@@ -51,6 +58,20 @@ class EntityCollection implements \IteratorAggregate, \Countable {
    */
   public function count() {
     return count($this->entities);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getTotalCount() {
+    return $this->count;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setTotalCount($count) {
+    $this->count = $count;
   }
 
   /**

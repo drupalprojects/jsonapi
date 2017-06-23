@@ -44,7 +44,7 @@ class LinkManagerTest extends UnitTestCase {
    * @covers ::getPagerLinks
    * @dataProvider getPagerLinksProvider
    */
-  public function testGetPagerLinks($offset, $size, $has_next_page, array $pages) {
+  public function testGetPagerLinks($offset, $size, $has_next_page, $total, $include_count, array $pages) {
     // Add the extra stuff to the expected query.
     $pages = array_filter($pages);
     $pages = array_map(function ($page) {
@@ -59,8 +59,13 @@ class LinkManagerTest extends UnitTestCase {
     $request->get('_json_api_params')->willReturn(['page' => $page_param->reveal()]);
     $request->query = new ParameterBag();
 
+    $context = ['has_next_page' => $has_next_page];
+    if ($include_count) {
+      $context['total_count'] = $total;
+    }
+
     $links = $this->linkManager
-      ->getPagerLinks($request->reveal(), ['has_next_page' => $has_next_page]);
+      ->getPagerLinks($request->reveal(), $context);
     $this->assertEquals($pages, $links);
   }
 
@@ -72,49 +77,51 @@ class LinkManagerTest extends UnitTestCase {
    */
   public function getPagerLinksProvider() {
     return [
-      [1, 4, TRUE, [
+      [1, 4, TRUE, 8, TRUE, [
         'first' => ['offset' => 0, 'limit' => 4],
         'prev' => ['offset' => 0, 'limit' => 4],
         'next' => ['offset' => 5, 'limit' => 4],
+        'last' => ['offset' => 4, 'limit' => 4],
       ],
       ],
-      [6, 4, FALSE, [
+      [6, 4, FALSE, 4, TRUE, [
         'first' => ['offset' => 0, 'limit' => 4],
         'prev' => ['offset' => 2, 'limit' => 4],
         'next' => NULL,
       ],
       ],
-      [7, 4, FALSE, [
+      [7, 4, FALSE, 5, FALSE, [
         'first' => ['offset' => 0, 'limit' => 4],
         'prev' => ['offset' => 3, 'limit' => 4],
         'next' => NULL,
       ],
       ],
-      [10, 4, FALSE, [
+      [10, 4, FALSE, 20, FALSE, [
         'first' => ['offset' => 0, 'limit' => 4],
         'prev' => ['offset' => 6, 'limit' => 4],
         'next' => NULL,
       ],
       ],
-      [5, 4, TRUE, [
+      [5, 4, TRUE, 30, FALSE, [
         'first' => ['offset' => 0, 'limit' => 4],
         'prev' => ['offset' => 1, 'limit' => 4],
         'next' => ['offset' => 9, 'limit' => 4],
       ],
       ],
-      [0, 4, TRUE, [
+      [0, 4, TRUE, 100, TRUE, [
         'first' => NULL,
         'prev' => NULL,
         'next' => ['offset' => 4, 'limit' => 4],
+        'last' => ['offset' => 96, 'limit' => 4],
       ],
       ],
-      [0, 1, FALSE, [
+      [0, 1, FALSE, 1, FALSE, [
         'first' => NULL,
         'prev' => NULL,
         'next' => NULL,
       ],
       ],
-      [0, 1, FALSE, [
+      [0, 1, FALSE, 2, FALSE, [
         'first' => NULL,
         'prev' => NULL,
         'next' => NULL,
@@ -130,8 +137,8 @@ class LinkManagerTest extends UnitTestCase {
    * @expectedException \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
    * @dataProvider getPagerLinksErrorProvider
    */
-  public function testGetPagerLinksError($offset, $size, $total, array $pages) {
-    $this->testGetPagerLinks($offset, $size, $total, $pages);
+  public function testGetPagerLinksError($offset, $size, $has_next_page, $total, $include_count, array $pages) {
+    $this->testGetPagerLinks($offset, $size, $has_next_page, $total, $include_count, $pages);
   }
 
   /**
@@ -142,12 +149,12 @@ class LinkManagerTest extends UnitTestCase {
    */
   public function getPagerLinksErrorProvider() {
     return [
-      [0, -5, FALSE, [
-        'first' => NULL,
-        'prev' => NULL,
-        'last' => NULL,
-        'next' => NULL,
-      ],
+      [0, -5, FALSE, 10, TRUE, [
+          'first' => NULL,
+          'prev' => NULL,
+          'last' => NULL,
+          'next' => NULL,
+        ],
       ],
     ];
   }

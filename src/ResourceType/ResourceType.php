@@ -5,7 +5,7 @@ namespace Drupal\jsonapi\ResourceType;
 /**
  * Value object containing all metadata for a JSON API resource type.
  *
- * Used to generate routes (collection, individual, et cetera), generate
+ * Used to generate routes (collection, individual, etcetera), generate
  * relationship links, and so on.
  *
  * @see \Drupal\jsonapi\ResourceType\ResourceTypeRepository
@@ -131,6 +131,17 @@ class ResourceType {
   public function isFieldEnabled($field_name) {
     // By default all fields are enabled.
     return TRUE;
+  }
+
+  /**
+   * Determine whether to include a collection count.
+   *
+   * @return bool
+   *   Whether to include a collection count.
+   */
+  public function includeCount() {
+    // By default, do not return counts in collection queries.
+    return FALSE;
   }
 
   /**
