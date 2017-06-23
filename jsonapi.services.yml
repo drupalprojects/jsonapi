@@ -106,6 +106,10 @@ services:
       # middleware (priority 200)has the opportunity to respond.
       - { name: http_middleware, priority: 201 }
 
+  jsonapi.entity.to_jsonapi:
+    class: Drupal\jsonapi\EntityToJsonApi
+    arguments: ['@serializer', '@jsonapi.resource_type.repository', '@current_user']
+
   logger.channel.jsonapi:
     parent: logger.channel_base
     arguments: ['jsonapi']

@@ -28,3 +28,19 @@ The list of endpoints then looks like the following:
 * `/jsonapi/node/article/{UUID}`: Exposes an individual article
 * `/jsonapi/block`: Exposes a collection of blocks
 * `/jsonapi/block/{block}`: Exposes an individual block
+
+## Development usage
+
+It is also possible to obtain the JSON API representation of a supported entity:
+
+  ```
+  // For a given $entity object.
+  $nested_array = \Drupal::service('jsonapi.entity.to_jsonapi')->normalize($entity);
+  ```
+
+Should it be needed, the raw string itself can be obtained:
+
+  ```
+  // For a given $entity object.
+  $json_string = \Drupal::service('jsonapi.entity.to_jsonapi')->serialize($entity);
+  ```
