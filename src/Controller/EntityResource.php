@@ -689,6 +689,7 @@ class EntityResource {
     if ($origin instanceof ContentEntityInterface && $destination instanceof ContentEntityInterface) {
       // First scenario: both are content entities.
       try {
+        $field_name = $this->resourceType->getInternalName($field_name);
         $destination_field_list = $destination->get($field_name);
       }
       catch (\Exception $e) {
