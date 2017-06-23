@@ -36,9 +36,13 @@ class FieldItemNormalizer extends NormalizerBase {
     foreach ($field_item as $property_name => $property) {
       $values[$property_name] = $this->serializer->normalize($property, $format, $context);
     }
-
+    $langcode = '';
     if (isset($context['langcode'])) {
       $values['lang'] = $context['langcode'];
+      $langcode = $context['langcode'];
+    }
+    if (!empty($values['format']) && !empty($values['value'])) {
+      $values['processed'] = check_markup($values['value'], $values['format'], $langcode);
     }
     return new FieldItemNormalizerValue($values);
   }
