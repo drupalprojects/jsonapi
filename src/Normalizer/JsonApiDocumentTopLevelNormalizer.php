@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 
 /**
  * @see \Drupal\jsonapi\Resource\JsonApiDocumentTopLevel
@@ -58,10 +59,11 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    */
-  public function __construct(LinkManager $link_manager, CurrentContext $current_context, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(LinkManager $link_manager, CurrentContext $current_context, EntityTypeManagerInterface $entity_type_manager, ResourceTypeRepository $resource_type_repository) {
     $this->linkManager = $link_manager;
     $this->currentContext = $current_context;
     $this->entityTypeManager = $entity_type_manager;
+    $this->resourceTypeRepository = $resource_type_repository;
   }
 
   /**
@@ -98,7 +100,11 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
         if (empty($relationship['data'][0]['type'])) {
           throw new BadRequestHttpException("No type specified for related resource");
         }
-        list($entity_type_id,) = explode('--', $relationship['data'][0]['type']);
+        if (!$resource_type = $this->resourceTypeRepository->getByTypeName($relationship['data'][0]['type'])) {
+          throw new BadRequestHttpException("Invalid type specified for related resource: '" . $relationship['data'][0]['type'] . "'");
+        }
+
+        $entity_type_id = $resource_type->getEntityTypeId();
         try {
           $entity_storage = $this->entityTypeManager->getStorage($entity_type_id);
         }

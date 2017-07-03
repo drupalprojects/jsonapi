@@ -103,4 +103,22 @@ class ResourceTypeRepository {
     return NULL;
   }
 
+  /**
+   * Gets a specific JSON API resource type based on a supplied typename.
+   *
+   * @param string $type_name
+   *   The public typename of a JSON API resource.
+   *
+   * @return \Drupal\jsonapi\ResourceType\ResourceType|null
+   *   The resource type, or NULL if none found.
+   */
+  public function getByTypeName($type_name) {
+    foreach ($this->all() as $resource) {
+      if ($resource->getTypeName() == $type_name) {
+        return $resource;
+      }
+    }
+    return NULL;
+  }
+
 }

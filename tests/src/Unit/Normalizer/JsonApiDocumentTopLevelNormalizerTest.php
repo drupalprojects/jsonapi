@@ -15,6 +15,7 @@ use Prophecy\Argument;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 
 /**
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer
@@ -35,6 +36,16 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
   public function setUp() {
     $link_manager = $this->prophesize(LinkManager::class);
     $current_context_manager = $this->prophesize(CurrentContext::class);
+    $resource_type_repository = $this->prophesize(ResourceTypeRepository::class);
+
+    $resource_type = $this->prophesize(ResourceType::class);
+    $resource_type
+      ->getEntityTypeId()
+      ->willReturn('node');
+
+    $resource_type_repository
+      ->getByTypeName(Argument::any())
+      ->willReturn($resource_type->reveal());
 
     $entity_storage = $this->prophesize(EntityStorageInterface::class);
     $self = $this;
@@ -65,7 +76,8 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
     $this->normalizer = new JsonApiDocumentTopLevelNormalizer(
       $link_manager->reveal(),
       $current_context_manager->reveal(),
-      $entity_type_manager->reveal()
+      $entity_type_manager->reveal(),
+      $resource_type_repository->reveal()
     );
 
     $serializer = $this->prophesize(DenormalizerInterface::class);
