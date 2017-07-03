@@ -112,15 +112,29 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
           throw new BadRequestHttpException("Invalid type specified for related resource: '" . $relationship['data'][0]['type'] . "'");
         }
         // In order to maintain the order ($delta) of the relationships, we need
-        // to load the entities and explore the uuid value.
+        // to load the entities and create a mapping between id and uuid.
         $related_entities = array_values($entity_storage->loadByProperties(['uuid' => $id_list]));
         $map = [];
         foreach ($related_entities as $related_entity) {
           $map[$related_entity->uuid()] = $related_entity->id();
         }
-        $canonical_ids = array_map(function ($input_value) use ($map) {
-          return empty($map[$input_value]) ? NULL : $map[$input_value];
-        }, $id_list);
+
+        // $id_list has the correct order of uuids. We stitch this together with
+        // $map which contains loaded entities, and then bring in the correct
+        // meta values from the relationship, whose deltas match with $id_list.
+        $canonical_ids = [];
+        foreach ($id_list as $delta => $uuid) {
+          if (empty($map[$uuid])) {
+            continue;
+          }
+          $reference_item = [
+            'target_id' => $map[$uuid],
+          ];
+          if (isset($relationship['data'][$delta]['meta'])) {
+            $reference_item += $relationship['data'][$delta]['meta'];
+          }
+          $canonical_ids[] = $reference_item;
+        }
 
         return array_filter($canonical_ids);
       }, $relationships);
