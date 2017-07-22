@@ -170,10 +170,7 @@ class FieldResolver {
     }
     $entity_type_id = $field_definition->getSetting('target_type');
     $handler_settings = $field_definition->getSetting('handler_settings');
-    $target_bundles = empty($handler_settings['target_bundles'])
-      ? []
-      : $handler_settings['target_bundles'];
-    if ($target_bundles === NULL) {
+    if (empty($handler_settings['target_bundles'])) {
       // If target bundles is NULL it means ALL of the bundles in the entity ID
       // are referenceable.
       $bundle_info = $this->entityTypeBundleInfo
