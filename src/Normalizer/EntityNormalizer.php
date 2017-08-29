@@ -8,6 +8,7 @@ use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue;
+use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValueInterface;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Normalizer\Value\NullFieldNormalizerValue;
@@ -218,6 +219,9 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
     }
     /** @var \Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue $output */
     $output = $this->serializer->normalize($field, $format, $context);
+    if (!$output instanceof FieldNormalizerValueInterface) {
+      return new NullFieldNormalizerValue();
+    }
     $is_relationship = $this->isRelationship($field);
     $property_type = $is_relationship ? 'relationships' : 'attributes';
     $output->setPropertyType($property_type);
