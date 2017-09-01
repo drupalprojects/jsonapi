@@ -51,7 +51,9 @@ function jsonapi_entity_base_field_info(EntityTypeInterface $entity_type) {
       ->setDisplayOptions('view', [
         'label' => 'above',
         'weight' => -5,
-      ]);
+        'region' => 'hidden',
+      ])
+      ->setDisplayConfigurable('view', TRUE);
   }
   return $fields;
 }
