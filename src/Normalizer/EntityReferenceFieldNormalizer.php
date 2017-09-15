@@ -153,7 +153,15 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
       $entity = $this->entityRepository->loadEntityByUuid($entity_type_id, $value['id']);
       $value['id'] = $entity ? $entity->id() : NULL;
 
-      return [$property_key => $value['id']];
+      $properties = [$property_key => $value['id']];
+      // Also take into account additional properties provided by the field
+      // type.
+      if (!empty($value['meta'])) {
+        foreach ($value['meta'] as $meta_key => $meta_value) {
+          $properties[$meta_key] = $meta_value;
+        }
+      }
+      return $properties;
     }, $data['data']);
     return $this->pluginManager
       ->createFieldItemList($context['target_entity'], $context['related'], $values);
