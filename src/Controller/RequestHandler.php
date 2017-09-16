@@ -125,7 +125,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     }
     catch (UnexpectedValueException $e) {
       throw new UnprocessableEntityHttpException(
-        sprintf('There was an error un-serializing the data. Message: %s.', $e->getMessage()),
+        sprintf('There was an error un-serializing the data. Message: %s', $e->getMessage()),
         $e
       );
     }
