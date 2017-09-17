@@ -191,7 +191,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
    *   The instantiated resource.
    */
   protected function resourceFactory(Route $route, CurrentContext $current_context) {
-    /** @var \Drupal\jsonapi\ResourceType\ResourceTypeRepository $resource_type_repository */
+    /** @var \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface $resource_type_repository */
     $resource_type_repository = $this->container->get('jsonapi.resource_type.repository');
     /* @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager */
     $entity_type_manager = $this->container->get('entity_type.manager');
