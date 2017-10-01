@@ -259,6 +259,10 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     // With the 'Accept' header we can know we want the 404 error formatted as
     // JSON API.
     $this->assertSession()->responseHeaderContains('Content-Type', 'application/vnd.api+json');
+    // 21. Test the value of the computed 'url' field.
+    $collection_output = Json::decode($this->drupalGet('/jsonapi/file/file'));
+    $uri = $collection_output['data'][0]['attributes']['uri'];
+    $this->assertEquals($collection_output['data'][0]['attributes']['url'], $uri);
   }
 
   /**

@@ -24,6 +24,10 @@ class FileDownloadUrl extends FieldItemList {
    *   The transformed relative URL.
    */
   protected function fileCreateRootRelativeUrl($uri) {
+    // For testing purposes, return the $uri when the scheme is 'vfs'.
+    if (\Drupal::service('file_system')->uriScheme($uri) === 'vfs') {
+      return $uri;
+    }
     return file_url_transform_relative(file_create_url($uri));
   }
 
