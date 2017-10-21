@@ -4,7 +4,7 @@ namespace Drupal\Tests\jsonapi\Functional;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Url;
-use Drupal\jsonapi\Routing\Param\OffsetPage;
+use Drupal\jsonapi\Query\OffsetPage;
 
 /**
  * @group jsonapi
@@ -22,7 +22,7 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     // 1. Load all articles (1st page).
     $collection_output = Json::decode($this->drupalGet('/jsonapi/node/article'));
     $this->assertSession()->statusCodeEquals(200);
-    $this->assertEquals(OffsetPage::$maxSize, count($collection_output['data']));
+    $this->assertEquals(OffsetPage::SIZE_MAX, count($collection_output['data']));
     $this->assertSession()
       ->responseHeaderEquals('Content-Type', 'application/vnd.api+json');
     // 2. Load all articles (Offset 3).
@@ -30,7 +30,7 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
       'query' => ['page' => ['offset' => 3]],
     ]));
     $this->assertSession()->statusCodeEquals(200);
-    $this->assertEquals(OffsetPage::$maxSize, count($collection_output['data']));
+    $this->assertEquals(OffsetPage::SIZE_MAX, count($collection_output['data']));
     $this->assertContains('page%5Boffset%5D=53', $collection_output['links']['next']);
     // 3. Load all articles (1st page, 2 items)
     $collection_output = Json::decode($this->drupalGet('/jsonapi/node/article', [
@@ -113,6 +113,24 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
       'taxonomy_term--tags',
       $last_include['type']
     );
+
+    // 10b. Single article with nested includes.
+    $single_output = Json::decode($this->drupalGet('/jsonapi/node/article/' . $uuid, [
+      'query' => ['include' => 'field_tags,field_tags.vid'],
+    ]));
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertEquals('node--article', $single_output['data']['type']);
+    $first_include = reset($single_output['included']);
+    $this->assertEquals(
+      'taxonomy_term--tags',
+      $first_include['type']
+    );
+    $last_include = end($single_output['included']);
+    $this->assertEquals(
+      'taxonomy_vocabulary--taxonomy_vocabulary',
+      $last_include['type']
+    );
+
     // 11. Includes with relationships.
     $single_output = Json::decode($this->drupalGet('/jsonapi/node/article/' . $uuid . '/relationships/uid', [
       'query' => ['include' => 'uid'],

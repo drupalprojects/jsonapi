@@ -1,52 +1,44 @@
 <?php
 
-namespace Drupal\jsonapi\Routing\Param;
+namespace Drupal\jsonapi\Normalizer;
 
+use Drupal\jsonapi\Query\Sort;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
+ * The normalizer used for JSON API sorts.
+ *
  * @internal
  */
-class Sort extends JsonApiParamBase {
+class SortNormalizer implements DenormalizerInterface {
+
+  /**
+   * The interface or class that this Normalizer supports.
+   *
+   * @var string
+   */
+  protected $supportedInterfaceOrClass = Sort::class;
 
   /**
    * {@inheritdoc}
    */
-  const KEY_NAME = 'sort';
-
-  /**
-   * The field key in the sort parameter: sort[lorem][<field>].
-   *
-   * @var string
-   */
-  const FIELD_KEY = 'path';
-
-  /**
-   * The direction key in the sort parameter: sort[lorem][<direction>].
-   *
-   * @var string
-   */
-  const DIRECTION_KEY = 'direction';
-
-  /**
-   * The langcode key in the sort parameter: sort[lorem][<langcode>].
-   *
-   * @var string
-   */
-  const LANGUAGE_KEY = 'langcode';
-
-  /**
-   * The conjunction key in the condition: filter[lorem][group][<conjunction>].
-   *
-   * @var string
-   */
+  public function supportsDenormalization($data, $type, $format = NULL) {
+    return $type == $this->supportedInterfaceOrClass;
+  }
 
   /**
    * {@inheritdoc}
    */
-  protected function expand() {
-    $sort = $this->original;
+  public function denormalize($data, $class, $format = NULL, array $context = []) {
+    $expanded = $this->expand($data);
+    return new Sort($expanded);
+  }
 
+  /**
+   * {@inheritdoc}
+   */
+  protected function expand($sort) {
     if (empty($sort)) {
       throw new BadRequestHttpException('You need to provide a value for the sort parameter.');
     }
@@ -79,12 +71,12 @@ class Sort extends JsonApiParamBase {
       $sort = [];
 
       if ($field[0] == '-') {
-        $sort[static::DIRECTION_KEY] = 'DESC';
-        $sort[static::FIELD_KEY] = substr($field, 1);
+        $sort[Sort::DIRECTION_KEY] = 'DESC';
+        $sort[Sort::PATH_KEY] = substr($field, 1);
       }
       else {
-        $sort[static::DIRECTION_KEY] = 'ASC';
-        $sort[static::FIELD_KEY] = $field;
+        $sort[Sort::DIRECTION_KEY] = 'ASC';
+        $sort[Sort::PATH_KEY] = $field;
       }
 
       return $sort;
@@ -104,18 +96,18 @@ class Sort extends JsonApiParamBase {
    */
   protected function expandItem($sort_index, array $sort_item) {
     $defaults = [
-      static::DIRECTION_KEY => 'ASC',
-      static::LANGUAGE_KEY => NULL,
+      Sort::DIRECTION_KEY => 'ASC',
+      Sort::LANGUAGE_KEY => NULL,
     ];
 
-    if (!isset($sort_item[static::FIELD_KEY])) {
+    if (!isset($sort_item[Sort::PATH_KEY])) {
       throw new BadRequestHttpException('You need to provide a field name for the sort parameter.');
     }
 
     $expected_keys = [
-      static::FIELD_KEY,
-      static::DIRECTION_KEY,
-      static::LANGUAGE_KEY,
+      Sort::PATH_KEY,
+      Sort::DIRECTION_KEY,
+      Sort::LANGUAGE_KEY,
     ];
 
     $expanded = array_merge($defaults, $sort_item);
