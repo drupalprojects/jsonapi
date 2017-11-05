@@ -281,6 +281,122 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $collection_output = Json::decode($this->drupalGet('/jsonapi/file/file'));
     $uri = $collection_output['data'][0]['attributes']['uri'];
     $this->assertEquals($collection_output['data'][0]['attributes']['url'], $uri);
+
+    // Test documentation filtering examples.
+    // 1. Only get published nodes.
+    $filter = [
+      'status-filter' => [
+        'condition' => [
+          'path' => 'status',
+          'value' => 1,
+        ],
+      ],
+    ];
+    $collection_output = Json::decode($this->drupalGet('/jsonapi/node/article', [
+      'query' => ['filter' => $filter],
+    ]));
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertGreaterThanOrEqual(OffsetPage::SIZE_MAX, count($collection_output['data']));
+    // 2. Nested Filters: Get nodes created by user admin.
+    $filter = [
+      'name-filter' => [
+        'condition' => [
+          'path' => 'uid.name',
+          'value' => $this->user->getAccountName(),
+        ],
+      ],
+    ];
+    $collection_output = Json::decode($this->drupalGet('/jsonapi/node/article', [
+      'query' => ['filter' => $filter],
+    ]));
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertGreaterThanOrEqual(OffsetPage::SIZE_MAX, count($collection_output['data']));
+    // 3. Filtering with arrays: Get nodes created by users [admin, john].
+    $filter = [
+      'name-filter' => [
+        'condition' => [
+          'path' => 'uid.name',
+          'operator' => 'IN',
+          'value' => [
+            $this->user->getAccountName(),
+            $this->getRandomGenerator()->name(),
+          ],
+        ],
+      ],
+    ];
+    $collection_output = Json::decode($this->drupalGet('/jsonapi/node/article', [
+      'query' => ['filter' => $filter],
+    ]));
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertGreaterThanOrEqual(OffsetPage::SIZE_MAX, count($collection_output['data']));
+    // 4. Grouping filters: Get nodes that are published and create by admin.
+    $filter = [
+      'and-group' => [
+        'group' => [
+          'conjunction' => 'AND',
+        ],
+      ],
+      'name-filter' => [
+        'condition' => [
+          'path' => 'uid.name',
+          'value' => $this->user->getAccountName(),
+          'memberOf' => 'and-group',
+        ],
+      ],
+      'status-filter' => [
+        'condition' => [
+          'path' => 'status',
+          'value' => 1,
+          'memberOf' => 'and-group',
+        ],
+      ],
+    ];
+    $collection_output = Json::decode($this->drupalGet('/jsonapi/node/article', [
+      'query' => ['filter' => $filter],
+    ]));
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertGreaterThanOrEqual(OffsetPage::SIZE_MAX, count($collection_output['data']));
+    // 5. Grouping grouped filters: Get nodes that are promoted or sticky and
+    //    created by admin.
+    $filter = [
+      'and-group' => [
+        'group' => [
+          'conjunction' => 'AND',
+        ],
+      ],
+      'or-group' => [
+        'group' => [
+          'conjunction' => 'OR',
+          'memberOf' => 'and-group',
+        ],
+      ],
+      'admin-filter' => [
+        'condition' => [
+          'path' => 'uid.name',
+          'value' => $this->user->getAccountName(),
+          'memberOf' => 'and-group',
+        ],
+      ],
+      'sticky-filter' => [
+        'condition' => [
+          'path' => 'sticky',
+          'value' => 1,
+          'memberOf' => 'or-group',
+        ],
+      ],
+      'promote-filter' => [
+        'condition' => [
+          'path' => 'promote',
+          'value' => 0,
+          'memberOf' => 'or-group',
+        ],
+      ],
+    ];
+    $collection_output = Json::decode($this->drupalGet('/jsonapi/node/article', [
+      'query' => ['filter' => $filter],
+    ]));
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertEquals(0, count($collection_output['data']));
   }
 
   /**
