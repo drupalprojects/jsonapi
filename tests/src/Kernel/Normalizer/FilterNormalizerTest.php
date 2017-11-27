@@ -11,6 +11,7 @@ use Prophecy\Argument;
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\FilterNormalizer
  * @group jsonapi
  * @group jsonapi_normalizers
+ * @group legacy
  */
 class FilterNormalizerTest extends KernelTestBase {
 

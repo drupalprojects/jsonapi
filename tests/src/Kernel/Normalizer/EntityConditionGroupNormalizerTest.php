@@ -9,6 +9,7 @@ use Drupal\jsonapi\Query\EntityConditionGroup;
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\EntityConditionGroupNormalizer
  * @group jsonapi
  * @group jsonapi_normalizers
+ * @group legacy
  */
 class EntityConditionGroupNormalizerTest extends KernelTestBase {
 

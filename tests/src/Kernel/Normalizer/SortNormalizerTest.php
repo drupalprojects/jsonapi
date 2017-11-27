@@ -9,6 +9,7 @@ use Drupal\jsonapi\Query\Sort;
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\SortNormalizer
  * @group jsonapi
  * @group jsonapi_normalizers
+ * @group legacy
  */
 class SortNormalizerTest extends KernelTestBase {
 
