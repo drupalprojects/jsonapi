@@ -251,7 +251,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
       $resolved = $this->fieldResolver->resolveInternal(
         $resource_type->getEntityTypeId(),
         $resource_type->getBundle(),
-        $include_str
+        trim($include_str)
       );
       // We don't need the entity information for the includes. Clean it.
       return preg_replace('/\.entity\./', '.', $resolved);
