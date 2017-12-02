@@ -11,6 +11,7 @@ use Drupal\Tests\jsonapi\Kernel\JsonapiKernelTestBase;
  * @coversDefaultClass \Drupal\jsonapi\Query\Filter
  * @group jsonapi
  * @group jsonapi_query
+ * @group legacy
  */
 class FilterTest extends JsonapiKernelTestBase {
 

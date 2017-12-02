@@ -20,6 +20,7 @@ use Prophecy\Argument;
  * @coversDefaultClass \Drupal\jsonapi\EntityToJsonApi
  * @group jsonapi
  * @group jsonapi_serializer
+ * @group legacy
  */
 class EntityToJsonApiTest extends JsonapiKernelTestBase {
 

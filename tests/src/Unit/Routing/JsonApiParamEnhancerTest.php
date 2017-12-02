@@ -20,6 +20,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
  * @coversDefaultClass \Drupal\jsonapi\Routing\JsonApiParamEnhancer
  * @group jsonapi
  * @group jsonapi_param_enhancer
+ * @group legacy
  */
 class JsonApiParamEnhancerTest extends UnitTestCase {
 
