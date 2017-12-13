@@ -282,6 +282,56 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $collection_output = Json::decode($this->drupalGet('/jsonapi/file/file'));
     $uri = $collection_output['data'][0]['attributes']['uri'];
     $this->assertEquals($collection_output['data'][0]['attributes']['url'], $uri);
+    // 22. Test sort criteria on multiple fields: both ASC.
+    $output = Json::decode($this->drupalGet('/jsonapi/node/article', [
+      'query' => [
+        'page[limit]' => 6,
+        'sort' => 'field_sort1,field_sort2',
+      ],
+    ]));
+    $output_nids = array_map(function ($result) {
+      return $result['attributes']['nid'];
+    }, $output['data']);
+    $this->assertCount(6, $output_nids);
+    $this->assertEquals([5, 4, 3, 2, 1, 10], $output_nids);
+    // 23. Test sort criteria on multiple fields: first ASC, second DESC.
+    $output = Json::decode($this->drupalGet('/jsonapi/node/article', [
+      'query' => [
+        'page[limit]' => 6,
+        'sort' => 'field_sort1,-field_sort2',
+      ],
+    ]));
+    $output_nids = array_map(function ($result) {
+      return $result['attributes']['nid'];
+    }, $output['data']);
+    $this->assertCount(6, $output_nids);
+    $this->assertEquals([1, 2, 3, 4, 5, 6], $output_nids);
+    // 24. Test sort criteria on multiple fields: first DESC, second ASC.
+    $output = Json::decode($this->drupalGet('/jsonapi/node/article', [
+      'query' => [
+        'page[limit]' => 6,
+        'sort' => '-field_sort1,field_sort2',
+      ],
+    ]));
+    $output_nids = array_map(function ($result) {
+      return $result['attributes']['nid'];
+    }, $output['data']);
+    $this->assertCount(5, $output_nids);
+    $this->assertCount(1, $output['meta']['errors']);
+    $this->assertEquals([60, 59, 58, 57, 56], $output_nids);
+    // 25. Test sort criteria on multiple fields: both DESC.
+    $output = Json::decode($this->drupalGet('/jsonapi/node/article', [
+      'query' => [
+        'page[limit]' => 6,
+        'sort' => '-field_sort1,-field_sort2',
+      ],
+    ]));
+    $output_nids = array_map(function ($result) {
+      return $result['attributes']['nid'];
+    }, $output['data']);
+    $this->assertCount(5, $output_nids);
+    $this->assertCount(1, $output['meta']['errors']);
+    $this->assertEquals([56, 57, 58, 59, 60], $output_nids);
 
     // Test documentation filtering examples.
     // 1. Only get published nodes.
