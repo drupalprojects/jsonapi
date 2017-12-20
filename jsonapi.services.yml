@@ -35,10 +35,6 @@ services:
     arguments: ['@current_user']
     tags:
       - { name: normalizer, priority: 2 }
-  serializer.normalizer.scalar.jsonapi:
-    class: Drupal\jsonapi\Normalizer\ScalarNormalizer
-    tags:
-      - { name: normalizer, priority: 5 }
   serializer.normalizer.entity_reference_item.jsonapi:
     class: Drupal\jsonapi\Normalizer\RelationshipItemNormalizer
     arguments: ['@jsonapi.resource_type.repository', '@serializer.normalizer.jsonapi_document_toplevel.jsonapi',]
