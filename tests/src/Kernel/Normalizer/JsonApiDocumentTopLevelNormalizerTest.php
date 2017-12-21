@@ -444,7 +444,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
    * @covers ::denormalize
    */
   public function testDenormalize() {
-    $payload = '{"type":"article", "data":{"attributes":{"title":"Testing article"}}}';
+    $payload = '{"data":{"type":"article","attributes":{"title":"Testing article"}}}';
 
     list($request, $resource_type) = $this->generateProphecies('node', 'article', 'id');
     $node = $this
@@ -554,8 +554,8 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
    */
   public function testDenormalizeInvalidTypeAndNoType() {
     $payload_data = [
-      'type' => 'node--article',
       'data' => [
+        'type' => 'node--article',
         'attributes' => [
           'title' => 'Testing article',
           'id' => '33095485-70D2-4E51-A309-535CC5BC0115',
@@ -631,8 +631,8 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
 
     $node = [
       [
-        'type' => 'node--article',
         'data' => [
+          'type' => 'node--article',
           'attributes' => [
             'title' => 'Testing article',
             'id' => '33095485-70D2-4E51-A309-535CC5BC0115',

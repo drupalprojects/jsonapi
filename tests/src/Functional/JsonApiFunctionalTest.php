@@ -581,6 +581,39 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $this->assertEquals(422, $response->getStatusCode());
     $this->assertNotEmpty($created_response['errors']);
     $this->assertEquals('Unprocessable Entity', $created_response['errors'][0]['title']);
+    // 6.1 Relationships are not included in "data".
+    $malformed_body = $body;
+    unset($malformed_body['data']['relationships']);
+    $malformed_body['relationships'] = $body['data']['relationships'];
+    $response = $this->request('POST', $collection_url, [
+      'body' => Json::encode($malformed_body),
+      'auth' => [$this->user->getUsername(), $this->user->pass_raw],
+      'headers' => [
+        'Accept' => 'application/vnd.api+json',
+        'Content-Type' => 'application/vnd.api+json',
+      ],
+    ]);
+    $created_response = Json::decode((string) $response->getBody());
+    $this->assertSame(400, $response->getStatusCode());
+    $this->assertNotEmpty($created_response['errors']);
+    $this->assertSame("Bad Request", $created_response['errors'][0]['title']);
+    $this->assertSame("Found \"relationships\" within the document's top level. The \"relationships\" key must be within resource object.", $created_response['errors'][0]['detail']);
+    // 6.2 "type" not included in "data"
+    $missing_type = $body;
+    unset($missing_type['data']['type']);
+    $response = $this->request('POST', $collection_url, [
+      'body' => Json::encode($missing_type),
+      'auth' => [$this->user->getUsername(), $this->user->pass_raw],
+      'headers' => [
+        'Accept' => 'application/vnd.api+json',
+        'Content-Type' => 'application/vnd.api+json',
+      ],
+    ]);
+    $created_response = Json::decode((string) $response->getBody());
+    $this->assertSame(400, $response->getStatusCode());
+    $this->assertNotEmpty($created_response['errors']);
+    $this->assertSame("Bad Request", $created_response['errors'][0]['title']);
+    $this->assertSame("Resource object must include a \"type\".", $created_response['errors'][0]['detail']);
     // 7. Successful PATCH.
     $body = [
       'data' => [
