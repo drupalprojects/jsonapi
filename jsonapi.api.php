@@ -69,9 +69,21 @@
  * services due to the design of the Symfony Serialization component, not
  * because the JSON API module wanted to expose services.)
  *
- * HTTP API: bugfixes made to comply better with the jsonapi.org spec are never
- * considered backwards compatibility breaks. URLs and response structure will
- * never be changed: backwards compatibility is guaranteed for those.
+ * HTTP API: URLs and JSON response structures are considered part of this
+ * module's public API. However, inconsistencies with the jsonapi.org
+ * specification will be considered bugs. Fixes which bring the module into
+ * compliance with the specification are not guaranteed to be backwards
+ * compatible. What this means for developing consumers of the HTTP API is that
+ * clients should be implemented from the specification first and foremost to
+ * mitigate implicit dependencies on implementation details specific to this
+ * module.
+ *
+ * To help develop compatible clients, every response indicates the version of
+ * the JSON API specification used under its "jsonapi" key. Future releases
+ * *may* increment the minor version number if the module implements the
+ * features of a later specification. The specification stipulates that future
+ * versions *will* remain backwards compatible as only additions may be
+ * released.
  *
  * @}
  */

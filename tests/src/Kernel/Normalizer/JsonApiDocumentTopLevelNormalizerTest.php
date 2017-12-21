@@ -222,6 +222,11 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
           'cacheable_metadata' => $response->getCacheableMetadata(),
         ]
       );
+
+    // @see http://jsonapi.org/format/#document-jsonapi-object
+    $this->assertEquals($normalized['jsonapi']['version'], '1.0');
+    $this->assertEquals($normalized['jsonapi']['meta']['links']['self'], 'http://jsonapi.org/format/1.0/');
+
     $this->assertSame($normalized['data']['attributes']['title'], 'dummy_title');
     $this->assertEquals($normalized['data']['id'], $this->node->uuid());
     $this->assertSame([
