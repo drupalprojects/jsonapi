@@ -298,7 +298,6 @@ class EntityResource {
     if ($this->resourceType->includeCount()) {
       $total_results = $this
         ->getCollectionCountQuery($entity_type_id, $params)
-        ->count()
         ->execute();
 
       $entity_collection->setTotalCount($total_results);
@@ -641,9 +640,8 @@ class EntityResource {
    *   A new query.
    */
   protected function getCollectionCountQuery($entity_type_id, $params) {
-    // Override the pagination parameter to get all the available results.
-    unset($params[OffsetPage::KEY_NAME]);
-    return $this->getCollectionQuery($entity_type_id, $params);
+    // Reset the range to get all the available results.
+    return $this->getCollectionQuery($entity_type_id, $params)->range()->count();
   }
 
   /**
