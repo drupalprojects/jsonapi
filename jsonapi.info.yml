@@ -6,3 +6,5 @@ package: Web services
 dependencies:
   - drupal:system (>=8.3)
   - serialization
+test_dependencies:
+  - schemata:schemata_json_schema
