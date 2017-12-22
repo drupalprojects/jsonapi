@@ -1,6 +1,7 @@
 services:
   serializer.normalizer.sort.jsonapi:
     class: Drupal\jsonapi\Normalizer\SortNormalizer
+    arguments: ['@jsonapi.field_resolver']
     tags:
       - { name: normalizer }
   serializer.normalizer.offset_page.jsonapi:
