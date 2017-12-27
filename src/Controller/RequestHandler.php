@@ -116,11 +116,13 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
       return NULL;
     }
     $format = $request->getContentType();
+    $resource_type = $current_context->getResourceType();
+    $field_related = $resource_type->getInternalName($request->get('related'));
     try {
       return $serializer->deserialize($received, $serialization_class, $format, [
-        'related' => $request->get('related'),
+        'related' => $field_related,
         'target_entity' => $request->get($current_context->getResourceType()->getEntityTypeId()),
-        'resource_type' => $current_context->getResourceType(),
+        'resource_type' => $resource_type,
       ]);
     }
     catch (UnexpectedValueException $e) {
