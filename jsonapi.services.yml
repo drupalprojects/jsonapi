@@ -132,7 +132,7 @@ services:
   # Event subscribers.
   jsonapi.resource_response.subscriber:
     class: Drupal\jsonapi\EventSubscriber\ResourceResponseSubscriber
-    arguments: ['@serializer', '@renderer', '@logger.channel.jsonapi']
+    arguments: ['@serializer', '@renderer', '@logger.channel.jsonapi', '@module_handler', '@app.root']
     calls:
       - [setValidator, []]
       - [setSchemaFactory, ['@?schemata.schema_factory']] # This is only injected when the service is available.

@@ -5,6 +5,7 @@ namespace Drupal\jsonapi\EventSubscriber;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\CacheableResponse;
 use Drupal\Core\Cache\CacheableResponseInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\jsonapi\ResourceResponse;
@@ -79,6 +80,20 @@ class ResourceResponseSubscriber implements EventSubscriberInterface {
   protected $schemaFactory;
 
   /**
+   * The module handler.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  protected $moduleHandler;
+
+  /**
+   * The application's root file path.
+   *
+   * @var string
+   */
+  protected $appRoot;
+
+  /**
    * Constructs a ResourceResponseSubscriber object.
    *
    * @param \Symfony\Component\Serializer\SerializerInterface $serializer
@@ -87,11 +102,17 @@ class ResourceResponseSubscriber implements EventSubscriberInterface {
    *   The renderer.
    * @param \Psr\Log\LoggerInterface $logger
    *   The JSON API logger channel.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
+   *   The module handler.
+   * @param string $app_root
+   *   The application's root file path.
    */
-  public function __construct(SerializerInterface $serializer, RendererInterface $renderer, LoggerInterface $logger) {
+  public function __construct(SerializerInterface $serializer, RendererInterface $renderer, LoggerInterface $logger, ModuleHandlerInterface $module_handler, $app_root) {
     $this->serializer = $serializer;
     $this->renderer = $renderer;
     $this->logger = $logger;
+    $this->moduleHandler = $module_handler;
+    $this->appRoot = $app_root;
   }
 
   /**
@@ -255,8 +276,13 @@ class ResourceResponseSubscriber implements EventSubscriberInterface {
       return TRUE;
     }
 
-    $schema_path = dirname(dirname(__DIR__)) . '/schema.json';
-    $generic_jsonapi_schema = (object) ['$ref' => 'file://' . $schema_path];
+    $schema_ref = sprintf(
+      'file://%s/%s/%s',
+      $this->appRoot,
+      $this->moduleHandler->getModule('jsonapi')->getPath(),
+      'schema.json'
+    );
+    $generic_jsonapi_schema = (object) ['$ref' => $schema_ref];
     $is_valid = $this->validateSchema($generic_jsonapi_schema, $response_data);
     if (!$is_valid) {
       return FALSE;
@@ -287,10 +313,13 @@ class ResourceResponseSubscriber implements EventSubscriberInterface {
     $output_format = 'schema_json';
     $described_format = 'api_json';
 
-    $generic_jsonapi_schema = $this->schemaFactory->create($entity_type_id, $bundle);
+    $schema_object = $this->schemaFactory->create($entity_type_id, $bundle);
     $format = $output_format . ':' . $described_format;
-    $output = $this->serializer->serialize($generic_jsonapi_schema, $format);
+    $output = $this->serializer->serialize($schema_object, $format);
     $specific_schema = Json::decode($output);
+    if (!$specific_schema) {
+      return $is_valid;
+    }
 
     // We need to individually validate each collection resource object.
     $is_collection = strpos($route_name, '.collection') !== FALSE;

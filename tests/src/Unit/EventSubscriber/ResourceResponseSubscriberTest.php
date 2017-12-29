@@ -2,6 +2,8 @@
 
 namespace Drupal\Tests\jsonapi\Unit\EventSubscriber;
 
+use Drupal\Core\Extension\Extension;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\jsonapi\EventSubscriber\ResourceResponseSubscriber;
 use Drupal\rest\ResourceResponse;
@@ -32,15 +34,23 @@ class ResourceResponseSubscriberTest extends UnitTestCase {
    * {@inheritdoc}
    */
   public function setUp() {
+    parent::setUp();
     // Check that the validation class is available.
     if (!class_exists("\\JsonSchema\\Validator")) {
       $this->fail('The JSON Schema validator is missing. You can install it with `composer require justinrainbow/json-schema`.');
     }
 
+    $module_handler = $this->prophesize(ModuleHandlerInterface::class);
+    $module = $this->prophesize(Extension::class);
+    $module_path = substr(dirname(dirname(dirname(dirname(__DIR__)))), strlen($this->root) + 1);
+    $module->getPath()->willReturn($module_path);
+    $module_handler->getModule('jsonapi')->willReturn($module->reveal());
     $subscriber = new ResourceResponseSubscriber(
       new Serializer([], [new JsonSchemaEncoder()]),
       $this->prophesize(RendererInterface::class)->reveal(),
-      $this->prophesize(LoggerInterface::class)->reveal()
+      $this->prophesize(LoggerInterface::class)->reveal(),
+      $module_handler->reveal(),
+      $this->root
     );
     $subscriber->setValidator();
     $this->subscriber = $subscriber;
