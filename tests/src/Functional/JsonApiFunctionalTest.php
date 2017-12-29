@@ -20,6 +20,9 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     // Unpublish the last entity, so we can check access.
     $this->nodes[60]->setUnpublished()->save();
 
+    // 0. HEAD request allows a client to verify that JSON API is installed.
+    $this->httpClient->request('HEAD', $this->buildUrl('/jsonapi/node/article'));
+    $this->assertSession()->statusCodeEquals(200);
     // 1. Load all articles (1st page).
     $collection_output = Json::decode($this->drupalGet('/jsonapi/node/article'));
     $this->assertSession()->statusCodeEquals(200);

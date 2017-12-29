@@ -147,6 +147,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
   protected function action(RouteMatchInterface $route_match, $method) {
     $on_relationship = ($route_match->getRouteObject()->getDefault('_on_relationship'));
     switch ($method) {
+      case 'head':
       case 'get':
         if ($on_relationship) {
           return 'getRelationship';
