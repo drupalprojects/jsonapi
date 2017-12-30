@@ -210,7 +210,8 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
       $field_manager,
       $current_context,
       $plugin_manager,
-      $link_manager
+      $link_manager,
+      $resource_type_repository
     );
     return $resource;
   }
