@@ -277,10 +277,11 @@ class ResourceResponseSubscriber implements EventSubscriberInterface {
     }
 
     $schema_ref = sprintf(
-      'file://%s/%s/%s',
-      $this->appRoot,
-      $this->moduleHandler->getModule('jsonapi')->getPath(),
-      'schema.json'
+      'file://%s/schema.json',
+      implode('/', [
+        $this->appRoot,
+        $this->moduleHandler->getModule('jsonapi')->getPath()
+      ])
     );
     $generic_jsonapi_schema = (object) ['$ref' => $schema_ref];
     $is_valid = $this->validateSchema($generic_jsonapi_schema, $response_data);

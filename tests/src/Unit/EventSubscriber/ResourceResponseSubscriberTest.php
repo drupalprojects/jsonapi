@@ -42,7 +42,7 @@ class ResourceResponseSubscriberTest extends UnitTestCase {
 
     $module_handler = $this->prophesize(ModuleHandlerInterface::class);
     $module = $this->prophesize(Extension::class);
-    $module_path = substr(dirname(dirname(dirname(dirname(__DIR__)))), strlen($this->root) + 1);
+    $module_path = dirname(dirname(dirname(dirname(__DIR__))));
     $module->getPath()->willReturn($module_path);
     $module_handler->getModule('jsonapi')->willReturn($module->reveal());
     $subscriber = new ResourceResponseSubscriber(
@@ -50,7 +50,7 @@ class ResourceResponseSubscriberTest extends UnitTestCase {
       $this->prophesize(RendererInterface::class)->reveal(),
       $this->prophesize(LoggerInterface::class)->reveal(),
       $module_handler->reveal(),
-      $this->root
+      ''
     );
     $subscriber->setValidator();
     $this->subscriber = $subscriber;
