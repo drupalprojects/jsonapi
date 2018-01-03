@@ -32,6 +32,20 @@ class FieldResolver {
   protected $fieldManager;
 
   /**
+   * The entity bundle information service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeBundleInfoInterface
+   */
+  protected $entityTypeBundleInfo;
+
+  /**
+   * The JSON API resource type repository service.
+   *
+   * @var \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface
+   */
+  protected $resourceTypeRepository;
+
+  /**
    * Creates a FieldResolver instance.
    *
    * @param \Drupal\jsonapi\Context\CurrentContext $current_context
@@ -68,10 +82,28 @@ class FieldResolver {
   }
 
   /**
-   * Maps a public field name to a Drupal field name.
+   * Resolves external field expressions into internal field expressions.
+   *
+   * It is often required to reference data which may exist across a
+   * relationship. For example, you may want to sort a list of articles by
+   * a field on the article author's representative entity. Or you may wish
+   * to filter a list of content by the name of referenced taxonomy terms.
+   *
+   * In an effort to simplify the referenced paths and align them with the
+   * structure of JSON API responses and the structure of the hypothetical
+   * "reference document" (see link), it is possible to alias field names and
+   * elide the keyword "entity" from them (this word is used by the entity query
+   * system to traverse entity references).
+   *
+   * This method takes this external field expression and and attempts to
+   * resolve any aliases and/or abbreviations into a field expression that will
+   * be compatible with the entity query system.
+   *
+   * @link http://jsonapi.org/recommendations/#urls-reference-document
    *
    * Example:
-   *   'author.firstName' -> 'field_author.entity.field_first_name'.
+   *   'uid.field_first_name' -> 'uid.entity.field_first_name'.
+   *   'author.firstName' -> 'field_author.entity.field_first_name'
    *
    * @param string $entity_type_id
    *   The type of the entity for which to resolve the field name.
@@ -98,30 +130,19 @@ class FieldResolver {
     // works for the time being.
     $parts = explode('.', $external_field_name);
     $reference_breadcrumbs = [];
+    /* @var \Drupal\jsonapi\ResourceType\ResourceType[] $resource_types */
     $resource_types = [$resource_type];
-    while ($field_name = array_shift($parts)) {
-      $field_name = $this->getInternalName($field_name, $resource_types);
-      $definitions = $this->fieldManager->getFieldStorageDefinitions($entity_type_id)
-        // We also need the base field definitions in case there are
-        // relationships coming from computed fields.
-        + $this->fieldManager->getBaseFieldDefinitions($entity_type_id);
-      if (!$definitions) {
-        throw new BadRequestHttpException(sprintf(
-          'Invalid nested filtering. There is no entity type "%s".',
-          $entity_type_id
-        ));
-      }
-      if (empty($definitions[$field_name])) {
-        throw new BadRequestHttpException(sprintf(
-          'Invalid nested filtering. Invalid entity reference "%s".',
-          $field_name
-        ));
-      }
-      array_push($reference_breadcrumbs, $field_name);
+    while ($part = array_shift($parts)) {
+      $field_name = $this->getInternalName($part, $resource_types);
+
+      $field_definition = $this->getFieldDefinition($entity_type_id, $field_name);
+
+      $reference_breadcrumbs[] = $field_name;
+
       // Update the resource type with the referenced type.
-      $resource_types = $this->collectResourceTypesForReference($definitions[$field_name]);
+      $resource_types = $this->collectResourceTypesForReference($field_definition);
       // Update the entity type with the referenced type.
-      $entity_type_id = $definitions[$field_name]->getSetting('target_type');
+      $entity_type_id = $field_definition->getSetting('target_type');
       // $field_name may not be a reference field. In that case we should treat
       // the rest of the parts as complex fields.
       if (empty($entity_type_id)) {
@@ -136,14 +157,51 @@ class FieldResolver {
       }
     }
 
+    // Reconstruct the full path to the final reference field.
     return implode('.entity.', $reference_breadcrumbs);
+  }
+
+  /**
+   * Get a field definition by entity type ID and field name.
+   *
+   * @param string $entity_type_id
+   *   The entity type ID.
+   * @param string $field_name
+   *   The machine name of the field.
+   *
+   * @return \Drupal\Core\Field\FieldDefinitionInterface
+   *   The field definition.
+   *
+   * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+   */
+  protected function getFieldDefinition($entity_type_id, $field_name) {
+    $definitions = $this->fieldManager->getFieldStorageDefinitions($entity_type_id)
+      // We also need the base field definitions in case there are
+      // relationships coming from computed fields.
+      + $this->fieldManager->getBaseFieldDefinitions($entity_type_id);
+    if (!$definitions) {
+      throw new BadRequestHttpException(sprintf(
+        'Invalid nested filtering. There is no entity type "%s".',
+        $entity_type_id
+      ));
+    }
+    if (empty($definitions[$field_name])) {
+      throw new BadRequestHttpException(sprintf(
+        'Invalid nested filtering. Invalid entity reference "%s".',
+        $field_name
+      ));
+    }
+
+    return $definitions[$field_name];
   }
 
   /**
    * Resolves the internal field name based on a collection of resource types.
    *
    * @param string $field_name
+   *   The external field name.
    * @param \Drupal\jsonapi\ResourceType\ResourceType[] $resource_types
+   *   The resource types from which to get an internal name.
    *
    * @return string
    *   The resolved internal name.
@@ -161,17 +219,17 @@ class FieldResolver {
   /**
    * Build a list of resource types depending on which bundles are referenced.
    *
-   * @param \Drupal\Core\Field\FieldDefinitionInterface $field_definition
+   * @param \Drupal\Core\Field\FieldStorageDefinitionInterface $field_definition
    *   The reference definition.
    *
    * @return \Drupal\jsonapi\ResourceType\ResourceType[]
    *   The list of resource types.
    */
   protected function collectResourceTypesForReference(FieldStorageDefinitionInterface $field_definition) {
-    // Check if the field is a flavor of an Entity Reference field.
     $main_property_definition = $field_definition->getPropertyDefinition(
       $field_definition->getMainPropertyName()
     );
+    // Check if the field is a flavor of an Entity Reference field.
     if (!$main_property_definition instanceof DataReferenceTargetDefinition) {
       return [];
     }
