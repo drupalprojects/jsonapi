@@ -115,11 +115,10 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
     if (empty($received) || $request->isMethodCacheable()) {
       return NULL;
     }
-    $format = $request->getContentType();
     $resource_type = $current_context->getResourceType();
     $field_related = $resource_type->getInternalName($request->get('related'));
     try {
-      return $serializer->deserialize($received, $serialization_class, $format, [
+      return $serializer->deserialize($received, $serialization_class, 'api_json', [
         'related' => $field_related,
         'target_entity' => $request->get($current_context->getResourceType()->getEntityTypeId()),
         'resource_type' => $resource_type,
