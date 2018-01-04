@@ -43,7 +43,11 @@ class FieldResolverTest extends JsonapiKernelTestBase {
 
     // Provides entity reference fields.
     $settings = ['target_type' => 'entity_test_with_bundle'];
-    $this->makeField('entity_reference', 'field_test_ref1', 'entity_test_with_bundle', ['bundle1'], $settings);
+    $this->makeField('entity_reference', 'field_test_ref1', 'entity_test_with_bundle', ['bundle1'], $settings, [
+      'handler_settings' => [
+        'target_bundles' => ['bundle2', 'bundle3'],
+      ],
+    ]);
     $this->makeField('entity_reference', 'field_test_ref2', 'entity_test_with_bundle', ['bundle1'], $settings);
     $this->makeField('entity_reference', 'field_test_ref3', 'entity_test_with_bundle', ['bundle2', 'bundle3'], $settings);
 
@@ -66,14 +70,9 @@ class FieldResolverTest extends JsonapiKernelTestBase {
     return [
       ['field_test1', 'field_test1'],
       ['field_test2', 'field_test2'],
-      ['field_test3', 'field_test3'],
 
-      ['field_test_ref1.entity.field_test1', 'field_test_ref1.field_test1'],
-      ['field_test_ref1.entity.field_test2', 'field_test_ref1.field_test2'],
       ['field_test_ref2.entity.field_test1', 'field_test_ref2.field_test1'],
       ['field_test_ref2.entity.field_test2', 'field_test_ref2.field_test2'],
-      ['field_test_ref3.entity.field_test1', 'field_test_ref3.field_test1'],
-      ['field_test_ref3.entity.field_test2', 'field_test_ref3.field_test2'],
 
       ['field_test_ref1.entity.field_test_text', 'field_test_ref1.field_test_text'],
       ['field_test_ref1.entity.field_test_text.value', 'field_test_ref1.field_test_text.value'],
@@ -110,6 +109,14 @@ class FieldResolverTest extends JsonapiKernelTestBase {
     return [
       // Should fail because none of these bundles have these fields.
       ['entity_test_with_bundle', 'bundle1', 'host.fail!!.deep'],
+      ['entity_test_with_bundle', 'bundle2', 'field_test_ref2'],
+      ['entity_test_with_bundle', 'bundle1', 'field_test_ref3'],
+      // Should fail because the nested fields don't exist on the targeted
+      // resource types.
+      ['entity_test_with_bundle', 'bundle1', 'field_test_ref1.field_test1'],
+      ['entity_test_with_bundle', 'bundle1', 'field_test_ref1.field_test2'],
+      ['entity_test_with_bundle', 'bundle1', 'field_test_ref1.field_test_ref1'],
+      ['entity_test_with_bundle', 'bundle1', 'field_test_ref1.field_test_ref2'],
     ];
   }
 

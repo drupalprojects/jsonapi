@@ -4,7 +4,7 @@ namespace Drupal\jsonapi\Context;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
-use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
 use Drupal\Core\TypedData\DataReferenceTargetDefinition;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
@@ -32,7 +32,7 @@ class FieldResolver {
   protected $fieldManager;
 
   /**
-   * The entity bundle information service.
+   * The entity type bundle information service.
    *
    * @var \Drupal\Core\Entity\EntityTypeBundleInfoInterface
    */
@@ -92,7 +92,7 @@ class FieldResolver {
    * In an effort to simplify the referenced paths and align them with the
    * structure of JSON API responses and the structure of the hypothetical
    * "reference document" (see link), it is possible to alias field names and
-   * elide the keyword "entity" from them (this word is used by the entity query
+   * elide the "entity" keyword from them (this word is used by the entity query
    * system to traverse entity references).
    *
    * This method takes this external field expression and and attempts to
@@ -114,17 +114,15 @@ class FieldResolver {
    *
    * @return string
    *   The mapped field name.
+   *
+   * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
    */
   public function resolveInternal($entity_type_id, $bundle, $external_field_name) {
     $resource_type = $this->resourceTypeRepository->get($entity_type_id, $bundle);
     if (empty($external_field_name)) {
       throw new BadRequestHttpException('No field name was provided for the filter.');
     }
-    // Right now we are exposing all the fields with the name they have in
-    // the Drupal backend. But this may change in the future.
-    if (strpos($external_field_name, '.') === FALSE) {
-      return $resource_type->getInternalName($external_field_name);
-    }
+
     // Turns 'uid.categories.name' into
     // 'uid.entity.field_category.entity.name'. This may be too simple, but it
     // works for the time being.
@@ -135,25 +133,39 @@ class FieldResolver {
     while ($part = array_shift($parts)) {
       $field_name = $this->getInternalName($part, $resource_types);
 
-      $field_definition = $this->getFieldDefinition($entity_type_id, $field_name);
+      $candidate_definitions = $this->getFieldItemDefinitions(
+        $resource_types,
+        $field_name
+      );
 
+      // If there are no definitions, then the field does not exist.
+      if (empty($candidate_definitions)) {
+        throw new BadRequestHttpException(sprintf(
+          'Invalid nested filtering. The field `%s`, given in the path `%s`, does not exist.',
+          $part,
+          $external_field_name
+        ));
+      }
+
+      // Get all of the referenceable resource types.
+      $resource_types = $this->getReferenceableResourceTypes($candidate_definitions);
+
+      // Keep a trail of entity reference field names.
       $reference_breadcrumbs[] = $field_name;
 
-      // Update the resource type with the referenced type.
-      $resource_types = $this->collectResourceTypesForReference($field_definition);
-      // Update the entity type with the referenced type.
-      $entity_type_id = $field_definition->getSetting('target_type');
       // $field_name may not be a reference field. In that case we should treat
-      // the rest of the parts as complex fields.
-      if (empty($entity_type_id)) {
-        // This is the path from the initial entity type to the entity type that
-        // contains $field_name. This path is a set of entity references.
-        $entity_path = implode('.entity.', $reference_breadcrumbs);
-        // This is the path from the final entity type to the selected field
-        // column.
+      // the rest of the parts as sub-properties of the field.
+      if (empty($resource_types)) {
+        // Reconstruct the path parts that are referencing sub-properties.
         $field_path = implode('.', $parts);
 
-        return implode('.', array_filter([$entity_path, $field_path]));
+        // This rebuilds the path from the real, internal field names that have
+        // been traversed so far. It joins them with the "entity" keyword as
+        // required by the entity query system.
+        $entity_path = implode('.entity.', $reference_breadcrumbs);
+
+        // Reconstruct the full path to the final reference field.
+        return (empty($field_path)) ? $entity_path : $entity_path . '.' . $field_path;
       }
     }
 
@@ -162,37 +174,27 @@ class FieldResolver {
   }
 
   /**
-   * Get a field definition by entity type ID and field name.
+   * Get all item definitions from a set of resources types by a field name.
    *
-   * @param string $entity_type_id
-   *   The entity type ID.
+   * @param \Drupal\jsonapi\ResourceType\ResourceType[] $resource_types
+   *   The resource types on which the field might exist.
    * @param string $field_name
-   *   The machine name of the field.
+   *   The field for which to retrieve field item definitions.
    *
-   * @return \Drupal\Core\Field\FieldDefinitionInterface
-   *   The field definition.
-   *
-   * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+   * @return \Drupal\Core\TypedData\ComplexDataDefinitionInterface[]
+   *   The found field item definitions.
    */
-  protected function getFieldDefinition($entity_type_id, $field_name) {
-    $definitions = $this->fieldManager->getFieldStorageDefinitions($entity_type_id)
-      // We also need the base field definitions in case there are
-      // relationships coming from computed fields.
-      + $this->fieldManager->getBaseFieldDefinitions($entity_type_id);
-    if (!$definitions) {
-      throw new BadRequestHttpException(sprintf(
-        'Invalid nested filtering. There is no entity type "%s".',
-        $entity_type_id
-      ));
-    }
-    if (empty($definitions[$field_name])) {
-      throw new BadRequestHttpException(sprintf(
-        'Invalid nested filtering. Invalid entity reference "%s".',
-        $field_name
-      ));
-    }
-
-    return $definitions[$field_name];
+  protected function getFieldItemDefinitions(array $resource_types, $field_name) {
+    return array_reduce($resource_types, function ($result, $resource_type) use ($field_name) {
+      /* @var \Drupal\jsonapi\ResourceType\ResourceType $resource_type */
+      $entity_type = $resource_type->getEntityTypeId();
+      $bundle = $resource_type->getBundle();
+      $definitions = $this->fieldManager->getFieldDefinitions($entity_type, $bundle);
+      if (isset($definitions[$field_name])) {
+        $result[] = $definitions[$field_name]->getItemDefinition();
+      }
+      return $result;
+    }, []);
   }
 
   /**
@@ -217,34 +219,70 @@ class FieldResolver {
   }
 
   /**
+   * Get the referenceable ResourceTypes for a set of field definitions.
+   *
+   * @param \Drupal\Core\Field\FieldDefinitionInterface[] $definitions
+   *   The resource types on which the reference field might exist.
+   *
+   * @return \Drupal\jsonapi\ResourceType\ResourceType[]
+   *   The referenceable target resource types.
+   */
+  protected function getReferenceableResourceTypes(array $definitions) {
+    return array_reduce($definitions, function ($result, $definition) {
+      $resource_types = $this->collectResourceTypesForReference($definition);
+      $type_names = array_map(function ($resource_type) {
+        /* @var \Drupal\jsonapi\ResourceType\ResourceType $resource_type */
+        return $resource_type->getTypeName();
+      }, $resource_types);
+      return array_merge($result, array_combine($type_names, $resource_types));
+    }, []);
+  }
+
+  /**
    * Build a list of resource types depending on which bundles are referenced.
    *
-   * @param \Drupal\Core\Field\FieldStorageDefinitionInterface $field_definition
+   * @param \Drupal\Core\Field\TypedData\FieldItemDataDefinition $item_definition
    *   The reference definition.
    *
    * @return \Drupal\jsonapi\ResourceType\ResourceType[]
    *   The list of resource types.
+   *
+   * @todo Add PHP type hint, see
+   *   https://www.drupal.org/project/jsonapi/issues/2933895
    */
-  protected function collectResourceTypesForReference(FieldStorageDefinitionInterface $field_definition) {
-    $main_property_definition = $field_definition->getPropertyDefinition(
-      $field_definition->getMainPropertyName()
+  protected function collectResourceTypesForReference(FieldItemDataDefinition $item_definition) {
+    $main_property_definition = $item_definition->getPropertyDefinition(
+      $item_definition->getMainPropertyName()
     );
+
     // Check if the field is a flavor of an Entity Reference field.
     if (!$main_property_definition instanceof DataReferenceTargetDefinition) {
       return [];
     }
-    $entity_type_id = $field_definition->getSetting('target_type');
-    $handler_settings = $field_definition->getSetting('handler_settings');
-    if (empty($handler_settings['target_bundles'])) {
-      // If target bundles is NULL it means ALL of the bundles in the entity ID
-      // are referenceable.
-      $bundle_info = $this->entityTypeBundleInfo
-        ->getBundleInfo($entity_type_id);
-      $target_bundles = array_keys($bundle_info);
-    }
+    $entity_type_id = $item_definition->getSetting('target_type');
+    $handler_settings = $item_definition->getSetting('handler_settings');
+
+    $has_target_bundles = isset($handler_settings['target_bundles']) && !empty($handler_settings['target_bundles']);
+    $target_bundles = $has_target_bundles ?
+      $handler_settings['target_bundles']
+      : $this->getAllBundlesForEntityType($entity_type_id);
+
     return array_map(function ($bundle) use ($entity_type_id) {
       return $this->resourceTypeRepository->get($entity_type_id, $bundle);
     }, $target_bundles);
+  }
+
+  /**
+   * Gets all bundle IDs for a given entity type.
+   *
+   * @param string $entity_type_id
+   *   The entity type for which to get bundles.
+   *
+   * @return string[]
+   *   The bundle IDs.
+   */
+  protected function getAllBundlesForEntityType($entity_type_id) {
+    return array_keys($this->entityTypeBundleInfo->getBundleInfo($entity_type_id));
   }
 
 }
