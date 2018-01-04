@@ -146,6 +146,8 @@ class EntityResource {
    *
    * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
    *   If validation errors are found.
+   *
+   * @see \Drupal\rest\Plugin\rest\resource\EntityResourceValidationTrait::validate()
    */
   protected function validate(EntityInterface $entity) {
     if (!$entity instanceof FieldableEntityInterface) {
@@ -163,6 +165,7 @@ class EntityResource {
       // 422 Unprocessable Entity code from RFC 4918. That way clients can
       // distinguish between general syntax errors in bad serializations (code
       // 400) and semantic errors in well-formed requests (code 422).
+      // @see \Drupal\jsonapi\Normalizer\UnprocessableHttpEntityExceptionNormalizer
       $exception = new UnprocessableHttpEntityException();
       $exception->setViolations($violations);
       throw $exception;

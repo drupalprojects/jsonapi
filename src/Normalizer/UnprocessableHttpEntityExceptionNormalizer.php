@@ -2,6 +2,7 @@
 
 namespace Drupal\jsonapi\Normalizer;
 
+use Drupal\Component\Render\PlainTextOutput;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\jsonapi\Exception\UnprocessableHttpEntityException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -66,7 +67,7 @@ class UnprocessableHttpEntityExceptionNormalizer extends HttpExceptionNormalizer
       foreach ($field_violations as $violation) {
         /** @var \Symfony\Component\Validator\ConstraintViolation $violation */
         $error['detail'] = $violation->getPropertyPath() . ': '
-          . $violation->getMessage();
+          . PlainTextOutput::renderFromHtml($violation->getMessage());
 
         $pointer = '/data/attributes/'
           . str_replace('.', '/', $violation->getPropertyPath());
