@@ -21,6 +21,8 @@ use Symfony\Component\Routing\Route;
 /**
  * @coversDefaultClass \Drupal\jsonapi\Context\CurrentContext
  * @group jsonapi
+ *
+ * @internal
  */
 class CurrentContextTest extends UnitTestCase {
 

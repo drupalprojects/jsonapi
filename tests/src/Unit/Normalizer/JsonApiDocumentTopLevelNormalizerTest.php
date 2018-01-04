@@ -21,6 +21,8 @@ use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 /**
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer
  * @group jsonapi
+ *
+ * @internal
  */
 class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
 

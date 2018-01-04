@@ -9,6 +9,8 @@ use Drupal\jsonapi\ResourceType\ResourceType;
 
 /**
  * Converts the Drupal config entity object to a JSON API array structure.
+ *
+ * @internal
  */
 class ConfigEntityNormalizer extends EntityNormalizer {
 

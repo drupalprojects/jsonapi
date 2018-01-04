@@ -18,6 +18,8 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
  * Converts the Drupal entity object to a JSON API array structure.
+ *
+ * @internal
  */
 class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
 

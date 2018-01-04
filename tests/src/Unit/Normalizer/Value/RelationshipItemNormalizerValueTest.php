@@ -9,6 +9,8 @@ use Drupal\Tests\UnitTestCase;
 /**
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\RelationshipItemNormalizerValue
  * @group jsonapi
+ *
+ * @internal
  */
 class RelationshipItemNormalizerValueTest extends UnitTestCase {
 

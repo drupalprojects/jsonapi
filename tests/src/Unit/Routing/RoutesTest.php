@@ -14,6 +14,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * @coversDefaultClass \Drupal\jsonapi\Routing\Routes
  * @group jsonapi
+ *
+ * @internal
  */
 class RoutesTest extends UnitTestCase {
 

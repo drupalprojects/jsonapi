@@ -14,6 +14,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * JSON API specification.
  *
  * @see http://jsonapi.org/format/#error-objects
+ *
+ * @internal
  */
 class HttpExceptionNormalizer extends NormalizerBase {
 

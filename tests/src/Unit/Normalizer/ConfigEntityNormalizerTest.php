@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Serializer;
 /**
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\ConfigEntityNormalizer
  * @group jsonapi
+ *
+ * @internal
  */
 class ConfigEntityNormalizerTest extends UnitTestCase {
 

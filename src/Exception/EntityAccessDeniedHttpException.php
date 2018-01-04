@@ -10,6 +10,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Enhances the access denied exception with information about the entity.
+ *
+ * @internal
  */
 class EntityAccessDeniedHttpException extends HttpException {
 

@@ -19,6 +19,8 @@ use GuzzleHttp\Exception\ServerException;
 
 /**
  * Provides helper methods for the JSON API module's functional tests.
+ *
+ * @internal
  */
 abstract class JsonApiFunctionalTestBase extends BrowserTestBase {
 

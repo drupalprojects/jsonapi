@@ -16,6 +16,8 @@ use Prophecy\Argument;
 /**
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue
  * @group jsonapi
+ *
+ * @internal
  */
 class EntityNormalizerValueTest extends UnitTestCase {
 

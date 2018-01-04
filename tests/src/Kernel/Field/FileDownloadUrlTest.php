@@ -9,6 +9,8 @@ use Drupal\KernelTests\KernelTestBase;
  * @coversDefaultClass \Drupal\jsonapi\Field\FileDownloadUrl
  * @group jsonapi
  * @group legacy
+ *
+ * @internal
  */
 class FileDownloadUrlTest extends KernelTestBase {
 

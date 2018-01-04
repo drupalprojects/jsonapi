@@ -14,6 +14,8 @@ use Drupal\serialization\EntityResolver\UuidReferenceInterface;
  * Converts the Drupal entity reference item object to a JSON API structure.
  *
  * @todo Remove the dependency on \Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer
+ *
+ * @internal
  */
 class RelationshipItemNormalizer extends FieldItemNormalizer {
 

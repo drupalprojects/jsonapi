@@ -11,6 +11,8 @@ use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 /**
  * Normalizer class for relationship elements. A relationship can be anything
  * that points to an entity in a JSON API resource.
+ *
+ * @internal
  */
 class RelationshipNormalizer extends NormalizerBase {
 

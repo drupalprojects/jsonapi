@@ -4,6 +4,8 @@ namespace Drupal\jsonapi\ResourceType;
 
 /**
  * Provides a repository of all JSON API resource types.
+ *
+ * @internal
  */
 interface ResourceTypeRepositoryInterface {
 

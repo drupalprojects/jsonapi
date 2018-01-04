@@ -11,6 +11,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * client applications report to know which entity was access denied.
  *
  * @see http://jsonapi.org/format/#error-objects
+ *
+ * @internal
  */
 class EntityAccessDeniedHttpExceptionNormalizer extends HttpExceptionNormalizer {
 

@@ -12,6 +12,8 @@ use Prophecy\Argument;
  * @group jsonapi
  * @group jsonapi_normalizers
  * @group legacy
+ *
+ * @internal
  */
 class SortNormalizerTest extends KernelTestBase {
 

@@ -21,6 +21,8 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
  * @group jsonapi
  * @group jsonapi_param_enhancer
  * @group legacy
+ *
+ * @internal
  */
 class JsonApiParamEnhancerTest extends UnitTestCase {
 

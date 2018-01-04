@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Serializer;
 
 /**
  * Simplifies the process of generating a JSON API version of an entity.
+ *
+ * @api
  */
 class EntityToJsonApi {
 

@@ -32,6 +32,8 @@ use Symfony\Component\Routing\Route;
  * @coversDefaultClass \Drupal\jsonapi\Controller\EntityResource
  * @group jsonapi
  * @group legacy
+ *
+ * @internal
  */
 class EntityResourceTest extends JsonapiKernelTestBase {
 

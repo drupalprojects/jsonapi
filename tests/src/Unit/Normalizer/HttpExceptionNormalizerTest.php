@@ -10,6 +10,8 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 /**
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\HttpExceptionNormalizer
  * @group jsonapi
+ *
+ * @internal
  */
 class HttpExceptionNormalizerTest extends UnitTestCase {
 

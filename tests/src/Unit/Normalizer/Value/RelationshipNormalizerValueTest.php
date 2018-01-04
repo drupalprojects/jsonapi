@@ -13,6 +13,8 @@ use Prophecy\Argument;
 /**
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValue
  * @group jsonapi
+ *
+ * @internal
  */
 class RelationshipNormalizerValueTest extends UnitTestCase {
 

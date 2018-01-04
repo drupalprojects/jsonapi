@@ -11,6 +11,8 @@ use Drupal\Tests\rest\Functional\ResourceTestBase;
 /**
  * @group jsonapi
  * @group legacy
+ *
+ * @internal
  */
 class RestJsonApiUnsupported extends ResourceTestBase {
 

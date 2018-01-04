@@ -21,6 +21,8 @@ use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
 
 /**
  * @see \Drupal\jsonapi\Resource\JsonApiDocumentTopLevel
+ *
+ * @internal
  */
 class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements DenormalizerInterface, NormalizerInterface {
 

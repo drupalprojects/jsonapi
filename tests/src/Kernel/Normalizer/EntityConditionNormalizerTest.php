@@ -12,6 +12,8 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  * @group jsonapi
  * @group jsonapi_normalizers
  * @group legacy
+ *
+ * @internal
  */
 class EntityConditionNormalizerTest extends KernelTestBase {
 

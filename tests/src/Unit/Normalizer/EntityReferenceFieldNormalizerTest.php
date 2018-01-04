@@ -20,6 +20,8 @@ use Prophecy\Argument;
 /**
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\EntityReferenceFieldNormalizer
  * @group jsonapi
+ *
+ * @internal
  */
 class EntityReferenceFieldNormalizerTest extends UnitTestCase {
 

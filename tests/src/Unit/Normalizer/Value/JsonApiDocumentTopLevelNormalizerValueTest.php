@@ -17,6 +17,8 @@ use Prophecy\Argument;
 /**
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\Value\JsonApiDocumentTopLevelNormalizerValue
  * @group jsonapi
+ *
+ * @internal
  */
 class JsonApiDocumentTopLevelNormalizerValueTest extends UnitTestCase {
 

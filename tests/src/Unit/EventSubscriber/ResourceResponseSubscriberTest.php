@@ -20,6 +20,8 @@ use Symfony\Component\Serializer\Serializer;
 /**
  * @coversDefaultClass \Drupal\jsonapi\EventSubscriber\ResourceResponseSubscriber
  * @group jsonapi
+ *
+ * @internal
  */
 class ResourceResponseSubscriberTest extends UnitTestCase {
 

@@ -13,6 +13,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * form.
  *
  * @see http://jsonapi.org/format/#error-objects
+ *
+ * @internal
  */
 class UnprocessableHttpEntityExceptionNormalizer extends HttpExceptionNormalizer {
 

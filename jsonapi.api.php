@@ -9,81 +9,118 @@
  * @defgroup jsonapi_normalizer_architecture JSON API Normalizer Architecture
  * @{
  *
+ * @section overview Overview
+ * The JSON API module is a Drupal-centric implementation of the JSON API
+ * specification. By its own definition, the JSON API specification is "is a
+ * specification for how a client should request that resources be fetched or
+ * modified, and how a server should respond to those requests. [It] is designed
+ * to minimize both the number of requests and the amount of data transmitted
+ * between clients and servers. This efficiency is achieved without compromising
+ * readability, flexibility, or discoverability."
+ *
+ * While "Drupal-centric", the JSON API module is committed to strict compliance
+ * with the specification. Wherever possible, the module attempts to implement
+ * the specification in a way which is compatible and familiar with the patterns
+ * and concepts inherent to Drupal. However, when "Drupalisms" cannot be
+ * reconciled with the specification, the module will always choose the
+ * implementation most faithful to the specification.
+ *
+ * @see http://jsonapi.org/
+ *
+ *
  * @section resources Resources
- * The unit of data in the JSON API spec is a "resource", and relationships
- * between those units of data are called "relationships". The Drupal module
- * that implements JSON API exposes every entity as a resource, every entity
- * bundle as a resource type and every entity reference field as a relationship.
+ * Every unit of data in the specification is a "resource". The specification
+ * defines how a client should interact with a server to fetch and manipulate
+ * these resources.
+ *
+ * The JSON API module maps every entity type + bundle to a resource type.
+ * Since the specification does not have a concept of resource type inheritance
+ * or composition, the JSON API module implements different bundles of the same
+ * entity type as *distinct* resource types.
  *
  * While it is theoretically possible to expose arbitrary data as resources, the
- * decision to limit to only (config and content) entities means that all
- * relationships between entities (resources) and entity types (resource types)
- * are available automatically, without the need for another abstraction layer.
+ * JSON API module only exposes resources from (config and content) entities.
+ * This eliminates the need for another abstraction layer in order implement
+ * certain features of the specification.
  *
- * The JSON API module can be summarized as just that: logic that exposes Drupal
- * entities according to the JSON API spec.*
+ *
+ * @section relationships Relationships
+ * The specification defines semantics for the "relationships" between
+ * resources. Since the JSON API module defines every entity type + bundle as a
+ * resource type and does not allow non-entity resources, it is able to use
+ * entity references to automatically define and represent the relationships
+ * between all resources.
  *
  *
  * @section normalizers Normalizers
  * The JSON API module reuses as many of Drupal core's Serialization module's
  * normalizers as possible.
  *
- * Since the JSON API module follows the http://jsonapi.org/ spec, which
- * requires special handling for resources (entities), relationships between
- * resources (entity references) and resource IDs (entity UUIDs), it has no
- * choice but to override the Serialization module's normalizers for entities,
- * fields and entity reference fields.
+ * The JSON API specification requires special handling for resources
+ * (entities), relationships between those resources (entity references) and
+ * resource IDs (entity UUIDs), it must override some of the Serialization
+ * module's normalizers for entities and fields (most notably, entity
+ * reference fields).
  *
- * This also means that contributed/custom modules that provide additional field
- * types need to implement normalizers not at the field level ("FieldType"
- * plugins), but at a level below that ("DataType" plugins). Otherwise they will
- * not have any effect.
+ * This means that modules which provide additional field types must implement
+ * normalizers at the "DataType" plugin level. This is a level below "FieldType"
+ * plugins. Normalizers which are not implemented at this level will not be used
+ * by the JSON API module.
  *
- * A benefit of implementing normalizers at that lower level is that they then
+ * A benefit of implementing normalizers at this lower level is that they will
  * work automatically for both the JSON API module and core's REST module.
  *
  *
  * @section api API
- * The JSON API module provides a HTTP API, that follows the jsonapi.org spec.
+ * The JSON API module provides an HTTP API that adheres to the JSON API
+ * specification.
  *
- * The JSON API module does not provide a PHP API to modify its behavior. It is
- * designed to be "zero-configuration".
+ * The JSON API module provides *no PHP API to modify its behavior.* It is
+ * designed to have zero configuration.
  *
  * - Adding new resources/resource types is unsupported: all entities/entity
- *   types are exposed automatically. If you want to expose more data via JSON
- *   API, make sure they're entities. See the "Resources" section.
- * - Customizing the normalization of fields is not supported: only normalizers
- *   for "DataType" plugins are supported (a level below fields).
+ *   types are exposed automatically. If you want to expose more data via the
+ *   JSON API module, the data must be defined as entity. See the "Resources"
+ *   section.
+ * - Custom field normalization is not supported; only normalizers at the
+ *   "DataType" plugin level are supported (these are a level below field
+ *   types).
  *
- * The JSON API module does provide a PHP API to generate JSON API
- * representations of entities:
+ * The JSON API module does provide a PHP API to generate a JSON API
+ * representation of entities:
+ *
  * @code
  * \Drupal::service('jsonapi.entity.to_jsonapi')->serialize($entity)
  * @endcode
  *
  *
  * @section bc Backwards Compatibility
- * PHP API: there is no PHP API, which means this module's implementation
- * details are free to change at any time.
- * (Also note that normalizers are internal implementation details: they are
- * services due to the design of the Symfony Serialization component, not
- * because the JSON API module wanted to expose services.)
+ * PHP API: there is no PHP API. This means that this module's implementation
+ * details are entirely free to change at any time.
+ *
+ * Please note, *normalizers are internal implementation details.* While
+ * normalizers are services, they are *not* to be used directly. This is due to
+ * the design of the Symfony Serialization component, not because the JSON API
+ * module wanted to publicly expose services.
  *
  * HTTP API: URLs and JSON response structures are considered part of this
- * module's public API. However, inconsistencies with the jsonapi.org
- * specification will be considered bugs. Fixes which bring the module into
- * compliance with the specification are not guaranteed to be backwards
- * compatible. What this means for developing consumers of the HTTP API is that
- * clients should be implemented from the specification first and foremost to
- * mitigate implicit dependencies on implementation details specific to this
- * module.
+ * module's public API. However, inconsistencies with the JSON API specification
+ * will be considered bugs. Fixes which bring the module into compliance with
+ * the specification are *not* guaranteed to be backwards compatible.
+ *
+ * What this means for developing consumers of the HTTP API is that *clients
+ * should be implemented from the specification first and foremost.* This should
+ * mitigate implicit dependencies on implementation details or inconsistencies
+ * with the specification that are specific to this module.
  *
  * To help develop compatible clients, every response indicates the version of
  * the JSON API specification used under its "jsonapi" key. Future releases
- * *may* increment the minor version number if the module implements the
- * features of a later specification. The specification stipulates that future
+ * *may* increment the minor version number if the module implements features of
+ * a later specification. Remember that he specification stipulates that future
  * versions *will* remain backwards compatible as only additions may be
  * released.
+ *
+ * @see http://jsonapi.org/faq/#what-is-the-meaning-of-json-apis-version
  *
  * @}
  */

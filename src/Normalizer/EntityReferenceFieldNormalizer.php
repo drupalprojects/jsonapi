@@ -15,6 +15,8 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * Normalizer class specific for entity reference field objects.
+ *
+ * @internal
  */
 class EntityReferenceFieldNormalizer extends FieldNormalizer implements DenormalizerInterface {
 

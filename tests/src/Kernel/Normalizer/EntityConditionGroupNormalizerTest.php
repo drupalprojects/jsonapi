@@ -10,6 +10,8 @@ use Drupal\jsonapi\Query\EntityConditionGroup;
  * @group jsonapi
  * @group jsonapi_normalizers
  * @group legacy
+ *
+ * @internal
  */
 class EntityConditionGroupNormalizerTest extends KernelTestBase {
 

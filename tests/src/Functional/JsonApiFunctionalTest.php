@@ -9,6 +9,8 @@ use Drupal\jsonapi\Query\OffsetPage;
 /**
  * @group jsonapi
  * @group legacy
+ *
+ * @internal
  */
 class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
 

@@ -31,6 +31,8 @@ use Symfony\Component\Routing\Route;
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer
  * @group jsonapi
  * @group legacy
+ *
+ * @internal
  */
 class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
 

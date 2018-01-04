@@ -8,6 +8,8 @@ use Drupal\Tests\UnitTestCase;
 /**
  * @coversDefaultClass \Drupal\jsonapi\JsonApiSpec
  * @group jsonapi
+ *
+ * @internal
  */
 class JsonApiSpecTest extends UnitTestCase {
 
