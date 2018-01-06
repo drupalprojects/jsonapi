@@ -31,6 +31,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -185,6 +186,7 @@ class EntityResource {
    *
    * @throws \Drupal\Core\Entity\EntityStorageException
    * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
   public function createIndividual(EntityInterface $entity, Request $request) {
     $entity_access = $entity->access('create', NULL, TRUE);
@@ -373,8 +375,8 @@ class EntityResource {
     }
     $collection_data = [];
     // Remove the entities pointing to a resource that may be disabled. Even
-    //though the normalizer skips disabled references, we can avoid unnecessary
-    //work by checking here too.
+    // though the normalizer skips disabled references, we can avoid unnecessary
+    // work by checking here too.
     /* @var \Drupal\Core\Entity\EntityInterface[] $referenced_entities */
     $referenced_entities = array_filter(
       $field_list->referencedEntities(),
@@ -429,15 +431,23 @@ class EntityResource {
   /**
    * Validates that the referenced field points to an enabled resource.
    *
-   * @param \Drupal\Core\Field\EntityReferenceFieldItemListInterface $field_list
+   * @param \Drupal\Core\Field\EntityReferenceFieldItemListInterface|null $field_list
    *   The field list with the reference.
    * @param string $related_field
    *   The internal name of the related field.
    *
    * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
    *   If the field is not a reference or the target resource is disabled.
+   * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+   *   If the $field_list is of the incorrect type.
    */
-  protected function validateReferencedResource(EntityReferenceFieldItemListInterface $field_list, $related_field) {
+  protected function validateReferencedResource($field_list, $related_field) {
+    if (
+      !is_null($field_list) &&
+      !$field_list instanceof EntityReferenceFieldItemListInterface
+    ) {
+      throw new HttpException(500, 'Invalid internal structure for relationship field list.');
+    }
     if (!$field_list || !$this->isRelationshipField($field_list)) {
       throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
     }
@@ -661,6 +671,8 @@ class EntityResource {
    *
    * @return \Drupal\Core\Entity\Query\QueryInterface
    *   A new query.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
   protected function getCollectionQuery($entity_type_id, $params) {
     $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
@@ -718,6 +730,8 @@ class EntityResource {
    *
    * @return \Drupal\Core\Entity\Query\QueryInterface
    *   A new query.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
   protected function getCollectionCountQuery($entity_type_id, $params) {
     // Reset the range to get all the available results.
@@ -744,7 +758,7 @@ class EntityResource {
   /**
    * Respond with an entity collection.
    *
-   * @param \Drupal\jsonapi\EntityCollection $entity_collection
+   * @param \Drupal\jsonapi\Resource\EntityCollection $entity_collection
    *   The collection of entites.
    * @param string $entity_type_id
    *   The entity type.
@@ -895,6 +909,8 @@ class EntityResource {
    *
    * @return bool
    *   Whether the entity already has been created.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
   protected function entityExists(EntityInterface $entity) {
     $entity_storage = $this->entityTypeManager->getStorage($entity->getEntityTypeId());
