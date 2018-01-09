@@ -156,21 +156,36 @@ class FieldResolver {
       // $field_name may not be a reference field. In that case we should treat
       // the rest of the parts as sub-properties of the field.
       if (empty($resource_types)) {
-        // Reconstruct the path parts that are referencing sub-properties.
-        $field_path = implode('.', $parts);
-
-        // This rebuilds the path from the real, internal field names that have
-        // been traversed so far. It joins them with the "entity" keyword as
-        // required by the entity query system.
-        $entity_path = implode('.entity.', $reference_breadcrumbs);
-
-        // Reconstruct the full path to the final reference field.
-        return (empty($field_path)) ? $entity_path : $entity_path . '.' . $field_path;
+        return $this->constructInternalPath($reference_breadcrumbs, $parts);
       }
     }
 
     // Reconstruct the full path to the final reference field.
-    return implode('.entity.', $reference_breadcrumbs);
+    return $this->constructInternalPath($reference_breadcrumbs);
+  }
+
+  /**
+   * Expands the internal path with the "entity" keyword.
+   *
+   * @param string[] $references
+   *   The resolved internal field names of all entity references.
+   * @param string[] $property_path
+   *   (optional) A sub-property path for the last field in the path.
+   *
+   * @return string
+   *   The expanded and imploded path.
+   */
+  protected function constructInternalPath(array $references, array $property_path = []) {
+    // Reconstruct the path parts that are referencing sub-properties.
+    $field_path = implode('.', $property_path);
+
+    // This rebuilds the path from the real, internal field names that have
+    // been traversed so far. It joins them with the "entity" keyword as
+    // required by the entity query system.
+    $entity_path = implode('.entity.', $references);
+
+    // Reconstruct the full path to the final reference field.
+    return (empty($field_path)) ? $entity_path : $entity_path . '.' . $field_path;
   }
 
   /**
