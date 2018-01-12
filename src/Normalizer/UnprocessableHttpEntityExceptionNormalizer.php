@@ -3,7 +3,7 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Component\Render\PlainTextOutput;
-use Drupal\Core\Session\AccountProxyInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\jsonapi\Exception\UnprocessableHttpEntityException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -29,10 +29,10 @@ class UnprocessableHttpEntityExceptionNormalizer extends HttpExceptionNormalizer
   /**
    * UnprocessableHttpEntityException constructor.
    *
-   * @param \Drupal\Core\Session\AccountProxyInterface $current_user
+   * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The current user.
    */
-  public function __construct(AccountProxyInterface $current_user) {
+  public function __construct(AccountInterface $current_user) {
     parent::__construct($current_user);
   }
 

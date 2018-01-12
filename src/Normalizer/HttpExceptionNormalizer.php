@@ -3,7 +3,7 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
-use Drupal\Core\Session\AccountProxyInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\HttpExceptionNormalizerValue;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,17 +29,17 @@ class HttpExceptionNormalizer extends NormalizerBase {
   /**
    * The current user making the request.
    *
-   * @var \Drupal\Core\Session\AccountProxyInterface
+   * @var \Drupal\Core\Session\AccountInterface
    */
   protected $currentUser;
 
   /**
    * HttpExceptionNormalizer constructor.
    *
-   * @param \Drupal\Core\Session\AccountProxyInterface $current_user
+   * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The current user.
    */
-  public function __construct(AccountProxyInterface $current_user) {
+  public function __construct(AccountInterface $current_user) {
     $this->currentUser = $current_user;
   }
 
