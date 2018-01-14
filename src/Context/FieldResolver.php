@@ -4,6 +4,8 @@ namespace Drupal\jsonapi\Context;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
 use Drupal\Core\TypedData\DataReferenceTargetDefinition;
 use Drupal\jsonapi\ResourceType\ResourceType;
@@ -23,6 +25,13 @@ class FieldResolver {
    * @var \Drupal\jsonapi\Context\CurrentContext
    */
   protected $currentContext;
+
+  /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
 
   /**
    * The field manager.
@@ -50,6 +59,8 @@ class FieldResolver {
    *
    * @param \Drupal\jsonapi\Context\CurrentContext $current_context
    *   The JSON API CurrentContext service.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    * @param \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager
    *   The field manager.
    * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $entity_type_bundle_info
@@ -57,8 +68,9 @@ class FieldResolver {
    * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface $resource_type_repository
    *   The resource type repository.
    */
-  public function __construct(CurrentContext $current_context, EntityFieldManagerInterface $field_manager, EntityTypeBundleInfoInterface $entity_type_bundle_info, ResourceTypeRepositoryInterface $resource_type_repository) {
+  public function __construct(CurrentContext $current_context, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $field_manager, EntityTypeBundleInfoInterface $entity_type_bundle_info, ResourceTypeRepositoryInterface $resource_type_repository) {
     $this->currentContext = $current_context;
+    $this->entityTypeManager = $entity_type_manager;
     $this->fieldManager = $field_manager;
     $this->entityTypeBundleInfo = $entity_type_bundle_info;
     $this->resourceTypeRepository = $resource_type_repository;
@@ -132,6 +144,13 @@ class FieldResolver {
     $resource_types = [$resource_type];
     while ($part = array_shift($parts)) {
       $field_name = $this->getInternalName($part, $resource_types);
+
+      // If none of the resource types are traversable, assume that the
+      // remaining path parts are for sub-properties.
+      if (!$this->resourceTypesAreTraversable($resource_types)) {
+        $reference_breadcrumbs[] = $field_name;
+        return $this->constructInternalPath($reference_breadcrumbs, $parts);
+      }
 
       $candidate_definitions = $this->getFieldItemDefinitions(
         $resource_types,
@@ -285,6 +304,32 @@ class FieldResolver {
     return array_map(function ($bundle) use ($entity_type_id) {
       return $this->resourceTypeRepository->get($entity_type_id, $bundle);
     }, $target_bundles);
+  }
+
+  /**
+   * Whether the given resources can be traversed to other resources.
+   *
+   * @param \Drupal\jsonapi\ResourceType\ResourceType[] $resource_types
+   *   The resources types to evaluate.
+   *
+   * @return bool
+   *   TRUE if any one of the given resource types is traversable.
+   *
+   * @todo This class shouldn't be aware of entity types and their definitions.
+   * Whether a resource can have relationships to other resources is information
+   * we ought to be able to discover on the ResourceType. However, we cannot
+   * reliably determine this information with existing APIs. Entities may be
+   * backed by various storages that are unable to perform queries across
+   * references and certain storages may not be able to store references at all.
+   */
+  protected function resourceTypesAreTraversable(array $resource_types) {
+    foreach ($resource_types as $resource_type) {
+      $entity_type_definition = $this->entityTypeManager->getDefinition($resource_type->getEntityTypeId());
+      if ($entity_type_definition->entityClassImplements(FieldableEntityInterface::class)) {
+        return TRUE;
+      }
+    }
+    return FALSE;
   }
 
   /**

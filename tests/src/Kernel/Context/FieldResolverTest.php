@@ -68,6 +68,11 @@ class FieldResolverTest extends JsonapiKernelTestBase {
    */
   public function resolveInternalProvider() {
     return [
+      // Config entities
+      ['uuid', 'uuid', 'entity_test_bundle', 'entity_test_bundle'],
+      ['type.entity.uuid', 'type.uuid'],
+
+      // Content entities
       ['field_test1', 'field_test1'],
       ['field_test2', 'field_test2'],
 
