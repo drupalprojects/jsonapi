@@ -558,8 +558,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
   }
 
   /**
-   * Try to POST a node with related resource of invalid type, as well as one
-   * with no type.
+   * Tests denormalization for related resources with missing or invalid types.
    */
   public function testDenormalizeInvalidTypeAndNoType() {
     $payload_data = [
@@ -629,11 +628,12 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
    * We cannot use a PHPUnit data provider because our data depends on $this.
    *
    * @param array $options
+   *   Options for how to construct test data.
    *
    * @return array
    *   The test data.
    */
-  protected function denormalizeUuidProviderBuilder($options) {
+  protected function denormalizeUuidProviderBuilder(array $options) {
     list($input, $expected) = $options;
     list($input_tag_uuids, $input_user_uuid) = $input;
     list($expected_tag_ids, $expected_user_id) = $expected;
@@ -687,6 +687,8 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
    *   The ID of the entity type. Ex: node.
    * @param string $bundle
    *   The bundle. Ex: article.
+   * @param string $related_property
+   *   The related property.
    *
    * @return array
    *   A numeric array containing the request and the ResourceType.

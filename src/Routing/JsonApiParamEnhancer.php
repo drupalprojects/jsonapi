@@ -12,6 +12,8 @@ use Symfony\Component\Routing\Route;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
+ * Processes the request query parameters.
+ *
  * @internal
  */
 class JsonApiParamEnhancer implements RouteEnhancerInterface {

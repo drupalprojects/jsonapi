@@ -10,7 +10,6 @@ use Drupal\jsonapi\Normalizer\ConfigEntityNormalizer;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
-use Symfony\Component\Serializer\Serializer;
 
 /**
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\ConfigEntityNormalizer

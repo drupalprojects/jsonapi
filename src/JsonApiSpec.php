@@ -61,12 +61,15 @@ class JsonApiSpec {
    *   A member name to validate.
    *
    * @return bool
+   *   Whether the given member name is in compliance with the JSON API
+   *   specification.
    *
    * @see http://jsonapi.org/format/#document-member-names
    */
   public static function isValidMemberName($member_name) {
     // @todo When D8 requires PHP >=5.6, move to a MEMBER_NAME_REGEXP constant.
     static $regexp;
+    // @codingStandardsIgnoreStart
     if (!isset($regexp)) {
       $regexp = '/^' .
         // First character must be "globally allowed". Length must be >=1.
@@ -74,12 +77,13 @@ class JsonApiSpec {
         '(' .
           // As many non-globally allowed characters as desired.
           self::MEMBER_NAME_INNER_ALLOWED_CHARACTERS . '*' .
-          // If lenght is >1, then it must end in a "globally allowed" character.
+          // If length > 1, then it must end in a "globally allowed" character.
           self::MEMBER_NAME_GLOBALLY_ALLOWED_CHARACTER_CLASS . '{1}' .
         // >1 characters is optional.
         ')?' .
         '$/u';
     }
+    // @codingStandardsIgnoreEnd
 
     return preg_match($regexp, $member_name) === 1;
   }
@@ -95,6 +99,7 @@ class JsonApiSpec {
    * Gets the reserved (official) JSON API query parameters.
    *
    * @return string[]
+   *   Gets the query parameters reserved by the specification.
    */
   public static function getReservedQueryParameters() {
     return explode('|', static::RESERVED_QUERY_PARAMETERS);
@@ -119,6 +124,8 @@ class JsonApiSpec {
    *   A custom query parameter name to validate.
    *
    * @return bool
+   *   Whether the given query parameter is in compliane with the JSON API
+   *   specification.
    *
    * @see http://jsonapi.org/format/#query-parameters
    */

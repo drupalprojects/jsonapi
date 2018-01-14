@@ -124,10 +124,39 @@ class FilterTest extends JsonapiKernelTestBase {
           'or-group' => ['group' => ['conjunction' => 'OR']],
           'nested-or-group' => ['group' => ['conjunction' => 'OR', 'memberOf' => 'or-group']],
           'nested-and-group' => ['group' => ['conjunction' => 'AND', 'memberOf' => 'or-group']],
-          'condition-0' => ['condition' => ['path' => 'colors', 'value' => 'red', 'operator' => 'CONTAINS', 'memberOf' => 'nested-or-group']],
-          'condition-1' => ['condition' => ['path' => 'shapes', 'value' => 'circle', 'operator' => 'CONTAINS', 'memberOf' => 'nested-or-group']],
-          'condition-2' => ['condition' => ['path' => 'colors', 'value' => 'yellow', 'operator' => 'CONTAINS', 'memberOf' => 'nested-and-group']],
-          'condition-3' => ['condition' => ['path' => 'shapes', 'value' => 'square', 'operator' => 'CONTAINS', 'memberOf' => 'nested-and-group']],
+          'condition-0' => [
+            'condition' => [
+              'path' => 'colors',
+              'value' => 'red',
+              'operator' => 'CONTAINS',
+              'memberOf' => 'nested-or-group',
+            ],
+          ],
+          'condition-1' => [
+            'condition' => [
+              'path' => 'shapes',
+              'value' => 'circle',
+              'operator' => 'CONTAINS',
+              'memberOf' => 'nested-or-group',
+            ],
+          ],
+          'condition-2' => [
+            'condition' => [
+              'path' => 'colors',
+              'value' => 'yellow',
+              'operator' =>
+              'CONTAINS',
+              'memberOf' => 'nested-and-group',
+            ],
+          ],
+          'condition-3' => [
+            'condition' => [
+              'path' => 'shapes',
+              'value' => 'square',
+              'operator' => 'CONTAINS',
+              'memberOf' => 'nested-and-group',
+            ],
+          ],
         ],
         $query,
       ],

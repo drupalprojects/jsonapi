@@ -32,7 +32,9 @@ class RoutesTest extends UnitTestCase {
   protected function setUp() {
     parent::setUp();
     $resource_type_repository = $this->prophesize(ResourceTypeRepository::class);
-    $resource_type_repository->all()->willReturn([new ResourceType('entity_type_1', 'bundle_1_1', EntityInterface::class)]);
+    $resource_type_repository->all()->willReturn([
+      new ResourceType('entity_type_1', 'bundle_1_1', EntityInterface::class),
+    ]);
     $container = $this->prophesize(ContainerInterface::class);
     $container->get('jsonapi.resource_type.repository')->willReturn($resource_type_repository->reveal());
     $auth_collector = $this->prophesize(AuthenticationCollectorInterface::class);

@@ -32,6 +32,8 @@ class EntityToJsonApi {
   protected $serializer;
 
   /**
+   * The JSON API resource type repository.
+   *
    * @var \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface
    */
   protected $resourceTypeRepository;
@@ -41,6 +43,8 @@ class EntityToJsonApi {
    *
    * @param \Symfony\Component\Serializer\Serializer $serializer
    *   The serializer.
+   * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface $resource_type_repository
+   *   The resource type repository.
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The currently logged in user.
    */

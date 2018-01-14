@@ -14,6 +14,8 @@ use Drupal\Tests\UnitTestCase;
 class JsonApiSpecTest extends UnitTestCase {
 
   /**
+   * Ensures that member names are properly validated.
+   *
    * @dataProvider providerTestIsValidMemberName
    * @covers ::isValidMemberName
    */
@@ -92,6 +94,8 @@ class JsonApiSpecTest extends UnitTestCase {
   }
 
   /**
+   * Provides test cases.
+   *
    * @dataProvider providerTestIsValidCustomQueryParameter
    * @covers ::isValidCustomQueryParameter
    * @covers ::isValidMemberName

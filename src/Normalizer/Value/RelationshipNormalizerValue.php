@@ -3,6 +3,8 @@
 namespace Drupal\jsonapi\Normalizer\Value;
 
 /**
+ * Helps normalize relationships in compliance with the JSON API spec.
+ *
  * @internal
  */
 class RelationshipNormalizerValue extends FieldNormalizerValue {
@@ -10,7 +12,7 @@ class RelationshipNormalizerValue extends FieldNormalizerValue {
   /**
    * The link manager.
    *
-   * @param \Drupal\jsonapi\LinkManager\LinkManager
+   * @var \Drupal\jsonapi\LinkManager\LinkManager
    */
   protected $linkManager;
 

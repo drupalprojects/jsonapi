@@ -7,6 +7,8 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 
 /**
+ * Extends core URL field functionality.
+ *
  * @internal
  */
 class FileDownloadUrl extends FieldItemList {

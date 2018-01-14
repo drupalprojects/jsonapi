@@ -20,6 +20,8 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
 
 /**
+ * Normalizes the top-level document according to the JSON API specification.
+ *
  * @see \Drupal\jsonapi\Resource\JsonApiDocumentTopLevel
  *
  * @internal
@@ -75,6 +77,10 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
    *   The current context.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
+   * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface $resource_type_repository
+   *   The JSON API resource type repository.
+   * @param \Drupal\jsonapi\Context\FieldResolver $field_resolver
+   *   The JSON API field resolver.
    */
   public function __construct(LinkManager $link_manager, CurrentContext $current_context, EntityTypeManagerInterface $entity_type_manager, ResourceTypeRepositoryInterface $resource_type_repository, FieldResolver $field_resolver) {
     $this->linkManager = $link_manager;
@@ -101,7 +107,8 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
     }
 
     if (!empty($data['data']['relationships'])) {
-      // Turn all single object relationship data fields into an array of objects.
+      // Turn all single object relationship data fields into an array of
+      // objects.
       $relationships = array_map(function ($relationship) {
         if (isset($relationship['data']['type']) && isset($relationship['data']['id'])) {
           return ['data' => [$relationship['data']]];
@@ -215,7 +222,8 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
 
     if ($data instanceof EntityReferenceFieldItemListInterface) {
       $output = $this->serializer->normalize($data, $format, $context);
-      // The only normalizer value that computes nested includes automatically is the JsonApiDocumentTopLevelNormalizerValue.
+      // The only normalizer value that computes nested includes automatically
+      // is the JsonApiDocumentTopLevelNormalizerValue.
       $output->setIncludes($output->getAllIncludes());
       return $output;
     }
@@ -244,7 +252,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
       $link_context['total_count'] = $context['total_count'];
     }
 
-    return new JsonApiDocumentTopLevelNormalizerValue($normalizer_values, $context, $is_collection, $link_context);
+    return new JsonApiDocumentTopLevelNormalizerValue($normalizer_values, $context, $link_context, $is_collection);
   }
 
   /**

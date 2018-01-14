@@ -66,6 +66,7 @@ class EntityAccessDeniedHttpException extends HttpException {
    * Returns the error.
    *
    * @return array
+   *   The error.
    */
   public function getError() {
     return $this->error;

@@ -8,6 +8,8 @@ use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 use Drupal\jsonapi\JsonApiSpec;
 
 /**
+ * Helps normalize the top level document in compliance with the JSON API spec.
+ *
  * @internal
  */
 class JsonApiDocumentTopLevelNormalizerValue implements ValueExtractorInterface, RefinableCacheableDependencyInterface {
@@ -17,28 +19,28 @@ class JsonApiDocumentTopLevelNormalizerValue implements ValueExtractorInterface,
   /**
    * The values.
    *
-   * @param array
+   * @var array
    */
   protected $values;
 
   /**
    * The includes.
    *
-   * @param array
+   * @var array
    */
   protected $includes;
 
   /**
    * The resource path.
    *
-   * @param array
+   * @var array
    */
   protected $context;
 
   /**
    * Is collection?
    *
-   * @param bool
+   * @var bool
    */
   protected $isCollection;
 
@@ -64,13 +66,13 @@ class JsonApiDocumentTopLevelNormalizerValue implements ValueExtractorInterface,
    *   collection of entities.
    * @param array $context
    *   The context.
-   * @param bool $is_collection
-   *   TRUE if this is a serialization for a list.
    * @param array $link_context
    *   All the objects and variables needed to generate the links for this
    *   relationship.
+   * @param bool $is_collection
+   *   TRUE if this is a serialization for a list.
    */
-  public function __construct(array $values, array $context, $is_collection = FALSE, array $link_context) {
+  public function __construct(array $values, array $context, array $link_context, $is_collection = FALSE) {
     $this->values = $values;
     array_walk($values, [$this, 'addCacheableDependency']);
     // Make sure that different sparse fieldsets are cached differently.

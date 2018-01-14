@@ -7,6 +7,8 @@ use Drupal\Core\Url;
 use Drupal\jsonapi\Query\OffsetPage;
 
 /**
+ * General functional test class.
+ *
  * @group jsonapi
  * @group legacy
  *
@@ -539,19 +541,24 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $this->assertNotEmpty($created_response['errors']);
     $this->assertEquals('Forbidden', $created_response['errors'][0]['title']);
 
-    // 3. Missing Content-Type error.
     // @todo Uncomment when https://www.drupal.org/project/jsonapi/issues/2934149 lands, and make more strict.
     /*
-    $response = $this->request('POST', $collection_url, [
-      'body' => Json::encode($body),
-      'auth' => [$this->user->getUsername(), $this->user->pass_raw],
-      'headers' => ['Accept' => 'application/vnd.api+json'],
-    ]);
-    $created_response = Json::decode($response->getBody()->__toString());
-    $this->assertEquals(422, $response->getStatusCode());
-    $this->assertNotEmpty($created_response['errors']);
-    $this->assertEquals('Unprocessable Entity', $created_response['errors'][0]['title']);
-    */
+     * // 3. Missing Content-Type error.
+     *
+     * $response = $this->request('POST', $collection_url, [
+     *   'body' => Json::encode($body),
+     *   'auth' => [$this->user->getUsername(), $this->user->pass_raw],
+     *   'headers' => ['Accept' => 'application/vnd.api+json'],
+     * ]);
+     * $created_response = Json::decode($response->getBody()->__toString());
+     * $this->assertEquals(422, $response->getStatusCode());
+     * $this->assertNotEmpty($created_response['errors']);
+     * $this->assertEquals(
+     *   'Unprocessable Entity',
+     *   $created_response['errors'][0]['title']
+     * );
+     */
+
     // 4. Article with a duplicate ID.
     $invalid_body = $body;
     $invalid_body['data']['attributes']['nid'] = 1;
@@ -606,7 +613,7 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $this->assertNotEmpty($created_response['errors']);
     $this->assertSame("Bad Request", $created_response['errors'][0]['title']);
     $this->assertSame("Found \"relationships\" within the document's top level. The \"relationships\" key must be within resource object.", $created_response['errors'][0]['detail']);
-    // 6.2 "type" not included in "data"
+    // 6.2 "type" not included in "data".
     $missing_type = $body;
     unset($missing_type['data']['type']);
     $response = $this->request('POST', $collection_url, [

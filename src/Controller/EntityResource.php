@@ -35,6 +35,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
+ * Process all entity requests.
+ *
  * @see \Drupal\jsonapi\Controller\RequestHandler
  * @internal
  */
@@ -308,8 +310,8 @@ class EntityResource {
     $results = $query->execute();
 
     $storage = $this->entityTypeManager->getStorage($entity_type_id);
-    // We request N+1 items to find out if there is a next page for the pager. We may need to remove that extra item
-    // before loading the entities.
+    // We request N+1 items to find out if there is a next page for the pager.
+    // We may need to remove that extra item before loading the entities.
     $pager_size = $query->getMetaData('pager_size');
     if ($has_next_page = $pager_size < count($results)) {
       // Drop the last result.
@@ -674,7 +676,7 @@ class EntityResource {
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
-  protected function getCollectionQuery($entity_type_id, $params) {
+  protected function getCollectionQuery($entity_type_id, array $params) {
     $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
     $entity_storage = $this->entityTypeManager->getStorage($entity_type_id);
 
@@ -733,7 +735,7 @@ class EntityResource {
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
-  protected function getCollectionCountQuery($entity_type_id, $params) {
+  protected function getCollectionCountQuery($entity_type_id, array $params) {
     // Reset the range to get all the available results.
     return $this->getCollectionQuery($entity_type_id, $params)->range()->count();
   }
@@ -864,7 +866,7 @@ class EntityResource {
    *     - entity: the loaded entity or an access exception.
    *     - access: the access object.
    */
-  protected function loadEntitiesWithAccess(EntityStorageInterface $storage, $ids) {
+  protected function loadEntitiesWithAccess(EntityStorageInterface $storage, array $ids) {
     $output = [];
     foreach ($storage->loadMultiple($ids) as $entity) {
       $output[$entity->id()] = static::getEntityAndAccess($entity);

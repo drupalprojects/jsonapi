@@ -48,6 +48,8 @@ class CurrentContextTest extends UnitTestCase {
   protected $requestStack;
 
   /**
+   * The route matcher service.
+   *
    * @var \Drupal\Core\Routing\StackedRouteMatchInterface
    */
   protected $routeMatcher;

@@ -6,9 +6,11 @@ use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
- * Normalizes an EntityAccessDeniedException object for JSON output which
- * complies with the JSON API specification. A source pointer is added to help
- * client applications report to know which entity was access denied.
+ * Normalizes an EntityAccessDeniedException.
+ *
+ * Normalizes an EntityAccessDeniedException in compliance with the JSON API
+ * specification. A source pointer is added to help client applications report
+ * which entity was access denied.
  *
  * @see http://jsonapi.org/format/#error-objects
  *

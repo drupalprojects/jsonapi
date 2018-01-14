@@ -6,6 +6,8 @@ use Drupal\Component\Serialization\Json;
 use Drupal\language\Entity\ConfigurableLanguage;
 
 /**
+ * Tests JSON API multilingual support.
+ *
  * @group jsonapi
  * @group legacy
  *

@@ -14,6 +14,8 @@ use Symfony\Component\HttpFoundation\Request;
 class CustomQueryParameterNamesAccessCheckTest extends \PHPUnit_Framework_TestCase {
 
   /**
+   * Ensures that query params are properly validated.
+   *
    * @dataProvider providerTestAccess
    * @covers ::access
    * @covers ::validate

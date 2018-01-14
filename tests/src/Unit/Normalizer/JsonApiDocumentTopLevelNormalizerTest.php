@@ -148,7 +148,20 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
           'data' => [
             'type' => 'lorem',
             'id' => '535ba297-8d79-4fc1-b0d6-dc2f047765a1',
-            'relationships' => ['field_dummy' => ['data' => [['type' => 'node', 'id' => '76dd5c18-ea1b-4150-9e75-b21958a2b836'], ['type' => 'node', 'id' => 'fcce1b61-258e-4054-ae36-244d25a9e04c']]]],
+            'relationships' => [
+              'field_dummy' => [
+                'data' => [
+                  [
+                    'type' => 'node',
+                    'id' => '76dd5c18-ea1b-4150-9e75-b21958a2b836',
+                  ],
+                  [
+                    'type' => 'node',
+                    'id' => 'fcce1b61-258e-4054-ae36-244d25a9e04c',
+                  ],
+                ],
+              ],
+            ],
           ],
         ],
         [
@@ -167,7 +180,21 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
           'data' => [
             'type' => 'lorem',
             'id' => '535ba297-8d79-4fc1-b0d6-dc2f047765a1',
-            'relationships' => ['field_dummy' => ['data' => [['type' => 'node', 'id' => '76dd5c18-ea1b-4150-9e75-b21958a2b836', 'meta' => ['foo' => 'bar']], ['type' => 'node', 'id' => 'fcce1b61-258e-4054-ae36-244d25a9e04c']]]],
+            'relationships' => [
+              'field_dummy' => [
+                'data' => [
+                  [
+                    'type' => 'node',
+                    'id' => '76dd5c18-ea1b-4150-9e75-b21958a2b836',
+                    'meta' => ['foo' => 'bar'],
+                  ],
+                  [
+                    'type' => 'node',
+                    'id' => 'fcce1b61-258e-4054-ae36-244d25a9e04c',
+                  ],
+                ],
+              ],
+            ],
           ],
         ],
         [

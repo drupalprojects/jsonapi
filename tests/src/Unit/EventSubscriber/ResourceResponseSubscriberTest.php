@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\jsonapi\Unit\EventSubscriber;
 
+use JsonSchema\Validator;
 use Drupal\Core\Extension\Extension;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Render\RendererInterface;
@@ -75,7 +76,7 @@ class ResourceResponseSubscriberTest extends UnitTestCase {
     $assert_active_default = assert_options(ASSERT_ACTIVE);
 
     // The validator *should* be called when asserts are active.
-    $validator = $this->prophesize(\JsonSchema\Validator::class);
+    $validator = $this->prophesize(Validator::class);
     $validator->check(Argument::any(), Argument::any())->shouldBeCalled('Validation should be run when asserts are active.');
     $validator->isValid()->willReturn(TRUE);
     $this->subscriber->setValidator($validator->reveal());
@@ -86,7 +87,7 @@ class ResourceResponseSubscriberTest extends UnitTestCase {
     $this->subscriber->doValidateResponse($response, $request);
 
     // The validator should *not* be called when asserts are inactive.
-    $validator = $this->prophesize(\JsonSchema\Validator::class);
+    $validator = $this->prophesize(Validator::class);
     $validator->check(Argument::any(), Argument::any())->shouldNotBeCalled('Validation should not be run when asserts are not active.');
     $this->subscriber->setValidator($validator->reveal());
 
@@ -103,7 +104,7 @@ class ResourceResponseSubscriberTest extends UnitTestCase {
   /**
    * @covers ::onResponse
    */
-  public function testValidateResponse_schemata() {
+  public function testValidateResponseSchemata() {
     $request = $this->createRequest(
       'jsonapi.node--article.individual',
       '/jsonapi/node/article/{node}',
@@ -113,7 +114,7 @@ class ResourceResponseSubscriberTest extends UnitTestCase {
     $response = $this->createResponse('{"data":null}');
 
     // The validator should be called *once* if schemata is *not* installed.
-    $validator = $this->prophesize(\JsonSchema\Validator::class);
+    $validator = $this->prophesize(Validator::class);
     $validator->check(Argument::any(), Argument::any())->shouldBeCalledTimes(1);
     $validator->isValid()->willReturn(TRUE);
     $this->subscriber->setValidator($validator->reveal());
@@ -122,7 +123,7 @@ class ResourceResponseSubscriberTest extends UnitTestCase {
     $this->subscriber->doValidateResponse($response, $request);
 
     // The validator should be called *twice* if schemata is installed.
-    $validator = $this->prophesize(\JsonSchema\Validator::class);
+    $validator = $this->prophesize(Validator::class);
     $validator->check(Argument::any(), Argument::any())->shouldBeCalledTimes(2);
     $validator->isValid()->willReturn(TRUE);
     $this->subscriber->setValidator($validator->reveal());
@@ -135,15 +136,17 @@ class ResourceResponseSubscriberTest extends UnitTestCase {
     // Run validations.
     $this->subscriber->doValidateResponse($response, $request);
 
-    // The validator resource specific schema should *not* be validated on 'related' routes.
+    // The validator resource specific schema should *not* be validated on
+    // 'related' routes.
     $request = $this->createRequest(
       'jsonapi.node--article.related',
       '/jsonapi/node/article/{node}/foo',
       ['_entity_type' => 'node', '_bundle' => 'article']
     );
 
-    // Since only the generic schema should be validated, the validator should only be called once.
-    $validator = $this->prophesize(\JsonSchema\Validator::class);
+    // Since only the generic schema should be validated, the validator should
+    // only be called once.
+    $validator = $this->prophesize(Validator::class);
     $validator->check(Argument::any(), Argument::any())->shouldBeCalledTimes(1);
     $validator->isValid()->willReturn(TRUE);
     $this->subscriber->setValidator($validator->reveal());
@@ -151,15 +154,17 @@ class ResourceResponseSubscriberTest extends UnitTestCase {
     // Run validations.
     $this->subscriber->doValidateResponse($response, $request);
 
-    // The validator resource specific schema should *not* be validated on 'relationship' routes.
+    // The validator resource specific schema should *not* be validated on
+    // 'relationship' routes.
     $request = $this->createRequest(
       'jsonapi.node--article.relationship',
       '/jsonapi/node/article/{node}/relationships/foo',
       ['_entity_type' => 'node', '_bundle' => 'article']
     );
 
-    // Since only the generic schema should be validated, the validator should only be called once.
-    $validator = $this->prophesize(\JsonSchema\Validator::class);
+    // Since only the generic schema should be validated, the validator should
+    // only be called once.
+    $validator = $this->prophesize(Validator::class);
     $validator->check(Argument::any(), Argument::any())->shouldBeCalledTimes(1);
     $validator->isValid()->willReturn(TRUE);
     $this->subscriber->setValidator($validator->reveal());
@@ -181,6 +186,12 @@ class ResourceResponseSubscriberTest extends UnitTestCase {
     $this->assertSame($expected, $method->invoke($this->subscriber, $response, $request), $description);
   }
 
+  /**
+   * Provides test cases for testValidateResponse.
+   *
+   * @return array
+   *   An array of test cases.
+   */
   public function validateResponseProvider() {
     $defaults = [
       'route_name' => 'jsonapi.node--article.individual',
@@ -273,11 +284,15 @@ EOD
   /**
    * Helper method to create a request object.
    *
-   * @param $route_name string
-   * @param $route string
-   * @param $requirements array
+   * @param string $route_name
+   *   The route name with which to construct a request.
+   * @param string $route
+   *   The route object with which to construct a request.
+   * @param array $requirements
+   *   The route requirements.
    *
    * @return \Symfony\Component\HttpFoundation\Request
+   *   The mock request object.
    */
   protected function createRequest($route_name, $route, array $requirements = []) {
     $request = new Request();
@@ -289,8 +304,11 @@ EOD
   /**
    * Helper method to create a resource response from arbitrary JSON.
    *
-   * @param $json string|NULL
+   * @param string|null $json
+   *   The JSON with which to create a mock response.
+   *
    * @return \Drupal\rest\ResourceResponse
+   *   The mock response object.
    */
   protected function createResponse($json = NULL) {
     $response = new ResourceResponse();

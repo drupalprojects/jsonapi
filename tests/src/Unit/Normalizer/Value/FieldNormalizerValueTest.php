@@ -33,7 +33,14 @@ class FieldNormalizerValueTest extends UnitTestCase {
     $uuid_value->getInclude()->willReturn(NULL);
     return [
       [[$uuid_value->reveal()], 1, $uuid_raw],
-      [[$uuid_value->reveal(), $uuid_value->reveal()], -1, [$uuid_raw, $uuid_raw]],
+      [
+        [
+          $uuid_value->reveal(),
+          $uuid_value->reveal(),
+        ],
+        -1,
+        [$uuid_raw, $uuid_raw],
+      ],
     ];
   }
 

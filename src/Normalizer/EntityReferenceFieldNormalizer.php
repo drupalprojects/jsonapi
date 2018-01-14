@@ -28,21 +28,21 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
   /**
    * The link manager.
    *
-   * @param \Drupal\jsonapi\LinkManager\LinkManager
+   * @var \Drupal\jsonapi\LinkManager\LinkManager
    */
   protected $linkManager;
 
   /**
    * The entity field manager.
    *
-   * @param \Drupal\Core\Entity\EntityFieldManagerInterface
+   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
    */
   protected $fieldManager;
 
   /**
    * The field plugin manager.
    *
-   * @param \Drupal\Core\Field\FieldTypePluginManagerInterface
+   * @var \Drupal\Core\Field\FieldTypePluginManagerInterface
    */
   protected $pluginManager;
 
@@ -111,7 +111,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
       $entity_list[] = $this->entityRepository->getTranslationFromContext($entity);
     }
     $entity_collection = new EntityCollection($entity_list);
-    $relationship = new Relationship($this->resourceTypeRepository, $field->getName(), $cardinality, $entity_collection, $field->getEntity(), $main_property, $entity_list_metadata);
+    $relationship = new Relationship($this->resourceTypeRepository, $field->getName(), $entity_collection, $field->getEntity(), $cardinality, $main_property, $entity_list_metadata);
     return $this->serializer->normalize($relationship, $format, $context);
   }
 

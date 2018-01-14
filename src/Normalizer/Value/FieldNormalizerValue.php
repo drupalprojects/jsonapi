@@ -5,6 +5,8 @@ namespace Drupal\jsonapi\Normalizer\Value;
 use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
 
 /**
+ * Helps normalize fields in compliance with the JSON API spec.
+ *
  * @internal
  */
 class FieldNormalizerValue implements FieldNormalizerValueInterface {
@@ -14,21 +16,21 @@ class FieldNormalizerValue implements FieldNormalizerValueInterface {
   /**
    * The values.
    *
-   * @param array
+   * @var array
    */
   protected $values;
 
   /**
    * The includes.
    *
-   * @param array
+   * @var array
    */
   protected $includes;
 
   /**
    * The field cardinality.
    *
-   * @param integer
+   * @var int
    */
   protected $cardinality;
 
@@ -110,7 +112,7 @@ class FieldNormalizerValue implements FieldNormalizerValueInterface {
   /**
    * {@inheritdoc}
    */
-  public function setIncludes($includes) {
+  public function setIncludes(array $includes) {
     $this->includes = $includes;
   }
 

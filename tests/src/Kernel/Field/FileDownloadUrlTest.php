@@ -26,13 +26,16 @@ class FileDownloadUrlTest extends KernelTestBase {
   ];
 
   /**
+   * The test file.
+   *
    * @var \Drupal\file\Entity\File
    */
   protected $file;
 
   /**
+   * The test filename.
+   *
    * @var string
-   *   The test filename.
    */
   protected $filename = 'druplicon.txt';
 
