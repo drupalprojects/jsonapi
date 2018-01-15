@@ -51,7 +51,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
 
     // Deserialize incoming data if available.
     /* @var \Symfony\Component\Serializer\SerializerInterface $serializer */
-    $serializer = $this->container->get('serializer');
+    $serializer = $this->container->get('jsonapi.serializer_do_not_use_removal_imminent');
     /* @var \Drupal\jsonapi\Context\CurrentContext $current_context */
     $current_context = $this->container->get('jsonapi.current_context');
     $current_context->reset();

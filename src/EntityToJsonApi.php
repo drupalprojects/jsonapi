@@ -7,8 +7,8 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
+use Drupal\jsonapi\Serializer\Serializer;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Serializer\Serializer;
 
 /**
  * Simplifies the process of generating a JSON API version of an entity.
@@ -27,7 +27,7 @@ class EntityToJsonApi {
   /**
    * Serializer object.
    *
-   * @var \Symfony\Component\Serializer\Serializer
+   * @var \Drupal\jsonapi\Serializer\Serializer
    */
   protected $serializer;
 
@@ -41,7 +41,7 @@ class EntityToJsonApi {
   /**
    * EntityToJsonApi constructor.
    *
-   * @param \Symfony\Component\Serializer\Serializer $serializer
+   * @param \Drupal\jsonapi\Serializer\Serializer $serializer
    *   The serializer.
    * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface $resource_type_repository
    *   The resource type repository.

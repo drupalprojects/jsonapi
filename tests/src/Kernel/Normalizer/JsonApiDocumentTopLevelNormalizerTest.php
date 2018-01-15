@@ -394,7 +394,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $response = new ResourceResponse();
     $normalized = $this
       ->container
-      ->get('serializer')
+      ->get('jsonapi.serializer_do_not_use_removal_imminent')
       ->serialize(
         new BadRequestHttpException('Lorem'),
         'api_json',
@@ -459,7 +459,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $node = $this
       ->container
       ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
-      ->denormalize(Json::decode($payload), JsonApiDocumentTopLevelNormalizer::class, 'api_json', [
+      ->denormalize(Json::decode($payload), NULL, 'api_json', [
         'request' => $request,
         'resource_type' => $resource_type,
       ]);
@@ -529,7 +529,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       $node = $this
         ->container
         ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
-        ->denormalize(Json::decode($payload), JsonApiDocumentTopLevelNormalizer::class, 'api_json', [
+        ->denormalize(Json::decode($payload), NULL, 'api_json', [
           'request' => $request,
           'resource_type' => $resource_type,
         ]);
@@ -593,7 +593,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $this->container->get('request_stack')->push($request);
     try {
       $this->container->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
-        ->denormalize(Json::decode($payload), JsonApiDocumentTopLevelNormalizer::class, 'api_json', [
+        ->denormalize(Json::decode($payload), NULL, 'api_json', [
           'request' => $request,
           'resource_type' => $resource_type,
         ]);
@@ -612,7 +612,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $this->container->get('request_stack')->push($request);
     try {
       $this->container->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
-        ->denormalize(Json::decode($payload), JsonApiDocumentTopLevelNormalizer::class, 'api_json', [
+        ->denormalize(Json::decode($payload), NULL, 'api_json', [
           'request' => $request,
           'resource_type' => $resource_type,
         ]);
@@ -721,7 +721,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $request_stack = $this->container->get('request_stack');
     $request_stack->push($request);
     $this->container->set('request_stack', $request_stack);
-    $this->container->get('serializer');
+    $this->container->get('jsonapi.serializer_do_not_use_removal_imminent');
 
     return [$request, $resource_type];
   }
