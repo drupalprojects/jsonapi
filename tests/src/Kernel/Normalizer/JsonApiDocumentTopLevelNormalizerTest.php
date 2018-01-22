@@ -8,7 +8,6 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\file\Entity\File;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\LinkManager\LinkManager;
-use Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;

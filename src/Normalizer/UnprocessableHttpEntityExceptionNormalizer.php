@@ -3,7 +3,6 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Component\Render\PlainTextOutput;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\jsonapi\Exception\UnprocessableHttpEntityException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 

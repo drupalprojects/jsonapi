@@ -2,13 +2,6 @@
 
 namespace Drupal\jsonapi\Serializer;
 
-use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Field\FieldItemInterface;
-use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\jsonapi\Normalizer\Relationship;
-use Drupal\jsonapi\Normalizer\RelationshipItem;
-use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Serializer as SymfonySerializer;
 
