@@ -70,6 +70,7 @@ class FieldNormalizerValue implements FieldNormalizerValueInterface {
     }
 
     if ($this->cardinality == 1) {
+      assert(count($this->values) === 1);
       return $this->values[0] instanceof FieldItemNormalizerValue
         ? $this->values[0]->rasterizeValue() : NULL;
     }
