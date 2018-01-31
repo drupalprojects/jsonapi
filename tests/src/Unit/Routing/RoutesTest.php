@@ -34,6 +34,7 @@ class RoutesTest extends UnitTestCase {
     $resource_type_repository = $this->prophesize(ResourceTypeRepository::class);
     $resource_type_repository->all()->willReturn([
       new ResourceType('entity_type_1', 'bundle_1_1', EntityInterface::class),
+      new ResourceType('entity_type_2', 123, EntityInterface::class),
     ]);
     $container = $this->prophesize(ContainerInterface::class);
     $container->get('jsonapi.resource_type.repository')->willReturn($resource_type_repository->reveal());
@@ -54,8 +55,8 @@ class RoutesTest extends UnitTestCase {
     // Get the route collection and start making assertions.
     $routes = $this->routes['ok']->routes();
 
-    // Make sure that there are 4 routes for each resource.
-    $this->assertEquals(4, $routes->count());
+    // Make sure that there are 4 routes for each resource (2*4).
+    $this->assertEquals(8, $routes->count());
 
     $iterator = $routes->getIterator();
     // Check the collection route.

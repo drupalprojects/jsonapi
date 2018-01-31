@@ -116,8 +116,8 @@ class Routes implements ContainerInjectionInterface {
 
       // Collection endpoint, like /jsonapi/file/photo.
       $route_collection = (new Route($route_base_path, $defaults))
-        ->setRequirement('_entity_type', $resource_type->getEntityTypeId())
-        ->setRequirement('_bundle', $resource_type->getBundle())
+        ->setRequirement('_entity_type', (string) $resource_type->getEntityTypeId())
+        ->setRequirement('_bundle', (string) $resource_type->getBundle())
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setOption('serialization_class', JsonApiDocumentTopLevel::class)
@@ -129,8 +129,8 @@ class Routes implements ContainerInjectionInterface {
       $parameters = [$resource_type->getEntityTypeId() => ['type' => 'entity:' . $resource_type->getEntityTypeId()]];
       $route_individual = (new Route(sprintf('%s/{%s}', $route_base_path, $resource_type->getEntityTypeId())))
         ->addDefaults($defaults)
-        ->setRequirement('_entity_type', $resource_type->getEntityTypeId())
-        ->setRequirement('_bundle', $resource_type->getBundle())
+        ->setRequirement('_entity_type', (string) $resource_type->getEntityTypeId())
+        ->setRequirement('_bundle', (string) $resource_type->getBundle())
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
@@ -142,8 +142,8 @@ class Routes implements ContainerInjectionInterface {
 
       // Related resource, like /jsonapi/file/photo/123/comments.
       $route_related = (new Route(sprintf('%s/{%s}/{related}', $route_base_path, $resource_type->getEntityTypeId()), $defaults))
-        ->setRequirement('_entity_type', $resource_type->getEntityTypeId())
-        ->setRequirement('_bundle', $resource_type->getBundle())
+        ->setRequirement('_entity_type', (string) $resource_type->getEntityTypeId())
+        ->setRequirement('_bundle', (string) $resource_type->getBundle())
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
@@ -154,8 +154,8 @@ class Routes implements ContainerInjectionInterface {
 
       // Related endpoint, like /jsonapi/file/photo/123/relationships/comments.
       $route_relationship = (new Route(sprintf('%s/{%s}/relationships/{related}', $route_base_path, $resource_type->getEntityTypeId()), $defaults + ['_on_relationship' => TRUE]))
-        ->setRequirement('_entity_type', $resource_type->getEntityTypeId())
-        ->setRequirement('_bundle', $resource_type->getBundle())
+        ->setRequirement('_entity_type', (string) $resource_type->getEntityTypeId())
+        ->setRequirement('_bundle', (string) $resource_type->getBundle())
         ->setRequirement('_permission', 'access content')
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
