@@ -88,7 +88,7 @@ services:
       - { name: encoder, priority: 21, format: 'api_json' }
   jsonapi.resource_type.repository:
     class: Drupal\jsonapi\ResourceType\ResourceTypeRepository
-    arguments: ['@entity_type.manager', '@entity_type.bundle.info']
+    arguments: ['@entity_type.manager', '@entity_type.bundle.info', '@entity_field.manager']
   jsonapi.route_enhancer:
     class: Drupal\jsonapi\Routing\RouteEnhancer
     tags:

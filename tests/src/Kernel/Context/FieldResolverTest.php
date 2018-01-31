@@ -16,7 +16,13 @@ use Drupal\Tests\jsonapi\Kernel\JsonapiKernelTestBase;
  */
 class FieldResolverTest extends JsonapiKernelTestBase {
 
-  public static $modules = ['entity_test', 'serialization', 'field', 'text'];
+  public static $modules = [
+    'entity_test',
+    'serialization',
+    'field',
+    'text',
+    'user',
+  ];
 
   /**
    * The subject under test.

@@ -42,14 +42,9 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
     $resource_type_repository = $this->prophesize(ResourceTypeRepository::class);
     $field_resolver = $this->prophesize(FieldResolver::class);
 
-    $resource_type = $this->prophesize(ResourceType::class);
-    $resource_type
-      ->getEntityTypeId()
-      ->willReturn('node');
-
     $resource_type_repository
       ->getByTypeName(Argument::any())
-      ->willReturn($resource_type->reveal());
+      ->willReturn(new ResourceType('node', 'article', NULL));
 
     $entity_storage = $this->prophesize(EntityStorageInterface::class);
     $self = $this;

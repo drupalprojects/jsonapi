@@ -197,4 +197,50 @@ class ResourceType {
     $this->typeName = sprintf('%s--%s', $this->entityTypeId, $this->bundle);
   }
 
+  /**
+   * Sets the relatable resource types.
+   *
+   * @param array $relatable_resource_types
+   *   The resource types with which this resource type may have a relationship.
+   *   The array should be a multi-dimensional array keyed by public field name
+   *   whose values are an array of resource types. There may be duplicate
+   *   across resource types across fields, but not within a field.
+   */
+  public function setRelatableResourceTypes(array $relatable_resource_types) {
+    $this->relatableResourceTypes = $relatable_resource_types;
+  }
+
+  /**
+   * Get all resource types with which this type may have a relationship.
+   *
+   * @return array
+   *   The relatable resource types, keyed by relationship field names.
+   *
+   * @see self::setRelatableResourceTypes()
+   */
+  public function getRelatableResourceTypes() {
+    if (!isset($this->relatableResourceTypes)) {
+      throw new \LogicException("setRelatableResourceTypes() must be called before getting relatable resource types.");
+    }
+    return $this->relatableResourceTypes;
+  }
+
+  /**
+   * Get all resource types with which the given field may have a relationship.
+   *
+   * @param string $field_name
+   *   The public field name.
+   *
+   * @return \Drupal\jsonapi\ResourceType\ResourceType[]
+   *   The relatable JSON API resource types.
+   *
+   * @see self::getRelatableResourceTypes()
+   */
+  public function getRelatableResourceTypesByField($field_name) {
+    $relatable_resource_types = $this->getRelatableResourceTypes();
+    return isset($relatable_resource_types[$field_name]) ?
+      $relatable_resource_types[$field_name] :
+      [];
+  }
+
 }
