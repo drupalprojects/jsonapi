@@ -4,6 +4,7 @@ namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Component\Utility\NestedArray;
+use Drupal\Component\Uuid\Uuid;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\jsonapi\Context\CurrentContext;
@@ -14,6 +15,7 @@ use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -104,6 +106,12 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
 
     if (!empty($data['data']['attributes'])) {
       $normalized = $data['data']['attributes'];
+    }
+
+    if (!empty($data['data']['id'])) {
+      $resource_type = $this->resourceTypeRepository->getByTypeName($data['data']['type']);
+      $uuid_key = $this->entityTypeManager->getDefinition($resource_type->getEntityTypeId())->getKey('uuid');
+      $normalized[$uuid_key] = $data['data']['id'];
     }
 
     if (!empty($data['data']['relationships'])) {
@@ -306,6 +314,12 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
     // Ensure that the resource object contains the "type" key.
     if (!isset($document['data']['type'])) {
       throw new BadRequestHttpException("Resource object must include a \"type\".");
+    }
+    // Ensure that the client provided ID is a valid UUID.
+    if (isset($document['data']['id']) && !Uuid::isValid($document['data']['id'])) {
+      // This should be a 422 response, but the JSON API specification dictates
+      // a 403 Forbidden response. We follow the specification.
+      throw new AccessDeniedHttpException('IDs should be properly generated and formatted UUIDs as described in RFC 4122.');
     }
   }
 

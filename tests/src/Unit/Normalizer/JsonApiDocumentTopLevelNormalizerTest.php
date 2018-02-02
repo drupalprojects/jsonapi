@@ -4,6 +4,7 @@ namespace Drupal\Tests\jsonapi\Unit\Normalizer;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\jsonapi\Context\FieldResolver;
@@ -13,6 +14,7 @@ use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -64,8 +66,10 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
         return $result;
       });
     $entity_type_manager = $this->prophesize(EntityTypeManagerInterface::class);
-    $entity_type_manager->getStorage('node')
-      ->willReturn($entity_storage->reveal());
+    $entity_type_manager->getStorage('node')->willReturn($entity_storage->reveal());
+    $entity_type = $this->prophesize(EntityTypeInterface::class);
+    $entity_type->getKey('uuid')->willReturn('uuid');
+    $entity_type_manager->getDefinition('node')->willReturn($entity_type->reveal());
 
     $current_route = $this->prophesize(Route::class);
     $current_route->getDefault('_on_relationship')->willReturn(FALSE);
@@ -120,7 +124,10 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
             'attributes' => ['title' => 'dummy_title'],
           ],
         ],
-        ['title' => 'dummy_title'],
+        [
+          'title' => 'dummy_title',
+          'uuid' => 'e1a613f6-f2b9-4e17-9d33-727eb6509d8b',
+        ],
       ],
       [
         [
@@ -131,10 +138,11 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
           ],
         ],
         [
+          'uuid' => '0676d1bf-55b3-4bbc-9fbc-3df10f4599d5',
           'field_dummy' => [
-          [
-            'target_id' => 1,
-          ],
+            [
+              'target_id' => 1,
+            ],
           ],
         ],
       ],
@@ -160,13 +168,10 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
           ],
         ],
         [
+          'uuid' => '535ba297-8d79-4fc1-b0d6-dc2f047765a1',
           'field_dummy' => [
-          [
-            'target_id' => 1,
-          ],
-          [
-            'target_id' => 2,
-          ],
+            ['target_id' => 1],
+            ['target_id' => 2],
           ],
         ],
       ],
@@ -193,17 +198,69 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
           ],
         ],
         [
+          'uuid' => '535ba297-8d79-4fc1-b0d6-dc2f047765a1',
           'field_dummy' => [
-          [
-            'target_id' => 1,
-            'foo' => 'bar',
-          ],
-          [
-            'target_id' => 2,
-          ],
+            [
+              'target_id' => 1,
+              'foo' => 'bar',
+            ],
+            ['target_id' => 2],
           ],
         ],
       ],
+    ];
+  }
+
+  /**
+   * Ensures only valid UUIDs can be specified.
+   *
+   * @param string $id
+   *   The input UUID. May be invalid.
+   * @param bool $expect_exception
+   *   Whether to expect an exception.
+   *
+   * @covers ::denormalize
+   * @dataProvider denormalizeUuidProvider
+   */
+  public function testDenormalizeUuid($id, $expect_exception) {
+    $data['data'] = (isset($id)) ?
+      ['type' => 'node--article', 'id' => $id] :
+      ['type' => 'node--article'];
+
+    if ($expect_exception) {
+      $this->setExpectedException(
+        AccessDeniedHttpException::class,
+        'IDs should be properly generated and formatted UUIDs as described in RFC 4122.'
+      );
+    }
+
+    $denormalized = $this->normalizer->denormalize($data, NULL, 'api_json', [
+      'resource_type' => new ResourceType(
+        $this->randomMachineName(),
+        $this->randomMachineName(),
+        FieldableEntityInterface::class
+      ),
+    ]);
+
+    if (isset($id)) {
+      $this->assertSame($id, $denormalized['uuid']);
+    }
+    else {
+      $this->assertArrayNotHasKey('uuid', $denormalized);
+    }
+  }
+
+  /**
+   * Provides test cases for testDenormalizeUuid.
+   */
+  public function denormalizeUuidProvider() {
+    return [
+      'valid' => ['76dd5c18-ea1b-4150-9e75-b21958a2b836', FALSE],
+      'missing' => [NULL, FALSE],
+      'invalid_empty' => ['', TRUE],
+      'invalid_alpha' => ['invalid', TRUE],
+      'invalid_numeric' => [1234, TRUE],
+      'invalid_alphanumeric' => ['abc123', TRUE],
     ];
   }
 
