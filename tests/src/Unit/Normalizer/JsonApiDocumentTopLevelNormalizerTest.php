@@ -8,13 +8,13 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\jsonapi\Context\FieldResolver;
+use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -229,7 +229,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
 
     if ($expect_exception) {
       $this->setExpectedException(
-        AccessDeniedHttpException::class,
+        EntityAccessDeniedHttpException::class,
         'IDs should be properly generated and formatted UUIDs as described in RFC 4122.'
       );
     }

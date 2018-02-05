@@ -194,7 +194,7 @@ class EntityResource {
     $entity_access = $entity->access('create', NULL, TRUE);
 
     if (!$entity_access->isAllowed()) {
-      throw new EntityAccessDeniedHttpException($entity, $entity_access, '/data', 'The current user is not allowed to POST the selected resource.');
+      throw new EntityAccessDeniedHttpException(NULL, $entity_access, '/data', 'The current user is not allowed to POST the selected resource.');
     }
     $this->validate($entity);
 

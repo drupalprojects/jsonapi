@@ -5,10 +5,12 @@ namespace Drupal\jsonapi\Normalizer;
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Component\Uuid\Uuid;
+use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\Context\FieldResolver;
+use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
 use Drupal\jsonapi\Normalizer\Value\JsonApiDocumentTopLevelNormalizerValue;
 use Drupal\jsonapi\Resource\EntityCollection;
 use Drupal\jsonapi\LinkManager\LinkManager;
@@ -319,7 +321,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
     if (isset($document['data']['id']) && !Uuid::isValid($document['data']['id'])) {
       // This should be a 422 response, but the JSON API specification dictates
       // a 403 Forbidden response. We follow the specification.
-      throw new AccessDeniedHttpException('IDs should be properly generated and formatted UUIDs as described in RFC 4122.');
+      throw new EntityAccessDeniedHttpException(NULL, AccessResult::forbidden(), '/data/id', 'IDs should be properly generated and formatted UUIDs as described in RFC 4122.');
     }
   }
 

@@ -36,12 +36,14 @@ class EntityAccessDeniedHttpExceptionNormalizer extends HttpExceptionNormalizer 
       $pointer = $error['pointer'];
       $reason = $error['reason'];
 
-      $errors[0]['id'] = sprintf(
-        '/%s--%s/%s',
-        $entity->getEntityTypeId(),
-        $entity->bundle(),
-        $entity->uuid()
-      );
+      if (isset($entity)) {
+        $errors[0]['id'] = sprintf(
+          '/%s--%s/%s',
+          $entity->getEntityTypeId(),
+          $entity->bundle(),
+          $entity->uuid()
+        );
+      }
       $errors[0]['source']['pointer'] = $pointer;
 
       if ($reason) {
