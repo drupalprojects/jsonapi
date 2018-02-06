@@ -207,7 +207,7 @@ class EntityResource {
     $entity->save();
 
     // Build response object.
-    $response = $this->getIndividual($entity, $request, 201);
+    $response = $this->buildWrappedResponse($entity, 201);
 
     // According to JSON API specification, when a new entity was created
     // we should send "Location" header to the frontend.
@@ -262,7 +262,7 @@ class EntityResource {
 
     $this->validate($entity);
     $entity->save();
-    return $this->getIndividual($entity, $request);
+    return $this->buildWrappedResponse($entity);
   }
 
   /**
