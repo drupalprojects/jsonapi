@@ -4,6 +4,7 @@ namespace Drupal\jsonapi\ResourceType;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -80,10 +81,12 @@ class ResourceTypeRepository implements ResourceTypeRepositoryInterface {
       $entity_type_ids = array_keys($this->entityTypeManager->getDefinitions());
       foreach ($entity_type_ids as $entity_type_id) {
         $this->all = array_merge($this->all, array_map(function ($bundle) use ($entity_type_id) {
+          $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
           return new ResourceType(
             $entity_type_id,
             $bundle,
-            $this->entityTypeManager->getDefinition($entity_type_id)->getClass()
+            $entity_type->getClass(),
+            static::shouldBeInternalResourceType($entity_type)
           );
         }, array_keys($this->entityTypeBundleInfo->getBundleInfo($entity_type_id))));
       }
@@ -120,6 +123,25 @@ class ResourceTypeRepository implements ResourceTypeRepositoryInterface {
       }
     }
     return NULL;
+  }
+
+  /**
+   * Whether an entity type should be an internal resource type.
+   *
+   * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
+   *   The entity type to assess.
+   *
+   * @todo: remove when minimum supported core version is >= 8.5, update the
+   * caller to instead call EntityTypeInterface::isInternal().
+   *
+   * @return bool
+   *   TRUE if the entity type is internal, FALSE otherwise.
+   */
+  protected static function shouldBeInternalResourceType(EntityTypeInterface $entity_type) {
+    if (method_exists(EntityTypeInterface::class, 'isInternal')) {
+      return $entity_type->isInternal();
+    }
+    return $entity_type->id() === 'content_moderation_state';
   }
 
   /**
