@@ -263,7 +263,9 @@ class FieldResolver {
    */
   protected function getReferenceableResourceTypes(array $definitions) {
     return array_reduce($definitions, function ($result, $definition) {
-      $resource_types = $this->collectResourceTypesForReference($definition);
+      $resource_types = array_filter(
+        $this->collectResourceTypesForReference($definition)
+      );
       $type_names = array_map(function ($resource_type) {
         /* @var \Drupal\jsonapi\ResourceType\ResourceType $resource_type */
         return $resource_type->getTypeName();
