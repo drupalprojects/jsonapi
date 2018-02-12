@@ -98,7 +98,8 @@ class EntityToJsonApi {
    */
   protected function calculateContext(EntityInterface $entity) {
     // TODO: Supporting includes requires adding the 'include' query string.
-    $request = new Request();
+    $path = sprintf('/jsonapi/%s/%s/%s', $entity->getEntityTypeId(), $entity->bundle(), $entity->uuid());
+    $request = Request::create($path, 'GET');
     return [
       'account' => $this->currentUser,
       'cacheable_metadata' => new CacheableMetadata(),

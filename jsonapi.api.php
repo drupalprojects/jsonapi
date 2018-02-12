@@ -85,6 +85,7 @@
  * - Custom field normalization is not supported; only normalizers at the
  *   "DataType" plugin level are supported (these are a level below field
  *   types).
+ * - All available authentication mechanisms are allowed.
  *
  * The JSON API module does provide a PHP API to generate a JSON API
  * representation of entities:
@@ -121,6 +122,11 @@
  * released.
  *
  * @see http://jsonapi.org/faq/#what-is-the-meaning-of-json-apis-version
+ *
+ * Tests: subclasses of base test classes may contain BC breaks between minor
+ * releases, to allow minor releases to A) comply better with the JSON API spec,
+ * B) guarantee that all resource types (and therefore entity types) function as
+ * expected, C) update to future versions of the JSON API spec.
  *
  * @}
  */

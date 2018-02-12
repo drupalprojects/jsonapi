@@ -76,11 +76,11 @@ class HttpExceptionNormalizer extends NormalizerBase {
     $error += [
       'status' => $status_code,
       'detail' => $exception->getMessage(),
-      'links' => [
-        'info' => $this->getInfoUrl($status_code),
-      ],
-      'code' => $exception->getCode(),
     ];
+    if ($info_url = $this->getInfoUrl($status_code)) {
+      $error['links']['info'] = $info_url;
+    }
+    $error['code'] = $exception->getCode();
     if ($this->currentUser->hasPermission('access site reports')) {
       // The following information may contain sensitive information. Only show
       // it to authorized users.
@@ -100,10 +100,15 @@ class HttpExceptionNormalizer extends NormalizerBase {
   /**
    * Return a string to the common problem type.
    *
-   * @return string
-   *   URL pointing to the specific RFC-2616 section.
+   * @return string|null
+   *   URL pointing to the specific RFC-2616 section. Or NULL if it is a HTTP
+   *   status code that is defined in another RFC.
+   *
+   * @see https://www.drupal.org/project/jsonapi/issues/2832211#comment-11826234
+   *
+   * @internal
    */
-  protected function getInfoUrl($status_code) {
+  public static function getInfoUrl($status_code) {
     // Depending on the error code we'll return a different URL.
     $url = 'http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html';
     $sections = [
@@ -148,7 +153,7 @@ class HttpExceptionNormalizer extends NormalizerBase {
       '504' => '#sec10.5.5',
       '505' => '#sec10.5.6',
     ];
-    return empty($sections[$status_code]) ? $url : $url . $sections[$status_code];
+    return empty($sections[$status_code]) ? NULL : $url . $sections[$status_code];
   }
 
 }

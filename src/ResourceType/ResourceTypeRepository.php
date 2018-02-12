@@ -73,6 +73,14 @@ class ResourceTypeRepository implements ResourceTypeRepositoryInterface {
     $this->entityFieldManager = $entity_field_manager;
   }
 
+  // @codingStandardsIgnoreStart
+  // @todo implement \Drupal\Core\Plugin\CachedDiscoveryClearerInterface?
+  // @todo implement \Drupal\Component\Plugin\Discovery\DiscoveryInterface?
+  public function clearCachedDefinitions() {
+    $this->all = [];
+  }
+  // @codingStandardsIgnoreEnd
+
   /**
    * {@inheritdoc}
    */
