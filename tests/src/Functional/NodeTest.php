@@ -115,7 +115,7 @@ class NodeTest extends ResourceTestBase {
   protected function getExpectedNormalizedEntity() {
     $author = User::load($this->entity->getOwnerId());
     $self_url = Url::fromUri('base:/jsonapi/node/camelids/' . $this->entity->uuid())->setAbsolute()->toString(TRUE)->getGeneratedUrl();
-    return [
+    $normalization = [
       'jsonapi' => [
         'meta' => [
           'links' => [
@@ -196,6 +196,11 @@ class NodeTest extends ResourceTestBase {
         ],
       ],
     ];
+    // @todo Remove this modification when JSON API requires Drupal 8.5 or newer, and do an early return above instead.
+    if (floatval(\Drupal::VERSION) < 8.5) {
+      unset($normalization['data']['attributes']['revision_default']);
+    }
+    return $normalization;
   }
 
   /**
@@ -245,14 +250,14 @@ class NodeTest extends ResourceTestBase {
     /* $url = $this->entity->toUrl('jsonapi'); */
 
     // GET node's current normalization.
-    $response = $this->request('GET', $url, $this->getAuthenticationRequestOptions('GET'));
+    $response = $this->request('GET', $url, $this->getAuthenticationRequestOptions());
     $normalization = Json::decode((string) $response->getBody());
 
     // Change node's path alias.
     $normalization['data']['attributes']['path']['alias'] .= 's-rule-the-world';
 
     // Create node PATCH request.
-    $request_options = $this->getAuthenticationRequestOptions('PATCH');
+    $request_options = $this->getAuthenticationRequestOptions();
     $request_options[RequestOptions::BODY] = Json::encode($normalization);
 
     // PATCH request: 403 when creating URL aliases unauthorized.

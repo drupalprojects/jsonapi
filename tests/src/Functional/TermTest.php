@@ -3,6 +3,7 @@
 namespace Drupal\Tests\jsonapi\Functional;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Url;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
@@ -57,6 +58,10 @@ class TermTest extends ResourceTestBase {
         break;
 
       case 'POST':
+        // @todo Remove this when JSON API requires Drupal 8.5 or newer.
+        if (floatval(\Drupal::VERSION) < 8.5) {
+          $this->grantPermissionsToTestedRole(['administer taxonomy']);
+        }
         $this->grantPermissionsToTestedRole(['create terms in camelids']);
         break;
 
@@ -174,6 +179,14 @@ class TermTest extends ResourceTestBase {
         ];
         break;
     }
+
+    // @todo Remove this when JSON API requires Drupal 8.6 or newer.
+    if (floatval(\Drupal::VERSION) < 8.6) {
+      $expected_parent_normalization = [
+        'data' => [],
+      ];
+    }
+
     return [
       'jsonapi' => [
         'meta' => [
@@ -258,6 +271,10 @@ class TermTest extends ResourceTestBase {
         return "The 'access content' permission is required.";
 
       case 'POST':
+        // @todo Remove this when JSON API requires Drupal 8.5 or newer.
+        if (floatval(\Drupal::VERSION) < 8.5) {
+          return "The 'administer taxonomy' permission is required.";
+        }
         return "The following permissions are required: 'create terms in camelids' OR 'administer taxonomy'.";
 
       case 'PATCH':
@@ -286,16 +303,18 @@ class TermTest extends ResourceTestBase {
     // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
     $url = Url::fromRoute(sprintf('jsonapi.%s.individual', static::$resourceTypeName), [static::$entityTypeId => $this->entity->uuid()]);
     /* $url = $this->entity->toUrl('jsonapi'); */
+    $request_options = [];
+    $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
 
     // GET term's current normalization.
-    $response = $this->request('GET', $url, $this->getAuthenticationRequestOptions('GET'));
+    $response = $this->request('GET', $url, $request_options);
     $normalization = Json::decode((string) $response->getBody());
 
     // Change term's path alias.
     $normalization['data']['attributes']['path']['alias'] .= 's-rule-the-world';
 
     // Create term PATCH request.
-    $request_options = $this->getAuthenticationRequestOptions('PATCH');
     $request_options[RequestOptions::BODY] = Json::encode($normalization);
 
     // PATCH request: 200.
@@ -335,6 +354,11 @@ class TermTest extends ResourceTestBase {
    * @dataProvider providerTestGetIndividualTermWithParent
    */
   public function testGetIndividualTermWithParent(array $parent_term_ids) {
+    if (floatval(\Drupal::VERSION) < 8.6) {
+      $this->markTestSkipped('The "parent" field on terms is only available for normalization in Drupal 8.6 and later.');
+      return;
+    }
+
     // Create all possible parent terms.
     Term::create(['vid' => Vocabulary::load('camelids')->id()])
       ->setName('Lamoids')
@@ -349,7 +373,9 @@ class TermTest extends ResourceTestBase {
     // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
     $url = Url::fromRoute(sprintf('jsonapi.%s.individual', static::$resourceTypeName), [static::$entityTypeId => $this->entity->uuid()]);
     /* $url = $this->entity->toUrl('jsonapi'); */
-    $request_options = $this->getAuthenticationRequestOptions('GET');
+    $request_options = [];
+    $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
     $this->setUpAuthorization('GET');
     $response = $this->request('GET', $url, $request_options);
     $expected = $this->getExpectedNormalizedEntity();

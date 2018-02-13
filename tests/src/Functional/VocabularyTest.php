@@ -104,6 +104,10 @@ class VocabularyTest extends ResourceTestBase {
    */
   protected function getExpectedUnauthorizedAccessMessage($method) {
     if ($method === 'GET') {
+      // @todo Remove this when JSON API requires Drupal 8.5 or newer.
+      if (floatval(\Drupal::VERSION) < 8.5) {
+        return parent::getExpectedUnauthorizedAccessMessage($method);
+      }
       return "The following permissions are required: 'access taxonomy overview' OR 'administer taxonomy'.";
     }
     return parent::getExpectedUnauthorizedAccessMessage($method);

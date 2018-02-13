@@ -184,22 +184,25 @@ abstract class ResourceTestBase extends BrowserTestBase {
         ->setTranslatable(FALSE)
         ->save();
 
-      // Add multi-value field.
-      FieldStorageConfig::create([
-        'entity_type' => static::$entityTypeId,
-        'field_name' => 'field_rest_test_multivalue',
-        'type' => 'string',
-      ])
-        ->setCardinality(3)
-        ->save();
-      FieldConfig::create([
-        'entity_type' => static::$entityTypeId,
-        'field_name' => 'field_rest_test_multivalue',
-        'bundle' => $this->entity->bundle(),
-      ])
-        ->setLabel('Test field: multi-value')
-        ->setTranslatable(FALSE)
-        ->save();
+      // @todo Do this unconditionally when JSON API requires Drupal 8.5 or newer.
+      if (floatval(\Drupal::VERSION) >= 8.5) {
+        // Add multi-value field.
+        FieldStorageConfig::create([
+          'entity_type' => static::$entityTypeId,
+          'field_name' => 'field_rest_test_multivalue',
+          'type' => 'string',
+        ])
+          ->setCardinality(3)
+          ->save();
+        FieldConfig::create([
+          'entity_type' => static::$entityTypeId,
+          'field_name' => 'field_rest_test_multivalue',
+          'bundle' => $this->entity->bundle(),
+        ])
+          ->setLabel('Test field: multi-value')
+          ->setTranslatable(FALSE)
+          ->save();
+      }
 
       // Reload entity so that it has the new field.
       $reloaded_entity = $this->entityStorage->loadUnchanged($this->entity->id());
@@ -209,7 +212,10 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
         // Set a default value on the fields.
         $this->entity->set('field_rest_test', ['value' => 'All the faith he had had had had no effect on the outcome of his life.']);
-        $this->entity->set('field_rest_test_multivalue', [['value' => 'One'], ['value' => 'Two']]);
+        // @todo Do this unconditionally when JSON API requires Drupal 8.5 or newer.
+        if (floatval(\Drupal::VERSION) >= 8.5) {
+          $this->entity->set('field_rest_test_multivalue', [['value' => 'One'], ['value' => 'Two']]);
+        }
         $this->entity->save();
       }
     }
@@ -582,7 +588,9 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
     $url = Url::fromRoute(sprintf('jsonapi.%s.individual', static::$resourceTypeName), [static::$entityTypeId => $this->entity->uuid()]);
     /* $url = $this->entity->toUrl('jsonapi'); */
-    $request_options = $this->getAuthenticationRequestOptions('GET');
+    $request_options = [];
+    $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions('GET'));
 
     // DX: 403 when unauthorized.
     $response = $this->request('GET', $url, $request_options);
@@ -738,19 +746,20 @@ abstract class ResourceTestBase extends BrowserTestBase {
     */
     // @codingStandardsIgnoreEnd
 
-    // DX: 404 when GETting non-existing entity, but HTML response.
+    // DX: 404 when GETting non-existing entity.
     $random_uuid = \Drupal::service('uuid')->generate();
     $url = Url::fromRoute(sprintf('jsonapi.%s.individual', static::$resourceTypeName), [static::$entityTypeId => $random_uuid]);
     $response = $this->request('GET', $url, $request_options);
-    $this->assertSame(404, $response->getStatusCode());
-    $this->assertSame(['text/html; charset=UTF-8'], $response->getHeader('Content-Type'));
-
-    // DX: 404 JSON API response if the ?_format query string is present.
-    $url->setOption('query', ['_format' => 'api_json']);
-    $response = $this->request('GET', $url, $request_options);
-    $path = str_replace($random_uuid, '{' . static::$entityTypeId . '}', $url->setAbsolute()->setOptions(['base_url' => '', 'query' => []])->toString());
+    $message_url = clone $url;
+    $path = str_replace($random_uuid, '{' . static::$entityTypeId . '}', $message_url->setAbsolute()->setOptions(['base_url' => '', 'query' => []])->toString());
     $message = 'The "' . static::$entityTypeId . '" parameter was not converted for the path "' . $path . '" (route name: "jsonapi.' . static::$resourceTypeName . '.individual")';
     $this->assertResourceErrorResponse(404, $message, $response);
+
+    // DX: when Accept request header is missing, still 404, but HTML response.
+    unset($request_options[RequestOptions::HEADERS]['Accept']);
+    $response = $this->request('GET', $url, $request_options);
+    $this->assertSame(404, $response->getStatusCode());
+    $this->assertSame(['text/html; charset=UTF-8'], $response->getHeader('Content-Type'));
   }
 
   /**
@@ -778,7 +787,9 @@ abstract class ResourceTestBase extends BrowserTestBase {
     //   error responses provide a good DX
     // - to eventually result in a well-formed request that succeeds.
     $url = Url::fromRoute(sprintf('jsonapi.%s.collection', static::$resourceTypeName));
-    $request_options = $this->getAuthenticationRequestOptions('POST');
+    $request_options = [];
+    $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
 
     // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2943170.
     // @codingStandardsIgnoreStart
@@ -984,7 +995,9 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
     $url = Url::fromRoute(sprintf('jsonapi.%s.individual', static::$resourceTypeName), [static::$entityTypeId => $this->entity->uuid()]);
     /* $url = $this->entity->toUrl('jsonapi'); */
-    $request_options = $this->getAuthenticationRequestOptions('PATCH');
+    $request_options = [];
+    $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
 
     // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2943170.
     // @codingStandardsIgnoreStart
@@ -1202,6 +1215,11 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // is not sent in the PATCH request.
     $this->assertSame('All the faith he had had had had no effect on the outcome of his life.', $updated_entity->get('field_rest_test')->value);
 
+    // @todo Remove this when JSON API requires Drupal 8.5 or newer.
+    if (floatval(\Drupal::VERSION) < 8.5) {
+      return;
+    }
+
     // Multi-value field: remove item 0. Then item 1 becomes item 0.
     $normalization_multi_value_tests = $this->getNormalizedPatchEntity();
     $normalization_multi_value_tests['data']['attributes']['field_rest_test_multivalue'] = $this->entity->get('field_rest_test_multivalue')->getValue();
@@ -1244,7 +1262,9 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
     $url = Url::fromRoute(sprintf('jsonapi.%s.individual', static::$resourceTypeName), [static::$entityTypeId => $this->entity->uuid()]);
     /* $url = $this->entity->toUrl('jsonapi'); */
-    $request_options = $this->getAuthenticationRequestOptions('PATCH');
+    $request_options = [];
+    $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
 
     // DX: 403 when unauthorized.
     $response = $this->request('DELETE', $url, $request_options);
@@ -1323,15 +1343,12 @@ abstract class ResourceTestBase extends BrowserTestBase {
   /**
    * Returns Guzzle request options for authentication.
    *
-   * @param string $method
-   *   The HTTP method for this authenticated request.
-   *
    * @return array
    *   Guzzle request options to use for authentication.
    *
    * @see \GuzzleHttp\ClientInterface::request()
    */
-  protected function getAuthenticationRequestOptions($method) {
+  protected function getAuthenticationRequestOptions() {
     return [
       'headers' => [
         'Authorization' => 'Basic ' . base64_encode($this->account->name->value . ':' . $this->account->passRaw),

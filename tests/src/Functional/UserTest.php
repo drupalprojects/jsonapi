@@ -3,6 +3,7 @@
 namespace Drupal\Tests\jsonapi\Functional;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Url;
 use Drupal\jsonapi\Normalizer\HttpExceptionNormalizer;
 use Drupal\Tests\rest\Functional\BcTimestampNormalizerUnixTestTrait;
@@ -183,7 +184,9 @@ class UserTest extends ResourceTestBase {
     // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
     $url = Url::fromRoute(sprintf('jsonapi.user--user.individual'), ['user' => $this->account->uuid()]);
     /* $url = $this->account->toUrl('jsonapi'); */
-    $request_options = $this->getAuthenticationRequestOptions('PATCH');
+    $request_options = [];
+    $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
 
     // Test case 1: changing email.
     $normalization = $original_normalization;
@@ -261,7 +264,9 @@ class UserTest extends ResourceTestBase {
 
     // Update password in $this->account, prepare for future requests.
     $this->account->passRaw = $new_password;
-    $request_options = $this->getAuthenticationRequestOptions('PATCH');
+    $request_options = [];
+    $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
 
     // Test case 3: changing name.
     $normalization = $original_normalization;
@@ -335,7 +340,9 @@ class UserTest extends ResourceTestBase {
     // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
     $url = Url::fromRoute(sprintf('jsonapi.user--user.individual'), ['user' => $this->account->uuid()]);
     /* $url = $this->account->toUrl('jsonapi'); */
-    $request_options = $this->getAuthenticationRequestOptions('PATCH');
+    $request_options = [];
+    $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
 
     $normalization = $original_normalization;
     $normalization['data']['attributes']['mail'] = 'new-email@example.com';

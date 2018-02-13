@@ -94,7 +94,7 @@ class EntityTestTest extends ResourceTestBase {
   protected function getExpectedNormalizedEntity() {
     $self_url = Url::fromUri('base:/jsonapi/entity_test/entity_test/' . $this->entity->uuid())->setAbsolute()->toString(TRUE)->getGeneratedUrl();
     $author = User::load(0);
-    return [
+    $normalization = [
       'jsonapi' => [
         'meta' => [
           'links' => [
@@ -139,6 +139,11 @@ class EntityTestTest extends ResourceTestBase {
         ],
       ],
     ];
+    // @todo Remove this modification when JSON API requires Drupal 8.5 or newer, and do an early return above instead.
+    if (floatval(\Drupal::VERSION) < 8.5) {
+      unset($normalization['data']['attributes']['internal_string_field']);
+    }
+    return $normalization;
   }
 
   /**

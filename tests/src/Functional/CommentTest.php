@@ -6,6 +6,7 @@ use Drupal\comment\Entity\Comment;
 use Drupal\comment\Entity\CommentType;
 use Drupal\comment\Tests\CommentTestTrait;
 use Drupal\Component\Serialization\Json;
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Url;
 use Drupal\entity_test\Entity\EntityTest;
@@ -294,7 +295,9 @@ class CommentTest extends ResourceTestBase {
     $this->setUpAuthorization('POST');
 
     $url = Url::fromRoute(sprintf('jsonapi.%s.collection', static::$resourceTypeName));
-    $request_options = $this->getAuthenticationRequestOptions('POST');
+    $request_options = [];
+    $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
 
     $remove_field = function(array $normalization, $type, $attribute_name) {
       unset($normalization['data'][$type][$attribute_name]);
@@ -340,7 +343,9 @@ class CommentTest extends ResourceTestBase {
     $this->setUpAuthorization('POST');
 
     // Create request.
-    $request_options = $this->getAuthenticationRequestOptions('POST');
+    $request_options = [];
+    $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
     $request_options[RequestOptions::BODY] = Json::encode($this->getNormalizedPostEntity());
 
     $url = Url::fromRoute('jsonapi.comment--comment.collection');
