@@ -79,7 +79,7 @@ class BlockTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function getExpectedNormalizedEntity() {
+  protected function getExpectedDocument() {
     $self_url = Url::fromUri('base:/jsonapi/block/block/' . $this->entity->uuid())->setAbsolute()->toString(TRUE)->getGeneratedUrl();
     return [
       'jsonapi' => [
@@ -133,7 +133,7 @@ class BlockTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function getNormalizedPostEntity() {
+  protected function getPostDocument() {
     // @todo Update once https://www.drupal.org/node/2300677 is fixed.
   }
 

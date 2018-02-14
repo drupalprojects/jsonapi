@@ -57,7 +57,7 @@ class ConfigTestTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function getExpectedNormalizedEntity() {
+  protected function getExpectedDocument() {
     $self_url = Url::fromUri('base:/jsonapi/config_test/config_test/' . $this->entity->uuid())->setAbsolute()->toString(TRUE)->getGeneratedUrl();
     return [
       'jsonapi' => [
@@ -97,7 +97,7 @@ class ConfigTestTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function getNormalizedPostEntity() {
+  protected function getPostDocument() {
     // @todo Update in https://www.drupal.org/node/2300677.
   }
 

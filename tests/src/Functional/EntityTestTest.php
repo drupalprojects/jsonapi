@@ -91,7 +91,7 @@ class EntityTestTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function getExpectedNormalizedEntity() {
+  protected function getExpectedDocument() {
     $self_url = Url::fromUri('base:/jsonapi/entity_test/entity_test/' . $this->entity->uuid())->setAbsolute()->toString(TRUE)->getGeneratedUrl();
     $author = User::load(0);
     $normalization = [
@@ -149,7 +149,7 @@ class EntityTestTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function getNormalizedPostEntity() {
+  protected function getPostDocument() {
     return [
       'data' => [
         'type' => 'entity_test--entity_test',

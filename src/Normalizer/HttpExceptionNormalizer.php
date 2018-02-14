@@ -101,7 +101,7 @@ class HttpExceptionNormalizer extends NormalizerBase {
    * Return a string to the common problem type.
    *
    * @return string|null
-   *   URL pointing to the specific RFC-2616 section. Or NULL if it is a HTTP
+   *   URL pointing to the specific RFC-2616 section. Or NULL if it is an HTTP
    *   status code that is defined in another RFC.
    *
    * @see https://www.drupal.org/project/jsonapi/issues/2832211#comment-11826234

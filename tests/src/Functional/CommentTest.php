@@ -128,7 +128,7 @@ class CommentTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function getExpectedNormalizedEntity() {
+  protected function getExpectedDocument() {
     $self_url = Url::fromUri('base:/jsonapi/comment/comment/' . $this->entity->uuid())->setAbsolute()->toString(TRUE)->getGeneratedUrl();
     $author = User::load($this->entity->getOwnerId());
     return [
@@ -216,7 +216,7 @@ class CommentTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function getNormalizedPostEntity() {
+  protected function getPostDocument() {
     return [
       'data' => [
         'type' => 'comment--comment',
@@ -305,14 +305,14 @@ class CommentTest extends ResourceTestBase {
     };
 
     // DX: 422 when missing 'entity_type' field.
-    $request_options[RequestOptions::BODY] = Json::encode($remove_field($this->getNormalizedPostEntity(), 'attributes',  'entity_type'));
+    $request_options[RequestOptions::BODY] = Json::encode($remove_field($this->getPostDocument(), 'attributes',  'entity_type'));
     $response = $this->request('POST', $url, $request_options);
     // @todo Uncomment, remove next line in https://www.drupal.org/node/2820364.
     $this->assertResourceErrorResponse(500, 'The "" entity type does not exist.', $response);
     // $this->assertResourceErrorResponse(422, 'Unprocessable Entity', 'entity_type: This value should not be null.', $response);
 
     // DX: 422 when missing 'entity_id' field.
-    $request_options[RequestOptions::BODY] = Json::encode($remove_field($this->getNormalizedPostEntity(), 'relationships', 'entity_id'));
+    $request_options[RequestOptions::BODY] = Json::encode($remove_field($this->getPostDocument(), 'relationships', 'entity_id'));
     // @todo Remove the try/catch in favor of the two commented lines in
     // https://www.drupal.org/node/2820364.
     try {
@@ -328,7 +328,7 @@ class CommentTest extends ResourceTestBase {
     // $this->assertResourceErrorResponse(422, 'Unprocessable Entity', 'entity_id: This value should not be null.', $response);
 
     // DX: 422 when missing 'field_name' field.
-    $request_options[RequestOptions::BODY] = Json::encode($remove_field($this->getNormalizedPostEntity(), 'attributes', 'field_name'));
+    $request_options[RequestOptions::BODY] = Json::encode($remove_field($this->getPostDocument(), 'attributes', 'field_name'));
     $response = $this->request('POST', $url, $request_options);
     // @todo Uncomment, remove next line in https://www.drupal.org/node/2820364.
     $this->assertResourceErrorResponse(500, 'Field  is unknown.', $response);
@@ -346,7 +346,7 @@ class CommentTest extends ResourceTestBase {
     $request_options = [];
     $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
     $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
-    $request_options[RequestOptions::BODY] = Json::encode($this->getNormalizedPostEntity());
+    $request_options[RequestOptions::BODY] = Json::encode($this->getPostDocument());
 
     $url = Url::fromRoute('jsonapi.comment--comment.collection');
 

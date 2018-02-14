@@ -230,38 +230,38 @@ abstract class ResourceTestBase extends BrowserTestBase {
   abstract protected function createEntity();
 
   /**
-   * Returns the expected JSON API normalization of the entity.
+   * Returns the expected JSON API document for the entity.
    *
    * @see ::createEntity()
    *
    * @return array
-   *   A JSON API normalization.
+   *   A JSON API response document.
    */
-  abstract protected function getExpectedNormalizedEntity();
+  abstract protected function getExpectedDocument();
 
   /**
-   * Returns the normalized POST entity.
+   * Returns the JSON API POST document.
    *
    * @see ::testPostIndividual()
    *
    * @return array
-   *   A JSON API normalization.
+   *   A JSON API request document.
    */
-  abstract protected function getNormalizedPostEntity();
+  abstract protected function getPostDocument();
 
   /**
-   * Returns the normalized PATCH entity.
+   * Returns the JSON API PATCH document.
    *
-   * By default, reuses ::getNormalizedPostEntity(), which works fine for most
-   * entity types. A counterexample: the 'comment' entity type.
+   * By default, reuses ::getPostDocument(), which works fine for most entity
+   * types. A counter example: the 'comment' entity type.
    *
    * @see ::testPatchIndividual()
    *
    * @return array
-   *   A JSON API normalization.
+   *   A JSON API request document.
    */
-  protected function getNormalizedPatchEntity() {
-    return NestedArray::mergeDeep(['data' => ['id' => $this->entity->uuid()]], $this->getNormalizedPostEntity());
+  protected function getPatchDocument() {
+    return NestedArray::mergeDeep(['data' => ['id' => $this->entity->uuid()]], $this->getPostDocument());
   }
 
   /**
@@ -543,37 +543,37 @@ abstract class ResourceTestBase extends BrowserTestBase {
   }
 
   /**
-   * Makes the normalization violate the spec by omitting the resource type.
+   * Makes the JSON API document violate the spec by omitting the resource type.
    *
-   * @param array $normalization
-   *   A JSON API normalization.
+   * @param array $document
+   *   A JSON API document.
    *
    * @return array
-   *   The same JSON API normalization, without its resource type.
+   *   The same JSON API document, without its resource type.
    */
-  protected function removeResourceTypeFromNormalization(array $normalization) {
-    unset($normalization['data']['type']);
-    return $normalization;
+  protected function removeResourceTypeFromDocument(array $document) {
+    unset($document['data']['type']);
+    return $document;
   }
 
   /**
-   * Makes the given entity normalization invalid.
+   * Makes the given JSON API document invalid.
    *
-   * @param array $normalization
-   *   An entity normalization.
+   * @param array $document
+   *   A JSON API document.
    *
    * @return array
-   *   The updated entity normalization, now invalid.
+   *   The updated JSON API document, now invalid.
    */
-  protected function makeNormalizationInvalid(array $normalization) {
+  protected function makeLabelFieldNormalizationInvalid(array $document) {
     // Add a second label to this entity to make it invalid.
     $label_field = $this->entity->getEntityType()->hasKey('label') ? $this->entity->getEntityType()->getKey('label') : static::$labelFieldName;
-    $normalization['data']['attributes'][$label_field] = [
-      0 => $normalization['data']['attributes'][$label_field],
+    $document['data']['attributes'][$label_field] = [
+      0 => $document['data']['attributes'][$label_field],
       1 => 'Second Title',
     ];
 
-    return $normalization;
+    return $document;
   }
 
   /**
@@ -614,9 +614,9 @@ abstract class ResourceTestBase extends BrowserTestBase {
         ],
       ],
     ];
-    // @todo This is
     $this->assertResourceResponse(403, Json::encode($expected), $response);
     /* $this->assertResourceErrorResponse(403, "The current user is not allowed to GET the selected resource." . (strlen($reason) ? ' ' . $reason : ''), $response, '/data'); */
+    // @todo investigate this more (cache tags + contexts), cfr https://www.drupal.org/project/drupal/issues/2626298 + https://www.drupal.org/project/jsonapi/issues/2933939
     /* $this->assertResourceResponse(403, Json::encode($expected), $response, $expected_403_cacheability->getCacheTags(), $expected_403_cacheability->getCacheContexts(), FALSE, 'MISS'); */
     $this->assertArrayNotHasKey('Link', $response->getHeaders());
 
@@ -668,7 +668,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // Sort the serialization data first so we can do an identical comparison
     // for the keys with the array order the same (it needs to match with
     // identical comparison).
-    $expected = $this->getExpectedNormalizedEntity();
+    $expected = $this->getExpectedDocument();
     static::recursiveKsort($expected);
     $actual = Json::decode((string) $response->getBody());
     static::recursiveKsort($actual);
@@ -774,11 +774,11 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     // Try with all of the following request bodies.
     $unparseable_request_body = '!{>}<';
-    $parseable_valid_request_body = Json::encode($this->getNormalizedPostEntity());
+    $parseable_valid_request_body = Json::encode($this->getPostDocument());
     /* $parseable_valid_request_body_2 = Json::encode($this->getNormalizedPostEntity()); */
-    $parseable_invalid_request_body_missing_type = Json::encode($this->removeResourceTypeFromNormalization($this->getNormalizedPostEntity(), 'type'));
-    $parseable_invalid_request_body = Json::encode($this->makeNormalizationInvalid($this->getNormalizedPostEntity()));
-    $parseable_invalid_request_body_2 = Json::encode(NestedArray::mergeDeep(['data' => ['id' => $this->randomMachineName(129)]], $this->getNormalizedPostEntity()));
+    $parseable_invalid_request_body_missing_type = Json::encode($this->removeResourceTypeFromDocument($this->getPostDocument(), 'type'));
+    $parseable_invalid_request_body = Json::encode($this->makeLabelFieldNormalizationInvalid($this->getPostDocument()));
+    $parseable_invalid_request_body_2 = Json::encode(NestedArray::mergeDeep(['data' => ['id' => $this->randomMachineName(129)]], $this->getPostDocument()));
     /* $parseable_invalid_request_body_3 = Json::encode(NestedArray::mergeDeep(['data' => ['attributes' => ['field_rest_test' => $this->randomString()]]], $this->getNormalizedPostEntity())); */
 
     // The URL and Guzzle request options that will be used in this test. The
@@ -943,24 +943,24 @@ abstract class ResourceTestBase extends BrowserTestBase {
       // Assert that the entity was indeed created, and that the response body
       // contains the serialized created entity.
       $created_entity = $this->entityStorage->loadUnchanged(static::$firstCreatedEntityId);
-      $created_entity_normalization = $this->entityToJsonApi->normalize($created_entity);
+      $created_entity_document = $this->entityToJsonApi->normalize($created_entity);
       // @todo Remove this if-test in https://www.drupal.org/node/2543726: execute
       // its body unconditionally.
       if (static::$entityTypeId !== 'taxonomy_term') {
         $decoded_response_body = Json::decode((string) $response->getBody());
         // @todo Remove the two lines below once https://www.drupal.org/project/jsonapi/issues/2925043 lands.
-        unset($created_entity_normalization['links']);
+        unset($created_entity_document['links']);
         unset($decoded_response_body['links']);
-        $this->assertSame($created_entity_normalization, $decoded_response_body);
+        $this->assertSame($created_entity_document, $decoded_response_body);
       }
       // Assert that the entity was indeed created using the POSTed values.
-      foreach ($this->getNormalizedPostEntity()['data']['attributes'] as $field_name => $field_normalization) {
-        $this->assertSame($field_normalization, $created_entity_normalization['data']['attributes'][$field_name]);
+      foreach ($this->getPostDocument()['data']['attributes'] as $field_name => $field_normalization) {
+        $this->assertSame($field_normalization, $created_entity_document['data']['attributes'][$field_name]);
       }
-      if (isset($this->getNormalizedPostEntity()['data']['relationships'])) {
-        foreach ($this->getNormalizedPostEntity()['data']['relationships'] as $field_name => $relationship_field_normalization) {
+      if (isset($this->getPostDocument()['data']['relationships'])) {
+        foreach ($this->getPostDocument()['data']['relationships'] as $field_name => $relationship_field_normalization) {
           // POSTing relationships: 'data' is required, 'links' is optional.
-          $this->assertSame($relationship_field_normalization, array_diff_key($created_entity_normalization['data']['relationships'][$field_name], ['links' => TRUE]));
+          $this->assertSame($relationship_field_normalization, array_diff_key($created_entity_document['data']['relationships'][$field_name], ['links' => TRUE]));
         }
       }
     }
@@ -978,14 +978,14 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     // Try with all of the following request bodies.
     $unparseable_request_body = '!{>}<';
-    $parseable_valid_request_body = Json::encode($this->getNormalizedPatchEntity());
+    $parseable_valid_request_body = Json::encode($this->getPatchDocument());
     /* $parseable_valid_request_body_2 = Json::encode($this->getNormalizedPatchEntity()); */
-    $parseable_invalid_request_body = Json::encode($this->makeNormalizationInvalid($this->getNormalizedPatchEntity()));
-    $parseable_invalid_request_body_2 = Json::encode(NestedArray::mergeDeep(['data' => ['attributes' => ['field_rest_test' => $this->randomString()]]], $this->getNormalizedPatchEntity()));
+    $parseable_invalid_request_body = Json::encode($this->makeLabelFieldNormalizationInvalid($this->getPatchDocument()));
+    $parseable_invalid_request_body_2 = Json::encode(NestedArray::mergeDeep(['data' => ['attributes' => ['field_rest_test' => $this->randomString()]]], $this->getPatchDocument()));
     // The 'field_rest_test' field does not allow 'view' access, so does not end
-    // up in the normalization. Even when we explicitly add it the normalization
-    // that we send in the body of a PATCH request, it is considered invalid.
-    $parseable_invalid_request_body_3 = Json::encode(NestedArray::mergeDeep(['data' => ['attributes' => ['field_rest_test' => $this->entity->get('field_rest_test')->getValue()]]], $this->getNormalizedPatchEntity()));
+    // up in the JSON API document. Even when we explicitly add it to the JSON
+    // API document that we send in a PATCH request, it is considered invalid.
+    $parseable_invalid_request_body_3 = Json::encode(NestedArray::mergeDeep(['data' => ['attributes' => ['field_rest_test' => $this->entity->get('field_rest_test')->getValue()]]], $this->getPatchDocument()));
 
     // The URL and Guzzle request options that will be used in this test. The
     // request options will be modified/expanded throughout this test:
@@ -1165,7 +1165,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     // 200 for well-formed PATCH request that sends all fields (even including
     // read-only ones, but with unchanged values).
-    $valid_request_body = NestedArray::mergeDeep($this->entityToJsonApi->normalize($this->entity), $this->getNormalizedPatchEntity());
+    $valid_request_body = NestedArray::mergeDeep($this->entityToJsonApi->normalize($this->entity), $this->getPatchDocument());
     // @todo Remove this foreach in https://www.drupal.org/project/jsonapi/issues/2939810.
     foreach (array_keys(static::$patchProtectedFieldNames) as $field_name) {
       unset($valid_request_body['data']['attributes'][$field_name]);
@@ -1197,10 +1197,10 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // Assert that the entity was indeed updated, and that the response body
     // contains the serialized updated entity.
     $updated_entity = $this->entityStorage->loadUnchanged($this->entity->id());
-    $updated_entity_normalization = $this->entityToJsonApi->normalize($updated_entity);
-    $this->assertSame($updated_entity_normalization, Json::decode((string) $response->getBody()));
+    $updated_entity_document = $this->entityToJsonApi->normalize($updated_entity);
+    $this->assertSame($updated_entity_document, Json::decode((string) $response->getBody()));
     // Assert that the entity was indeed created using the PATCHed values.
-    foreach ($this->getNormalizedPatchEntity() as $field_name => $field_normalization) {
+    foreach ($this->getPatchDocument() as $field_name => $field_normalization) {
       // Some top-level keys in the normalization may not be fields on the
       // entity (for example '_links' and '_embedded' in the HAL normalization).
       if ($updated_entity->hasField($field_name)) {
@@ -1221,19 +1221,19 @@ abstract class ResourceTestBase extends BrowserTestBase {
     }
 
     // Multi-value field: remove item 0. Then item 1 becomes item 0.
-    $normalization_multi_value_tests = $this->getNormalizedPatchEntity();
-    $normalization_multi_value_tests['data']['attributes']['field_rest_test_multivalue'] = $this->entity->get('field_rest_test_multivalue')->getValue();
-    $normalization_remove_item = $normalization_multi_value_tests;
-    unset($normalization_remove_item['data']['attributes']['field_rest_test_multivalue'][0]);
-    $request_options[RequestOptions::BODY] = Json::encode($normalization_remove_item, 'api_json');
+    $doc_multi_value_tests = $this->getPatchDocument();
+    $doc_multi_value_tests['data']['attributes']['field_rest_test_multivalue'] = $this->entity->get('field_rest_test_multivalue')->getValue();
+    $doc_remove_item = $doc_multi_value_tests;
+    unset($doc_remove_item['data']['attributes']['field_rest_test_multivalue'][0]);
+    $request_options[RequestOptions::BODY] = Json::encode($doc_remove_item, 'api_json');
     $response = $this->request('PATCH', $url, $request_options);
     $this->assertResourceResponse(200, FALSE, $response, Cache::mergeTags([], ['http_response', static::$entityTypeId . ':' . $this->entity->id()]), $this->getExpectedCacheContexts());
     $this->assertSame([0 => ['value' => 'Two']], $this->entityStorage->loadUnchanged($this->entity->id())->get('field_rest_test_multivalue')->getValue());
 
     // Multi-value field: add one item before the existing one, and one after.
-    $normalization_add_items = $normalization_multi_value_tests;
-    $normalization_add_items['data']['attributes']['field_rest_test_multivalue'][2] = ['value' => 'Three'];
-    $request_options[RequestOptions::BODY] = Json::encode($normalization_add_items);
+    $doc_add_items = $doc_multi_value_tests;
+    $doc_add_items['data']['attributes']['field_rest_test_multivalue'][2] = ['value' => 'Three'];
+    $request_options[RequestOptions::BODY] = Json::encode($doc_add_items);
     $response = $this->request('PATCH', $url, $request_options);
     $this->assertResourceResponse(200, FALSE, $response, Cache::mergeTags([], ['http_response', static::$entityTypeId . ':' . $this->entity->id()]), $this->getExpectedCacheContexts());
     $expected = [
