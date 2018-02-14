@@ -3,6 +3,7 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
@@ -107,6 +108,11 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
 
       // Get the referenced entity.
       $entity = $item->get('entity')->getValue();
+
+      if ($this->isInternalResourceType($entity)) {
+        continue;
+      }
+
       // And get the translation in the requested language.
       $entity_list[] = $this->entityRepository->getTranslationFromContext($entity);
     }
@@ -204,6 +210,22 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
       $data['data'] = [$data['data']];
     }
     return $data;
+  }
+
+  /**
+   * Determines if the given entity is of an internal resource type.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity for which to check the internal status.
+   *
+   * @return bool
+   *   TRUE if the entity's resource type is internal, FALSE otherwise.
+   */
+  protected function isInternalResourceType(EntityInterface $entity) {
+    return ($resource_type = $this->resourceTypeRepository->get(
+      $entity->getEntityTypeId(),
+      $entity->bundle()
+    )) && $resource_type->isInternal();
   }
 
   /**
