@@ -38,6 +38,13 @@ class InternalEntitiesTest extends BrowserTestBase {
   protected $testUser;
 
   /**
+   * An entity of an internal entity type.
+   *
+   * @var \Drupal\Core\Entity\EntityInterface
+   */
+  protected $internalEntity;
+
+  /**
    * An entity referencing an internal entity.
    *
    * @var \Drupal\Core\Entity\EntityInterface
@@ -65,14 +72,65 @@ class InternalEntitiesTest extends BrowserTestBase {
       'Internal Entities',
       'entity_test_no_label'
     );
-    $internal_entity = EntityTestNoLabel::create([]);
-    $internal_entity->save();
+    $this->internalEntity = EntityTestNoLabel::create([]);
+    $this->internalEntity->save();
     $this->referencingEntity = EntityTestWithBundle::create([
       'type' => 'internal_referencer',
-      'field_internal' => $internal_entity->id(),
+      'field_internal' => $this->internalEntity->id(),
     ]);
     $this->referencingEntity->save();
     drupal_flush_all_caches();
+  }
+
+  /**
+   * Ensures that internal resources types aren't present in the entry point.
+   */
+  public function testEntryPoint() {
+    if (!method_exists(EntityTypeInterface::class, 'isInternal')) {
+      $this->markTestSkipped('The Drupal Core version must be >= 8.5');
+      return;
+    }
+    $this->drupalLogin($this->testUser);
+    $response = $this->drupalGet('/jsonapi', [], ['Accept' => 'application/vnd.api+json']);
+    $decoded = Json::decode($response);
+    $this->assertArrayNotHasKey(
+      "{$this->internalEntity->getEntityTypeId()}--{$this->internalEntity->bundle()}",
+      $decoded['links'],
+      'The entry point should not contain links to internal resource type routes.'
+    );
+  }
+
+  /**
+   * Ensures that internal resources types aren't present in the routes.
+   */
+  public function testRoutes() {
+    if (!method_exists(EntityTypeInterface::class, 'isInternal')) {
+      $this->markTestSkipped('The Drupal Core version must be >= 8.5');
+      return;
+    }
+    $this->drupalLogin($this->testUser);
+    $internal_entity_type_id = $this->internalEntity->getEntityTypeId();
+    $internal_bundle = $this->internalEntity->bundle();
+    $internal_uuid = $this->internalEntity->uuid();
+    $referencing_entity_type_id = $this->referencingEntity->getEntityTypeId();
+    $referencing_bundle = $this->referencingEntity->bundle();
+    $referencing_uuid = $this->referencingEntity->uuid();
+    // This cannot be in a data provider because it needs values created by the
+    // setUp method.
+    $paths = [
+      'individual' => "/jsonapi/{$internal_entity_type_id}/{$internal_bundle}/{$internal_uuid}",
+      'collection' => "/jsonapi/{$internal_entity_type_id}/{$internal_bundle}",
+      'related' => "/jsonapi/{$referencing_entity_type_id}/{$referencing_bundle}/{$referencing_uuid}/field_internal",
+    ];
+    foreach ($paths as $type => $path) {
+      $response = $this->drupalGet($path, [], ['Accept' => 'application/vnd.api+json']);
+      $decoded = Json::decode($response);
+      $this->assertSame(
+        404,
+        $decoded['errors'][0]['status'],
+        "The '{$type}' route ({$path}) should not be available for internal resource types.'"
+      );
+    }
   }
 
   /**

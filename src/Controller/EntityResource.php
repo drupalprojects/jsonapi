@@ -13,7 +13,9 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
+use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
+use Drupal\Core\Field\Plugin\DataType\FieldItem;
 use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
 use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
@@ -453,30 +455,6 @@ class EntityResource {
     if (!$field_list || !$this->isRelationshipField($field_list)) {
       throw new NotFoundHttpException(sprintf('The relationship %s is not present in this resource.', $related_field));
     }
-    // Make sure we return a 404 if the related resource is disabled for
-    // cardinality 1.
-    $is_multiple = $field_list
-      ->getDataDefinition()
-      ->getFieldStorageDefinition()
-      ->isMultiple();
-    // For multiple resource the normalizer will skip the disabled items.
-    if (!$is_multiple) {
-      /** @var \Drupal\Core\Entity\EntityInterface $referenced_entity */
-      $referenced_entity = $field_list->entity;
-      $referenced_resource_type = $this->resourceTypeRepository
-        ->get(
-          $referenced_entity->getEntityTypeId(),
-          $referenced_entity->bundle()
-        );
-      if (!$referenced_resource_type) {
-        throw new NotFoundHttpException(sprintf(
-          'Unable to find the resource for "%s:%s" on the related field "%s".',
-          $referenced_entity->getEntityTypeId(),
-          $referenced_entity->bundle(),
-          $related_field
-        ));
-      }
-    }
   }
 
   /**
@@ -842,15 +820,20 @@ class EntityResource {
   /**
    * Checks if is a relationship field.
    *
-   * @param object $entity_field
-   *   Entity definition.
+   * @param \Drupal\Core\Field\FieldItemListInterface $entity_field
+   *   Entity field.
    *
    * @return bool
-   *   Returns TRUE, if entity field is EntityReferenceItem.
+   *   Returns TRUE if entity field is a relationship field with non-internal
+   *   target resource types, FALSE otherwise.
    */
-  protected function isRelationshipField($entity_field) {
-    $class = $this->pluginManager->getPluginClass($entity_field->getDataDefinition()->getType());
-    return ($class == EntityReferenceItem::class || is_subclass_of($class, EntityReferenceItem::class));
+  protected function isRelationshipField(FieldItemListInterface $entity_field) {
+    $resource_types = $this->resourceType->getRelatableResourceTypesByField(
+      $this->resourceType->getInternalName($entity_field->getName())
+    );
+    return !empty($resource_types) && array_reduce($resource_types, function ($has_external, $resource_type) {
+      return $has_external ? TRUE : !$resource_type->isInternal();
+    }, FALSE);
   }
 
   /**

@@ -70,7 +70,12 @@ class EntryPoint extends ControllerBase {
     $do_build_urls = function () {
       $self = Url::fromRoute('jsonapi.resource_list')->setAbsolute();
 
-      return array_reduce($this->resourceTypeRepository->all(), function (array $carry, ResourceType $resource_type) {
+      // Only build URLs for exposed resources.
+      $resources = array_filter($this->resourceTypeRepository->all(), function ($resource) {
+        return !$resource->isInternal();
+      });
+
+      return array_reduce($resources, function (array $carry, ResourceType $resource_type) {
         // TODO: Learn how to invalidate the cache for this page when a new
         // entity type or bundle gets added, removed or updated.
         // $this->response->addCacheableDependency($definition);

@@ -100,6 +100,10 @@ class Routes implements ContainerInjectionInterface {
   public function routes() {
     $collection = new RouteCollection();
     foreach ($this->resourceTypeRepository->all() as $resource_type) {
+      if ($resource_type->isInternal()) {
+        continue;
+      }
+
       $route_base_path = sprintf('/jsonapi/%s/%s', $resource_type->getEntityTypeId(), $resource_type->getBundle());
       $build_route_name = function ($key) use ($resource_type) {
         return sprintf('jsonapi.%s.%s', $resource_type->getTypeName(), $key);

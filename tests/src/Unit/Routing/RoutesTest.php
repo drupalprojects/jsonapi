@@ -31,11 +31,22 @@ class RoutesTest extends UnitTestCase {
    */
   protected function setUp() {
     parent::setUp();
+    $type_1 = new ResourceType('entity_type_1', 'bundle_1_1', EntityInterface::class);
+    $type_2 = new ResourceType('entity_type_2', 'bundle_2_1', EntityInterface::class, TRUE);
+    $relatable_resource_types = [
+      'external' => [$type_1],
+      'internal' => [$type_2],
+      'both' => [$type_1, $type_2],
+    ];
+    $type_1->setRelatableResourceTypes($relatable_resource_types);
+    $type_2->setRelatableResourceTypes($relatable_resource_types);
+    // This type ensures that we can create routes for bundle IDs which might be
+    // cast from strings to integers.  It should not affect related resource
+    // routing.
+    $type_3 = new ResourceType('entity_type_3', '123', EntityInterface::class, TRUE);
+    $type_3->setRelatableResourceTypes([]);
     $resource_type_repository = $this->prophesize(ResourceTypeRepository::class);
-    $resource_type_repository->all()->willReturn([
-      new ResourceType('entity_type_1', 'bundle_1_1', EntityInterface::class),
-      new ResourceType('entity_type_2', 123, EntityInterface::class),
-    ]);
+    $resource_type_repository->all()->willReturn([$type_1, $type_2, $type_3]);
     $container = $this->prophesize(ContainerInterface::class);
     $container->get('jsonapi.resource_type.repository')->willReturn($resource_type_repository->reveal());
     $auth_collector = $this->prophesize(AuthenticationCollectorInterface::class);
@@ -55,8 +66,8 @@ class RoutesTest extends UnitTestCase {
     // Get the route collection and start making assertions.
     $routes = $this->routes['ok']->routes();
 
-    // Make sure that there are 4 routes for each resource (2*4).
-    $this->assertEquals(8, $routes->count());
+    // Make sure that there are 4 routes for the non-internal resource.
+    $this->assertEquals(4, $routes->count());
 
     $iterator = $routes->getIterator();
     // Check the collection route.
@@ -128,6 +139,48 @@ class RoutesTest extends UnitTestCase {
     $this->assertSame(['lorem', 'ipsum'], $route->getOption('_auth'));
     $this->assertEquals(['entity_type_1' => ['type' => 'entity:entity_type_1']], $route->getOption('parameters'));
     $this->assertSame('Drupal\Core\Field\EntityReferenceFieldItemList', $route->getOption('serialization_class'));
+  }
+
+  /**
+   * Ensures that the expected routes are created or not created.
+   *
+   * @dataProvider expectedRoutes
+   */
+  public function testRoutes($route) {
+    $this->assertArrayHasKey($route, $this->routes['ok']->routes()->all());
+  }
+
+  /**
+   * Lists routes which should have been created.
+   */
+  public function expectedRoutes() {
+    return [
+      ['jsonapi.entity_type_1--bundle_1_1.individual'],
+      ['jsonapi.entity_type_1--bundle_1_1.collection'],
+      ['jsonapi.entity_type_1--bundle_1_1.related'],
+      ['jsonapi.entity_type_1--bundle_1_1.relationship'],
+    ];
+  }
+
+  /**
+   * Ensures that no routes are created for internal resources.
+   *
+   * @dataProvider notExpectedRoutes
+   */
+  public function testInternalRoutes($route) {
+    $this->assertArrayNotHasKey($route, $this->routes['ok']->routes()->all());
+  }
+
+  /**
+   * Lists routes which should have been created.
+   */
+  public function notExpectedRoutes() {
+    return [
+      ['jsonapi.entity_type_2--bundle_2_1.individual'],
+      ['jsonapi.entity_type_2--bundle_2_1.collection'],
+      ['jsonapi.entity_type_2--bundle_2_1.related'],
+      ['jsonapi.entity_type_2--bundle_2_1.relationship'],
+    ];
   }
 
 }

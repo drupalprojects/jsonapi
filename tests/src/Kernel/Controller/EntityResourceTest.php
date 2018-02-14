@@ -26,6 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Route;
 
 /**
@@ -403,7 +404,11 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    */
   public function testGetRelated() {
     // to-one relationship.
-    $entity_resource = $this->buildEntityResource('node', 'article');
+    $entity_resource = $this->buildEntityResource('node', 'article', [
+      'uid' => [new ResourceType('user', 'user', NULL)],
+      'roles' => [new ResourceType('user_role', 'user_role', NULL)],
+      'field_relationships' => [new ResourceType('node', 'article', NULL)],
+    ]);
     $response = $entity_resource->getRelated($this->node, 'uid', new Request());
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
     $this->assertInstanceOf(User::class, $response->getResponseData()
@@ -445,7 +450,9 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    */
   public function testGetRelationship() {
     // to-one relationship.
-    $entity_resource = $this->buildEntityResource('node', 'article');
+    $entity_resource = $this->buildEntityResource('node', 'article', [
+      'uid' => [new ResourceType('user', 'user', NULL)],
+    ]);
     $response = $entity_resource->getRelationship($this->node, 'uid', new Request());
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
     $this->assertInstanceOf(
@@ -744,7 +751,9 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ->grantPermission('edit any article content')
       ->save();
 
-    $entity_resource = $this->buildEntityResource('node', 'article');
+    $entity_resource = $this->buildEntityResource('node', 'article', [
+      'field_relationships' => [new ResourceType('node', 'article', NULL)],
+    ]);
     $response = $entity_resource->createRelationship($this->node, 'field_relationships', $parsed_field_list, new Request());
 
     // As a side effect, the node will also be saved.
@@ -771,7 +780,9 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ->grantPermission('edit any article content')
       ->save();
 
-    $entity_resource = $this->buildEntityResource('node', 'article');
+    $entity_resource = $this->buildEntityResource('node', 'article', [
+      'field_relationships' => [new ResourceType('node', 'article', NULL)],
+    ]);
     $response = $entity_resource->patchRelationship($this->node, 'field_relationships', $parsed_field_list, new Request());
 
     // As a side effect, the node will also be saved.
@@ -814,7 +825,9 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ->grantPermission('edit any article content')
       ->save();
 
-    $entity_resource = $this->buildEntityResource('node', 'article');
+    $entity_resource = $this->buildEntityResource('node', 'article', [
+      'field_relationships' => [new ResourceType('node', 'article', NULL)],
+    ]);
     $response = $entity_resource->deleteRelationship($this->node, 'field_relationships', $parsed_field_list, new Request());
 
     // As a side effect, the node will also be saved.
@@ -824,6 +837,86 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $this->assertSame('field_relationships', $field_list->getName());
     $this->assertEquals($kept_rels, $field_list->getValue());
     $this->assertEquals(201, $response->getStatusCode());
+  }
+
+  /**
+   * @covers ::getRelated
+   */
+  public function testGetRelatedInternal() {
+    $internal_resource_type = new ResourceType('node', 'article', NULL, TRUE);
+    $resource = $this->buildEntityResource('node', 'article', [
+      'field_relationships' => [$internal_resource_type],
+    ]);
+
+    $this->setExpectedException(NotFoundHttpException::class);
+    $resource->getRelationship($this->node, 'field_relationships', new Request());
+  }
+
+  /**
+   * @covers ::getRelationship
+   */
+  public function testGetRelationshipInternal() {
+    $internal_resource_type = new ResourceType('node', 'article', NULL, TRUE);
+    $resource = $this->buildEntityResource('node', 'article', [
+      'field_relationships' => [$internal_resource_type],
+    ]);
+
+    $this->setExpectedException(NotFoundHttpException::class);
+    $resource->getRelationship($this->node, 'field_relationships', new Request());
+  }
+
+  /**
+   * @covers ::createRelationship
+   */
+  public function testCreateRelationshipInternal() {
+    $internal_resource_type = new ResourceType('node', 'article', NULL, TRUE);
+    $resource = $this->buildEntityResource('node', 'article', [
+      'field_relationships' => [$internal_resource_type],
+    ]);
+
+    Role::load(Role::ANONYMOUS_ID)->grantPermission('edit any article content')->save();
+
+    $field_type_manager = $this->container->get('plugin.manager.field.field_type');
+    $list = $field_type_manager->createFieldItemList($this->node, 'field_relationships');
+
+    $this->setExpectedException(NotFoundHttpException::class);
+    $resource->createRelationship($this->node, 'field_relationships', $list, new Request());
+  }
+
+  /**
+   * @covers ::patchRelationship
+   */
+  public function testPatchRelationshipInternal() {
+    $internal_resource_type = new ResourceType('node', 'article', NULL, TRUE);
+    $resource = $this->buildEntityResource('node', 'article', [
+      'field_relationships' => [$internal_resource_type],
+    ]);
+
+    Role::load(Role::ANONYMOUS_ID)->grantPermission('edit any article content')->save();
+
+    $field_type_manager = $this->container->get('plugin.manager.field.field_type');
+    $list = $field_type_manager->createFieldItemList($this->node, 'field_relationships');
+
+    $this->setExpectedException(NotFoundHttpException::class);
+    $resource->patchRelationship($this->node, 'field_relationships', $list, new Request());
+  }
+
+  /**
+   * @covers ::deleteRelationship
+   */
+  public function testDeleteRelationshipInternal() {
+    $internal_resource_type = new ResourceType('node', 'article', NULL, TRUE);
+    $resource = $this->buildEntityResource('node', 'article', [
+      'field_relationships' => [$internal_resource_type],
+    ]);
+
+    Role::load(Role::ANONYMOUS_ID)->grantPermission('edit any article content')->save();
+
+    $field_type_manager = $this->container->get('plugin.manager.field.field_type');
+    $list = $field_type_manager->createFieldItemList($this->node, 'field_relationships');
+
+    $this->setExpectedException(NotFoundHttpException::class);
+    $resource->deleteRelationship($this->node, 'field_relationships', $list, new Request());
   }
 
   /**
@@ -850,11 +943,15 @@ class EntityResourceTest extends JsonapiKernelTestBase {
    *   The entity type ID.
    * @param string $bundle
    *   The bundle.
+   * @param \Drupal\jsonapi\ResourceType\ResourceType[] $relatable_resource_types
+   *   An array of relatable resource types, keyed by field.
+   * @param bool $internal
+   *   Whether the primary resource type is internal.
    *
    * @return \Drupal\jsonapi\Controller\EntityResource
    *   The resource.
    */
-  protected function buildEntityResource($entity_type_id, $bundle) {
+  protected function buildEntityResource($entity_type_id, $bundle, array $relatable_resource_types = [], $internal = FALSE) {
     // The fake route.
     $route = new Route(NULL, [], [
       '_entity_type' => $entity_type_id,
@@ -872,8 +969,11 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     );
     $this->container->set('jsonapi.current_context', $current_context);
 
+    $resource_type = new ResourceType($entity_type_id, $bundle, NULL, $internal);
+    $resource_type->setRelatableResourceTypes($relatable_resource_types);
+
     return new EntityResource(
-      new ResourceType($entity_type_id, $bundle, NULL),
+      $resource_type,
       $this->container->get('entity_type.manager'),
       $this->container->get('entity_field.manager'),
       $current_context,
