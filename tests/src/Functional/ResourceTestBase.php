@@ -607,7 +607,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
             'info' => HttpExceptionNormalizer::getInfoUrl(403),
           ],
           'code' => 0,
-          'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
           'source' => [
             'pointer' => '/data',
           ],
@@ -676,12 +675,16 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     // Not only assert the normalization, also assert deserialization of the
     // response results in the expected object.
+    // @todo Uncomment this in https://www.drupal.org/project/jsonapi/issues/2942561#comment-12472704.
+    // @codingStandardsIgnoreStart
+    /*
     $unserialized = $this->serializer->deserialize((string) $response->getBody(), get_class($this->entity), 'api_json', [
       'target_entity' => static::$entityTypeId,
       'resource_type' => $this->container->get('jsonapi.resource_type.repository')->getByTypeName(static::$resourceTypeName),
     ]);
-    // @todo Uncomment this in https://www.drupal.org/project/jsonapi/issues/2942561#comment-12472704.
-    /* $this->assertSame($unserialized->uuid(), $this->entity->uuid()); */
+    $this->assertSame($unserialized->uuid(), $this->entity->uuid());
+    */
+    // @codingStandardsIgnoreEnd
     $get_headers = $response->getHeaders();
 
     // Verify that the GET and HEAD responses are the same. The only difference
@@ -932,9 +935,17 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     // 201 for well-formed request.
     $response = $this->request('POST', $url, $request_options);
-    $this->assertResourceResponse(201, FALSE, $response, Cache::mergeTags(['http_response', static::$entityTypeId . ':' . static::$firstCreatedEntityId], []), $this->getExpectedCacheContexts());
+    $this->assertResourceResponse(201, FALSE, $response, Cache::mergeTags(['http_response'], static::$entityTypeId !== 'contact_message' ? $this->entityStorage->load(static::$firstCreatedEntityId)->getCacheTags() : []), $this->getExpectedCacheContexts());
+    // @todo Remove this logic to extract a UUID from the response in https://www.drupal.org/project/jsonapi/issues/2944977
+    if (get_class($this->entityStorage) !== ContentEntityNullStorage::class) {
+      $uuid = $this->entityStorage->load(static::$firstCreatedEntityId)->uuid();
+    }
+    else {
+      $r = Json::decode((string) $response->getBody());
+      $uuid = NestedArray::getValue($r, ['data', 'id']);
+    }
     // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
-    $location = Url::fromRoute(sprintf('jsonapi.%s.individual', static::$resourceTypeName), [static::$entityTypeId => $this->entityStorage->load(static::$firstCreatedEntityId)->uuid()])->setAbsolute(TRUE)->toString();
+    $location = Url::fromRoute(sprintf('jsonapi.%s.individual', static::$resourceTypeName), [static::$entityTypeId => $uuid])->setAbsolute(TRUE)->toString();
     /* $location = $this->entityStorage->load(static::$firstCreatedEntityId)->toUrl('jsonapi')->setAbsolute(TRUE)->toString(); */
     $this->assertSame([$location], $response->getHeader('Location'));
     $this->assertFalse($response->hasHeader('X-Drupal-Cache'));
@@ -955,7 +966,15 @@ abstract class ResourceTestBase extends BrowserTestBase {
       }
       // Assert that the entity was indeed created using the POSTed values.
       foreach ($this->getPostDocument()['data']['attributes'] as $field_name => $field_normalization) {
-        $this->assertSame($field_normalization, $created_entity_document['data']['attributes'][$field_name]);
+        // If the value is an array of properties, only verify that the sent
+        // properties are present, the server could be computing additional
+        // properties.
+        if (is_array($field_normalization)) {
+          $this->assertArraySubset($field_normalization, $created_entity_document['data']['attributes'][$field_name]);
+        }
+        else {
+          $this->assertSame($field_normalization, $created_entity_document['data']['attributes'][$field_name]);
+        }
       }
       if (isset($this->getPostDocument()['data']['relationships'])) {
         foreach ($this->getPostDocument()['data']['relationships'] as $field_name => $relationship_field_normalization) {
@@ -1045,7 +1064,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
             'info' => HttpExceptionNormalizer::getInfoUrl(403),
           ],
           'code' => 0,
-          'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
           'source' => [
             'pointer' => '/data',
           ],
@@ -1093,7 +1111,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
             'info' => HttpExceptionNormalizer::getInfoUrl(403),
           ],
           'code' => 0,
-          'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
           'source' => [
             'pointer' => '/data/attributes/field_rest_test',
           ],
@@ -1120,7 +1137,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
             'info' => HttpExceptionNormalizer::getInfoUrl(403),
           ],
           'code' => 0,
-          'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
           'source' => [
             'pointer' => '/data/attributes/field_rest_test',
           ],
@@ -1151,7 +1167,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
               'info' => HttpExceptionNormalizer::getInfoUrl(403),
             ],
             'code' => 0,
-            'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
             'source' => [
               'pointer' => '/data/attributes/' . $patch_protected_field_name,
             ],
@@ -1227,7 +1242,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     unset($doc_remove_item['data']['attributes']['field_rest_test_multivalue'][0]);
     $request_options[RequestOptions::BODY] = Json::encode($doc_remove_item, 'api_json');
     $response = $this->request('PATCH', $url, $request_options);
-    $this->assertResourceResponse(200, FALSE, $response, Cache::mergeTags([], ['http_response', static::$entityTypeId . ':' . $this->entity->id()]), $this->getExpectedCacheContexts());
+    $this->assertResourceResponse(200, FALSE, $response, Cache::mergeTags($this->entity->getCacheTags(), ['http_response']), $this->getExpectedCacheContexts());
     $this->assertSame([0 => ['value' => 'Two']], $this->entityStorage->loadUnchanged($this->entity->id())->get('field_rest_test_multivalue')->getValue());
 
     // Multi-value field: add one item before the existing one, and one after.
@@ -1235,7 +1250,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $doc_add_items['data']['attributes']['field_rest_test_multivalue'][2] = ['value' => 'Three'];
     $request_options[RequestOptions::BODY] = Json::encode($doc_add_items);
     $response = $this->request('PATCH', $url, $request_options);
-    $this->assertResourceResponse(200, FALSE, $response, Cache::mergeTags([], ['http_response', static::$entityTypeId . ':' . $this->entity->id()]), $this->getExpectedCacheContexts());
+    $this->assertResourceResponse(200, FALSE, $response, Cache::mergeTags($this->entity->getCacheTags(), ['http_response']), $this->getExpectedCacheContexts());
     $expected = [
       0 => ['value' => 'One'],
       1 => ['value' => 'Two'],
@@ -1280,7 +1295,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
             'info' => HttpExceptionNormalizer::getInfoUrl(403),
           ],
           'code' => 0,
-          'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
           'source' => [
             'pointer' => '/data',
           ],

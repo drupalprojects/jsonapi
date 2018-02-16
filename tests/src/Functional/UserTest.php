@@ -288,7 +288,6 @@ class UserTest extends ResourceTestBase {
             'info' => HttpExceptionNormalizer::getInfoUrl(403),
           ],
           'code' => 0,
-          'id' => '/user--user/' . $this->account->uuid(),
           'source' => [
             'pointer' => '/data/attributes/name',
           ],

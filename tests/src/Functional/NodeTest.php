@@ -275,7 +275,6 @@ class NodeTest extends ResourceTestBase {
             'info' => HttpExceptionNormalizer::getInfoUrl(403),
           ],
           'code' => 0,
-          'id' => '/node--camelids/' . $this->entity->uuid(),
           'source' => [
             'pointer' => '/data/attributes/path',
           ],

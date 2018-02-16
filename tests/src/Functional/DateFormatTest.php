@@ -2,35 +2,35 @@
 
 namespace Drupal\Tests\jsonapi\Functional;
 
-use Drupal\config_test\Entity\ConfigTest;
+use Drupal\Core\Datetime\Entity\DateFormat;
 use Drupal\Core\Url;
 
 /**
- * JSON API integration test for the "ConfigTest" config entity type.
+ * JSON API integration test for the "DateFormat" config entity type.
  *
  * @group jsonapi
  */
-class ConfigTestTest extends ResourceTestBase {
+class DateFormatTest extends ResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['config_test', 'config_test_rest'];
+  public static $modules = [];
 
   /**
    * {@inheritdoc}
    */
-  protected static $entityTypeId = 'config_test';
+  protected static $entityTypeId = 'date_format';
 
   /**
    * {@inheritdoc}
    */
-  protected static $resourceTypeName = 'config_test--config_test';
+  protected static $resourceTypeName = 'date_format--date_format';
 
   /**
    * {@inheritdoc}
    *
-   * @var \Drupal\config_test\ConfigTestInterface
+   * @var \Drupal\Core\Datetime\DateFormatInterface
    */
   protected $entity;
 
@@ -38,27 +38,30 @@ class ConfigTestTest extends ResourceTestBase {
    * {@inheritdoc}
    */
   protected function setUpAuthorization($method) {
-    $this->grantPermissionsToTestedRole(['view config_test']);
+    $this->grantPermissionsToTestedRole(['administer site configuration']);
   }
 
   /**
    * {@inheritdoc}
    */
   protected function createEntity() {
-    $config_test = ConfigTest::create([
+    // Create a date format.
+    $date_format = DateFormat::create([
       'id' => 'llama',
       'label' => 'Llama',
+      'pattern' => 'F d, Y',
     ]);
-    $config_test->save();
 
-    return $config_test;
+    $date_format->save();
+
+    return $date_format;
   }
 
   /**
    * {@inheritdoc}
    */
   protected function getExpectedDocument() {
-    $self_url = Url::fromUri('base:/jsonapi/config_test/config_test/' . $this->entity->uuid())->setAbsolute()->toString(TRUE)->getGeneratedUrl();
+    $self_url = Url::fromUri('base:/jsonapi/date_format/date_format/' . $this->entity->uuid())->setAbsolute()->toString(TRUE)->getGeneratedUrl();
     return [
       'jsonapi' => [
         'meta' => [
@@ -73,22 +76,19 @@ class ConfigTestTest extends ResourceTestBase {
       ],
       'data' => [
         'id' => $this->entity->uuid(),
-        'type' => 'config_test--config_test',
+        'type' => 'date_format--date_format',
         'links' => [
           'self' => $self_url,
         ],
         'attributes' => [
-          'uuid' => $this->entity->uuid(),
-          'id' => 'llama',
-          'weight' => 0,
-          'langcode' => 'en',
-          'status' => TRUE,
           'dependencies' => [],
+          'id' => 'llama',
           'label' => 'Llama',
-          'style' => NULL,
-          'size' => NULL,
-          'size_value' => NULL,
-          'protected_property' => NULL,
+          'langcode' => 'en',
+          'locked' => FALSE,
+          'pattern' => 'F d, Y',
+          'status' => TRUE,
+          'uuid' => $this->entity->uuid(),
         ],
       ],
     ];

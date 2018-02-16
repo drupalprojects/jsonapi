@@ -95,6 +95,25 @@
  * @endcode
  *
  *
+ * @section tests Test Coverage
+ * The JSON API module comes with extensive unit and kernel tests. But most
+ * importantly for end users, it also has comprehensive integration tests. These
+ * integration tests are designed to:
+ *
+ * - ensure a great DX (Developer Experience)
+ * - detect regressions and normalization changes before shipping a release
+ * - guarantee 100% of Drupal core's entity types work as expected
+ *
+ * The integration tests test the same common cases and edge cases using
+ * @code \Drupal\Tests\jsonapi\Functional\ResourceTestBase @endcode, which is a
+ * base class subclassed for every entity type that Drupal core ships with. It
+ * is ensured that 100% of Drupal core's entity types are tested thanks to
+ * @code \Drupal\Tests\jsonapi\Functional\TestCoverageTest @endcode.
+ *
+ * Custom entity type developers can get the same assurances by subclassing it
+ * for their entity types.
+ *
+ *
  * @section bc Backwards Compatibility
  * PHP API: there is no PHP API. This means that this module's implementation
  * details are entirely free to change at any time.
