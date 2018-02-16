@@ -126,6 +126,10 @@ class TermTest extends ResourceTestBase {
         // @todo This is missing the root parent, fix this in https://www.drupal.org/project/jsonapi/issues/2940339
         $expected_parent_normalization = [
           'data' => [],
+          'links' => [
+            'related' => $self_url . '/parent',
+            'self' => $self_url . '/relationships/parent',
+          ],
         ];
         break;
 
@@ -184,6 +188,10 @@ class TermTest extends ResourceTestBase {
     if (floatval(\Drupal::VERSION) < 8.6) {
       $expected_parent_normalization = [
         'data' => [],
+        'links' => [
+          'related' => $self_url . '/parent',
+          'self' => $self_url . '/relationships/parent',
+        ],
       ];
     }
 

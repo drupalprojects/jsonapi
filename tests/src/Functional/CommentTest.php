@@ -207,6 +207,10 @@ class CommentTest extends ResourceTestBase {
           ],
           'pid' => [
             'data' => NULL,
+            'links' => [
+              'related' => $self_url . '/pid',
+              'self' => $self_url . '/relationships/pid',
+            ],
           ],
         ],
       ],

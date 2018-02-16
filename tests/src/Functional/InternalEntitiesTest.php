@@ -3,6 +3,7 @@
 namespace Drupal\Tests\jsonapi\Functional;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\entity_test\Entity\EntityTestNoLabel;
@@ -86,16 +87,11 @@ class InternalEntitiesTest extends BrowserTestBase {
    * Ensures that internal resources types aren't present in the entry point.
    */
   public function testEntryPoint() {
-    if (!method_exists(EntityTypeInterface::class, 'isInternal')) {
-      $this->markTestSkipped('The Drupal Core version must be >= 8.5');
-      return;
-    }
-    $this->drupalLogin($this->testUser);
-    $response = $this->drupalGet('/jsonapi', [], ['Accept' => 'application/vnd.api+json']);
-    $decoded = Json::decode($response);
+    $this->skipIfIsInternalIsNotSupported();
+    $document = $this->jsonapiGet('/jsonapi');
     $this->assertArrayNotHasKey(
       "{$this->internalEntity->getEntityTypeId()}--{$this->internalEntity->bundle()}",
-      $decoded['links'],
+      $document['links'],
       'The entry point should not contain links to internal resource type routes.'
     );
   }
@@ -104,31 +100,19 @@ class InternalEntitiesTest extends BrowserTestBase {
    * Ensures that internal resources types aren't present in the routes.
    */
   public function testRoutes() {
-    if (!method_exists(EntityTypeInterface::class, 'isInternal')) {
-      $this->markTestSkipped('The Drupal Core version must be >= 8.5');
-      return;
-    }
-    $this->drupalLogin($this->testUser);
-    $internal_entity_type_id = $this->internalEntity->getEntityTypeId();
-    $internal_bundle = $this->internalEntity->bundle();
-    $internal_uuid = $this->internalEntity->uuid();
-    $referencing_entity_type_id = $this->referencingEntity->getEntityTypeId();
-    $referencing_bundle = $this->referencingEntity->bundle();
-    $referencing_uuid = $this->referencingEntity->uuid();
+    $this->skipIfIsInternalIsNotSupported();
     // This cannot be in a data provider because it needs values created by the
     // setUp method.
     $paths = [
-      'individual' => "/jsonapi/{$internal_entity_type_id}/{$internal_bundle}/{$internal_uuid}",
-      'collection' => "/jsonapi/{$internal_entity_type_id}/{$internal_bundle}",
-      'related' => "/jsonapi/{$referencing_entity_type_id}/{$referencing_bundle}/{$referencing_uuid}/field_internal",
+      'individual' => $this->getIndividual($this->internalEntity),
+      'collection' => $this->jsonapiGet("/jsonapi/{$this->internalEntity->getEntityTypeId()}/{$this->internalEntity->bundle()}"),
+      'related' => $this->getRelated($this->referencingEntity, 'field_internal'),
     ];
-    foreach ($paths as $type => $path) {
-      $response = $this->drupalGet($path, [], ['Accept' => 'application/vnd.api+json']);
-      $decoded = Json::decode($response);
+    foreach ($paths as $type => $document) {
       $this->assertSame(
         404,
-        $decoded['errors'][0]['status'],
-        "The '{$type}' route ({$path}) should not be available for internal resource types.'"
+        $document['errors'][0]['status'],
+        "The '{$type}' route should not be available for internal resource types.'"
       );
     }
   }
@@ -137,21 +121,84 @@ class InternalEntitiesTest extends BrowserTestBase {
    * Asserts that internal entities are not included in compound documents.
    */
   public function testIncludes() {
-    if (!method_exists(EntityTypeInterface::class, 'isInternal')) {
-      $this->markTestSkipped('The Drupal Core version must be >= 8.5');
-      return;
-    }
-    $this->drupalLogin($this->testUser);
-    $entity_type_id = $this->referencingEntity->getEntityTypeId();
-    $bundle = $this->referencingEntity->bundle();
-    $path = "/jsonapi/{$entity_type_id}/{$bundle}/{$this->referencingEntity->uuid()}?include=field_internal";
-    $response = $this->drupalGet($path, [], ['Accept' => 'application/vnd.api+json']);
-    $decoded = Json::decode($response);
+    $this->skipIfIsInternalIsNotSupported();
+    $document = $this->getIndividual($this->referencingEntity, [
+      'query' => ['include' => 'field_internal'],
+    ]);
     $this->assertArrayNotHasKey(
       'included',
-      $decoded,
+      $document,
       'Internal entities should not be included in compound documents.'
     );
+  }
+
+  /**
+   * Asserts that links to internal relationships aren't generated.
+   */
+  public function testLinks() {
+    $this->skipIfIsInternalIsNotSupported();
+    $document = $this->getIndividual($this->referencingEntity);
+    $this->assertArrayNotHasKey(
+      'related',
+      $document['data']['relationships']['field_internal']['links'],
+      'Links to internal-only related routes should not be in the document.'
+    );
+  }
+
+  /**
+   * Returns the decoded JSON API document for the for the given entity.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to request.
+   * @param array $options
+   *   URL options.
+   *
+   * @return array
+   *   The decoded response document.
+   */
+  protected function getIndividual(EntityInterface $entity, array $options = []) {
+    $entity_type_id = $entity->getEntityTypeId();
+    $bundle = $entity->bundle();
+    $path = "/jsonapi/{$entity_type_id}/{$bundle}/{$entity->uuid()}";
+    return $this->jsonapiGet($path, $options);
+  }
+
+  /**
+   * Performs an authenticated request and returns the decoded document.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to request.
+   * @param string $relationship
+   *   The field name of the relationship to request.
+   * @param array $options
+   *   URL options.
+   *
+   * @return array
+   *   The decoded response document.
+   */
+  protected function getRelated(EntityInterface $entity, $relationship, array $options = []) {
+    $entity_type_id = $entity->getEntityTypeId();
+    $bundle = $entity->bundle();
+    $path = "/jsonapi/{$entity_type_id}/{$bundle}/{$entity->uuid()}/{$relationship}";
+    return $this->jsonapiGet($path, $options);
+  }
+
+  /**
+   * Performs an authenticated request and returns the decoded document.
+   */
+  protected function jsonapiGet($path, array $options = []) {
+    $this->drupalLogin($this->testUser);
+    $response = $this->drupalGet($path, $options, ['Accept' => 'application/vnd.api+json']);
+    return Json::decode($response);
+  }
+
+  /**
+   * Only run tests when Drupal version is >= 8.5.
+   */
+  protected function skipIfIsInternalIsNotSupported() {
+    if (floatval(\Drupal::VERSION) < 8.5) {
+      $this->markTestSkipped('The Drupal Core version must be >= 8.5');
+    }
   }
 
 }
