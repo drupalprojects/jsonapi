@@ -306,8 +306,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
       'url.query_args:sort',
       // Drupal defaults.
       'url.site',
-      // @todo Figure out why this is no longer among the response's cache contexts.
-      // 'user.permissions',
+      'user.permissions',
     ];
   }
 
@@ -615,7 +614,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     ];
     $this->assertResourceResponse(403, Json::encode($expected), $response);
     /* $this->assertResourceErrorResponse(403, "The current user is not allowed to GET the selected resource." . (strlen($reason) ? ' ' . $reason : ''), $response, '/data'); */
-    // @todo investigate this more (cache tags + contexts), cfr https://www.drupal.org/project/drupal/issues/2626298 + https://www.drupal.org/project/jsonapi/issues/2933939
+    // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2929428.
     /* $this->assertResourceResponse(403, Json::encode($expected), $response, $expected_403_cacheability->getCacheTags(), $expected_403_cacheability->getCacheContexts(), FALSE, 'MISS'); */
     $this->assertArrayNotHasKey('Link', $response->getHeaders());
 
@@ -935,7 +934,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     // 201 for well-formed request.
     $response = $this->request('POST', $url, $request_options);
-    $this->assertResourceResponse(201, FALSE, $response, Cache::mergeTags(['http_response'], static::$entityTypeId !== 'contact_message' ? $this->entityStorage->load(static::$firstCreatedEntityId)->getCacheTags() : []), $this->getExpectedCacheContexts());
+    $this->assertResourceResponse(201, FALSE, $response);
     // @todo Remove this logic to extract a UUID from the response in https://www.drupal.org/project/jsonapi/issues/2944977
     if (get_class($this->entityStorage) !== ContentEntityNullStorage::class) {
       $uuid = $this->entityStorage->load(static::$firstCreatedEntityId)->uuid();
@@ -1187,8 +1186,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     }
     $request_options[RequestOptions::BODY] = Json::encode($valid_request_body);
     $response = $this->request('PATCH', $url, $request_options);
-    // @todo investigate this more (cache tags + contexts), cfr https://www.drupal.org/project/drupal/issues/2626298 + https://www.drupal.org/project/jsonapi/issues/2933939
-    $this->assertResourceResponse(200, FALSE, $response, Cache::mergeTags(['http_response', $this->entity->getCacheTags()[0]], []), $this->getExpectedCacheContexts());
+    $this->assertResourceResponse(200, FALSE, $response);
 
     $request_options[RequestOptions::BODY] = $parseable_valid_request_body;
 
@@ -1207,7 +1205,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     // 200 for well-formed request.
     $response = $this->request('PATCH', $url, $request_options);
-    $this->assertResourceResponse(200, FALSE, $response, Cache::mergeTags(['http_response', $this->entity->getCacheTags()[0]], []), $this->getExpectedCacheContexts());
+    $this->assertResourceResponse(200, FALSE, $response);
     $this->assertFalse($response->hasHeader('X-Drupal-Cache'));
     // Assert that the entity was indeed updated, and that the response body
     // contains the serialized updated entity.
@@ -1242,7 +1240,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     unset($doc_remove_item['data']['attributes']['field_rest_test_multivalue'][0]);
     $request_options[RequestOptions::BODY] = Json::encode($doc_remove_item, 'api_json');
     $response = $this->request('PATCH', $url, $request_options);
-    $this->assertResourceResponse(200, FALSE, $response, Cache::mergeTags($this->entity->getCacheTags(), ['http_response']), $this->getExpectedCacheContexts());
+    $this->assertResourceResponse(200, FALSE, $response);
     $this->assertSame([0 => ['value' => 'Two']], $this->entityStorage->loadUnchanged($this->entity->id())->get('field_rest_test_multivalue')->getValue());
 
     // Multi-value field: add one item before the existing one, and one after.
@@ -1250,7 +1248,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $doc_add_items['data']['attributes']['field_rest_test_multivalue'][2] = ['value' => 'Three'];
     $request_options[RequestOptions::BODY] = Json::encode($doc_add_items);
     $response = $this->request('PATCH', $url, $request_options);
-    $this->assertResourceResponse(200, FALSE, $response, Cache::mergeTags($this->entity->getCacheTags(), ['http_response']), $this->getExpectedCacheContexts());
+    $this->assertResourceResponse(200, FALSE, $response);
     $expected = [
       0 => ['value' => 'One'],
       1 => ['value' => 'Two'],
@@ -1308,8 +1306,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     // 204 for well-formed request.
     $response = $this->request('DELETE', $url, $request_options);
-    // @todo investigate this more (cache tags + contexts), cfr https://www.drupal.org/project/drupal/issues/2626298 + https://www.drupal.org/project/jsonapi/issues/2933939
-    $this->assertResourceResponse(204, '', $response, ['http_response'], ['']);
+    $this->assertResourceResponse(204, '', $response);
   }
 
   /**

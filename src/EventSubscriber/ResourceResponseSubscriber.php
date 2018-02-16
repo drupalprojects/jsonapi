@@ -164,7 +164,7 @@ class ResourceResponseSubscriber implements EventSubscriberInterface {
     $request = $event->getRequest();
     $format = 'api_json';
     $this->renderResponseBody($request, $response, $this->serializer, $format);
-    $event->setResponse($this->flattenResponse($response));
+    $event->setResponse($this->flattenResponse($response, $request));
 
     $this->doValidateResponse($response, $request);
   }
@@ -239,12 +239,14 @@ class ResourceResponseSubscriber implements EventSubscriberInterface {
    *
    * @param \Drupal\jsonapi\ResourceResponse $response
    *   A fully rendered resource response.
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request for which this response is generated.
    *
    * @return \Drupal\Core\Cache\CacheableResponse|\Symfony\Component\HttpFoundation\Response
    *   The flattened response.
    */
-  protected function flattenResponse(ResourceResponse $response) {
-    $final_response = ($response instanceof CacheableResponseInterface) ? new CacheableResponse() : new Response();
+  protected static function flattenResponse(ResourceResponse $response, Request $request) {
+    $final_response = ($response instanceof CacheableResponseInterface && $request->isMethodCacheable()) ? new CacheableResponse() : new Response();
     $final_response->setContent($response->getContent());
     $final_response->setStatusCode($response->getStatusCode());
     $final_response->setProtocolVersion($response->getProtocolVersion());

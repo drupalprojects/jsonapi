@@ -224,7 +224,7 @@ class UserTest extends ResourceTestBase {
 
     // 200 for well-formed request.
     $response = $this->request('PATCH', $url, $request_options);
-    $this->assertResourceResponse(200, FALSE, $response, ['http_response', 'user:2'], $this->getExpectedCacheContexts());
+    $this->assertResourceResponse(200, FALSE, $response);
 
     // Test case 2: changing password.
     $normalization = $original_normalization;
@@ -257,7 +257,7 @@ class UserTest extends ResourceTestBase {
 
     // 200 for well-formed request.
     $response = $this->request('PATCH', $url, $request_options);
-    $this->assertResourceResponse(200, FALSE, $response, ['http_response', 'user:2'], $this->getExpectedCacheContexts());
+    $this->assertResourceResponse(200, FALSE, $response);
 
     // Verify that we can log in with the new password.
     $this->assertRpcLogin($this->account->getAccountName(), $new_password);
@@ -301,7 +301,7 @@ class UserTest extends ResourceTestBase {
 
     // 200 for well-formed request.
     $response = $this->request('PATCH', $url, $request_options);
-    $this->assertResourceResponse(200, FALSE, $response, ['http_response', 'user:2'], $this->getExpectedCacheContexts());
+    $this->assertResourceResponse(200, FALSE, $response);
 
     // Verify that we can log in with the new username.
     $this->assertRpcLogin('Cooler Llama', $new_password);

@@ -7,7 +7,6 @@ use Drupal\comment\Entity\CommentType;
 use Drupal\comment\Tests\CommentTestTrait;
 use Drupal\Component\Serialization\Json;
 use Drupal\Component\Utility\NestedArray;
-use Drupal\Core\Cache\Cache;
 use Drupal\Core\Url;
 use Drupal\entity_test\Entity\EntityTest;
 use Drupal\Tests\rest\Functional\BcTimestampNormalizerUnixTestTrait;
@@ -356,7 +355,7 @@ class CommentTest extends ResourceTestBase {
 
     // Status should be FALSE when posting as anonymous.
     $response = $this->request('POST', $url, $request_options);
-    $this->assertResourceResponse(201, FALSE, $response, Cache::mergeTags(['http_response', 'comment:2'], []), $this->getExpectedCacheContexts());
+    $this->assertResourceResponse(201, FALSE, $response);
     $this->assertFalse(Json::decode((string) $response->getBody())['data']['attributes']['status']);
     $this->assertFalse($this->entityStorage->loadUnchanged(2)->isPublished());
 
@@ -365,7 +364,7 @@ class CommentTest extends ResourceTestBase {
 
     // Status must be TRUE when posting as anonymous and skip comment approval.
     $response = $this->request('POST', $url, $request_options);
-    $this->assertResourceResponse(201, FALSE, $response, Cache::mergeTags(['http_response', 'comment:3'], []), $this->getExpectedCacheContexts());
+    $this->assertResourceResponse(201, FALSE, $response);
     $this->assertTrue(Json::decode((string) $response->getBody())['data']['attributes']['status']);
     $this->assertTrue($this->entityStorage->loadUnchanged(3)->isPublished());
   }

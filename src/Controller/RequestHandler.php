@@ -88,6 +88,7 @@ class RequestHandler implements ContainerAwareInterface, ContainerInjectionInter
       ->executeInRenderContext($context, function () use ($resource, $action, $parameters, $extra_parameters) {
         return call_user_func_array([$resource, $action], array_merge($parameters, $extra_parameters));
       });
+    $response->getCacheableMetadata()->addCacheContexts(static::$requiredCacheContexts);
     if (!$context->isEmpty()) {
       $response->addCacheableDependency($context->pop());
     }

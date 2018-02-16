@@ -327,8 +327,7 @@ class TermTest extends ResourceTestBase {
 
     // PATCH request: 200.
     $response = $this->request('PATCH', $url, $request_options);
-    // @todo investigate this more (cache tags + contexts), cfr https://www.drupal.org/project/drupal/issues/2626298 + https://www.drupal.org/project/jsonapi/issues/2933939
-    $this->assertResourceResponse(200, FALSE, $response, ['http_response', 'taxonomy_term:1'], $this->getExpectedCacheContexts());
+    $this->assertResourceResponse(200, FALSE, $response);
     $updated_normalization = Json::decode((string) $response->getBody());
     $this->assertSame($normalization['data']['attributes']['path']['alias'], $updated_normalization['data']['attributes']['path']['alias']);
   }
