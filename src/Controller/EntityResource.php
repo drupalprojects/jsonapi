@@ -138,6 +138,7 @@ class EntityResource {
       throw new EntityAccessDeniedHttpException($entity, $entity_access, '/data', 'The current user is not allowed to GET the selected resource.');
     }
     $response = $this->buildWrappedResponse($entity, $response_code);
+    $response->addCacheableDependency($entity_access);
     return $response;
   }
 
