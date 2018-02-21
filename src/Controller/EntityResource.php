@@ -197,6 +197,32 @@ class EntityResource {
     if (!$entity_access->isAllowed()) {
       throw new EntityAccessDeniedHttpException(NULL, $entity_access, '/data', 'The current user is not allowed to POST the selected resource.');
     }
+
+    // Only check 'edit' permissions for fields that were actually submitted by
+    // the user. Field access makes no difference between 'create' and 'update',
+    // so the 'edit' operation is used here.
+    $document = Json::decode($request->getContent());
+    if (isset($document['data']['attributes'])) {
+      $received_attributes = array_keys($document['data']['attributes']);
+      foreach ($received_attributes as $field_name) {
+        $internal_field_name = $this->resourceType->getInternalName($field_name);
+        $field_access = $entity->get($internal_field_name)->access('edit', NULL, TRUE);
+        if (!$field_access->isAllowed()) {
+          throw new EntityAccessDeniedHttpException(NULL, $field_access, '/data/attributes/' . $field_name, sprintf('The current user is not allowed to POST the selected field (%s).', $field_name));
+        }
+      }
+    }
+    if (isset($document['data']['relationships'])) {
+      $received_relationships = array_keys($document['data']['attributes']['relationships']);
+      foreach ($received_relationships as $field_name) {
+        $internal_field_name = $this->resourceType->getInternalName($field_name);
+        $field_access = $entity->get($internal_field_name)->access('edit', NULL, TRUE);
+        if (!$field_access->isAllowed()) {
+          throw new EntityAccessDeniedHttpException(NULL, $field_access, '/data/relationships/' . $field_name, sprintf('The current user is not allowed to POST the selected field (%s).', $field_name));
+        }
+      }
+    }
+
     $this->validate($entity);
 
     // Return a 409 Conflict response in accordance with the JSON API spec. See
