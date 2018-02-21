@@ -213,7 +213,7 @@ class EntityResource {
       }
     }
     if (isset($document['data']['relationships'])) {
-      $received_relationships = array_keys($document['data']['attributes']['relationships']);
+      $received_relationships = array_keys($document['data']['relationships']);
       foreach ($received_relationships as $field_name) {
         $internal_field_name = $this->resourceType->getInternalName($field_name);
         $field_access = $entity->get($internal_field_name)->access('edit', NULL, TRUE);
