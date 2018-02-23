@@ -114,14 +114,11 @@ class JsonApiDocumentTopLevelNormalizerValue implements ValueExtractorInterface,
       ],
     ];
 
-    foreach ($this->values as $index => $normalizer_value) {
-      if ($normalizer_value instanceof EntityAccessDeniedHttpExceptionNormalizerValue) {
+    foreach ($this->values as $normalizer_value) {
+      if ($normalizer_value instanceof HttpExceptionNormalizerValue) {
         $previous_errors = NestedArray::getValue($rasterized, ['meta', 'errors']) ?: [];
         // Add the errors to the pre-existing errors.
-        $rasterized_value = $normalizer_value->rasterizeValue();
-        $rasterized_value[0]['source']['pointer'] = "/data/{$index}";
-        $rasterized['meta']['errors'] = array_merge($previous_errors, $rasterized_value);
-        $rasterized['data'][] = $normalizer_value->rasterizeResourceIdentifier();
+        $rasterized['meta']['errors'] = array_merge($previous_errors, $normalizer_value->rasterizeValue());
       }
       else {
         $rasterized['data'][] = $normalizer_value->rasterizeValue();
@@ -171,7 +168,9 @@ class JsonApiDocumentTopLevelNormalizerValue implements ValueExtractorInterface,
     return array_values(array_reduce($includes, function ($unique_includes, $include) {
       $rasterized_include = $include->rasterizeValue();
 
-      $unique_key = $rasterized_include['data']['type'] . ':' . $rasterized_include['data']['id'];
+      $unique_key = $rasterized_include['data'] === FALSE ?
+        $rasterized_include['meta']['errors'][0]['detail'] :
+        $rasterized_include['data']['type'] . ':' . $rasterized_include['data']['id'];
       $unique_includes[$unique_key] = $include;
       return $unique_includes;
     }, []));

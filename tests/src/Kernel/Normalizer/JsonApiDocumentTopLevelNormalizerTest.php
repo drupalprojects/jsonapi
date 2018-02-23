@@ -262,14 +262,11 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       "The current user is not allowed to GET the selected resource. The 'access user profiles' permission is required and the user must be active.",
       $normalized['meta']['errors'][0]['detail']
     );
-    $this->assertSame('/included/0', $normalized['meta']['errors'][0]['source']['pointer']);
-    $this->assertArrayNotHasKey('attributes', $normalized['included'][0]);
-    $this->assertArrayNotHasKey('relationships', $normalized['included'][0]);
     $this->assertEquals(403, $normalized['meta']['errors'][0]['status']);
-    $this->assertEquals($this->term1->uuid(), $normalized['included'][1]['id']);
-    $this->assertEquals('taxonomy_term--tags', $normalized['included'][1]['type']);
-    $this->assertEquals($this->term1->label(), $normalized['included'][1]['attributes']['name']);
-    $this->assertTrue(!isset($normalized['included'][1]['attributes']['created']));
+    $this->assertEquals($this->term1->uuid(), $normalized['included'][0]['id']);
+    $this->assertEquals('taxonomy_term--tags', $normalized['included'][0]['type']);
+    $this->assertEquals($this->term1->label(), $normalized['included'][0]['attributes']['name']);
+    $this->assertTrue(!isset($normalized['included'][0]['attributes']['created']));
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
     $this->assertArraySubset(
@@ -367,9 +364,9 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $this->assertStringMatchesFormat($this->node->uuid(), $normalized['data']['id']);
     $this->assertEquals($this->node->type->entity->uuid(), $normalized['data']['relationships']['type']['data']['id']);
     $this->assertEquals($this->user->uuid(), $normalized['data']['relationships']['uid']['data']['id']);
-    $this->assertFalse(empty($normalized['included'][1]['id']));
+    $this->assertFalse(empty($normalized['included'][0]['id']));
     $this->assertFalse(empty($normalized['meta']['errors']));
-    $this->assertEquals($this->term1->uuid(), $normalized['included'][1]['id']);
+    $this->assertEquals($this->term1->uuid(), $normalized['included'][0]['id']);
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
     $this->assertArraySubset(

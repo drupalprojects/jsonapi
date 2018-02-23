@@ -606,6 +606,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
             'info' => HttpExceptionNormalizer::getInfoUrl(403),
           ],
           'code' => 0,
+          'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
           'source' => [
             'pointer' => '/data',
           ],
@@ -1063,6 +1064,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
             'info' => HttpExceptionNormalizer::getInfoUrl(403),
           ],
           'code' => 0,
+          'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
           'source' => [
             'pointer' => '/data',
           ],
@@ -1110,6 +1112,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
             'info' => HttpExceptionNormalizer::getInfoUrl(403),
           ],
           'code' => 0,
+          'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
           'source' => [
             'pointer' => '/data/attributes/field_rest_test',
           ],
@@ -1136,6 +1139,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
             'info' => HttpExceptionNormalizer::getInfoUrl(403),
           ],
           'code' => 0,
+          'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
           'source' => [
             'pointer' => '/data/attributes/field_rest_test',
           ],
@@ -1166,6 +1170,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
               'info' => HttpExceptionNormalizer::getInfoUrl(403),
             ],
             'code' => 0,
+            'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
             'source' => [
               'pointer' => '/data/attributes/' . $patch_protected_field_name,
             ],
@@ -1293,6 +1298,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
             'info' => HttpExceptionNormalizer::getInfoUrl(403),
           ],
           'code' => 0,
+          'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
           'source' => [
             'pointer' => '/data',
           ],

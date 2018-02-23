@@ -73,21 +73,4 @@ class EntityAccessDeniedHttpException extends HttpException {
     return $this->error;
   }
 
-  /**
-   * Returns the resource type name for the entity which originated the error.
-   *
-   * @return array|null
-   *   The resource identifier or NULL if there isn't a identifiable resource.
-   */
-  public function getResourceIdentifier() {
-    /* @var \Drupal\Core\Entity\EntityInterface $entity */
-    if ($entity = $this->error['entity']) {
-      return [
-        'type' => "{$entity->getEntityTypeId()}--{$entity->bundle()}",
-        'id' => $entity->uuid(),
-      ];
-    }
-    return NULL;
-  }
-
 }

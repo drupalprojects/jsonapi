@@ -70,6 +70,7 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $this->assertSession()->statusCodeEquals(403);
 
     $this->assertEquals('/data', $single_output['errors'][0]['source']['pointer']);
+    $this->assertEquals('/node--article/' . $this->nodes[60]->uuid(), $single_output['errors'][0]['id']);
 
     // 6. Single relationship item.
     $single_output = Json::decode($this->drupalGet('/jsonapi/node/article/' . $uuid . '/relationships/type'));
@@ -156,14 +157,15 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     // 12. Collection with one access denied.
     $this->nodes[1]->set('status', FALSE);
     $this->nodes[1]->save();
-    $collection_output = Json::decode($this->drupalGet('/jsonapi/node/article', [
+    $single_output = Json::decode($this->drupalGet('/jsonapi/node/article', [
       'query' => ['page' => ['limit' => 2]],
     ]));
     $this->assertSession()->statusCodeEquals(200);
-    $this->assertEquals(2, count($collection_output['data']));
-    $this->assertEquals(1, count($collection_output['meta']['errors']));
-    $this->assertEquals(403, $collection_output['meta']['errors'][0]['status']);
-    $this->assertEquals('/data/1', $collection_output['meta']['errors'][0]['source']['pointer']);
+    $this->assertEquals(1, count($single_output['data']));
+    $this->assertEquals(1, count($single_output['meta']['errors']));
+    $this->assertEquals(403, $single_output['meta']['errors'][0]['status']);
+    $this->assertEquals('/node--article/' . $this->nodes[1]->uuid(), $single_output['meta']['errors'][0]['id']);
+    $this->assertFalse(empty($single_output['meta']['errors'][0]['source']['pointer']));
     $this->nodes[1]->set('status', TRUE);
     $this->nodes[1]->save();
     // 13. Test filtering when using short syntax.
@@ -318,7 +320,9 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
         'sort' => '-field_sort1,field_sort2',
       ],
     ]));
-    $output_nids = array_reduce(['attributes', 'nid'], 'array_column', $output['data']);
+    $output_nids = array_map(function ($result) {
+      return $result['attributes']['nid'];
+    }, $output['data']);
     $this->assertCount(5, $output_nids);
     $this->assertCount(1, $output['meta']['errors']);
     $this->assertEquals([60, 59, 58, 57, 56], $output_nids);
@@ -329,7 +333,9 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
         'sort' => '-field_sort1,-field_sort2',
       ],
     ]));
-    $output_nids = array_reduce(['attributes', 'nid'], 'array_column', $output['data']);
+    $output_nids = array_map(function ($result) {
+      return $result['attributes']['nid'];
+    }, $output['data']);
     $this->assertCount(5, $output_nids);
     $this->assertCount(1, $output['meta']['errors']);
     $this->assertEquals([56, 57, 58, 59, 60], $output_nids);
