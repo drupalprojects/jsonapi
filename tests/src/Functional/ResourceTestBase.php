@@ -1223,7 +1223,26 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $request_options[RequestOptions::BODY] = Json::encode($this->makeNormalizationInvalid($this->getPatchDocument(), 'id'));
     $response = $this->request('PATCH', $url, $request_options);
     $id_field_name = $this->entity->getEntityType()->getKey('id');
-    $this->assertResourceErrorResponse(403, "The current user is not allowed to PATCH the selected field ($id_field_name). The entity ID cannot be changed", $response, "/data/attributes/$id_field_name");
+    // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
+    $expected = [
+      'errors' => [
+        [
+          'title' => 'Forbidden',
+          'status' => 403,
+          'detail' => "The current user is not allowed to PATCH the selected field ($id_field_name). The entity ID cannot be changed",
+          'links' => [
+            'info' => HttpExceptionNormalizer::getInfoUrl(403),
+          ],
+          'code' => 0,
+          'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
+          'source' => [
+            'pointer' => '/data/attributes/' . $id_field_name,
+          ],
+        ],
+      ],
+    ];
+    $this->assertResourceResponse(403, Json::encode($expected), $response);
+    /* $this->assertResourceErrorResponse(403, "The current user is not allowed to PATCH the selected field ($id_field_name). The entity ID cannot be changed", $response, "/data/attributes/$id_field_name"); */
 
     if ($this->entity->getEntityType()->hasKey('uuid')) {
       // DX: 400 when entity trying to update an entity's UUID field.

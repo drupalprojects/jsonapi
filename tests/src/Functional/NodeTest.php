@@ -312,7 +312,26 @@ class NodeTest extends ResourceTestBase {
 
     // 403 when accessing own unpublished node.
     $response = $this->request('GET', $url, $request_options);
-    $this->assertResourceErrorResponse(403, 'The current user is not allowed to GET the selected resource.', $response, '/data');
+    // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
+    $expected = [
+      'errors' => [
+        [
+          'title' => 'Forbidden',
+          'status' => 403,
+          'detail' => 'The current user is not allowed to GET the selected resource.',
+          'links' => [
+            'info' => HttpExceptionNormalizer::getInfoUrl(403),
+          ],
+          'code' => 0,
+          'id' => '/node--camelids/' . $this->entity->uuid(),
+          'source' => [
+            'pointer' => '/data',
+          ],
+        ],
+      ],
+    ];
+    $this->assertResourceResponse(403, Json::encode($expected), $response);
+    /* $this->assertResourceErrorResponse(403, 'The current user is not allowed to GET the selected resource.', $response, '/data'); */
 
     // 200 after granting permission.
     $this->grantPermissionsToTestedRole(['view own unpublished content']);

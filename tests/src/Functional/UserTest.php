@@ -427,8 +427,8 @@ class UserTest extends ResourceTestBase {
     // Also when looking at the collection.
     $response = $this->request('GET', $collection_url, $request_options);
     $doc = Json::decode((string) $response->getBody());
-    $this->assertArrayHasKey('mail', $doc['data'][2]['attributes']);
-    $this->assertArrayNotHasKey('mail', $doc['data'][4]['attributes']);
+    $this->assertArrayHasKey('mail', $doc['data'][1]['attributes']);
+    $this->assertArrayNotHasKey('mail', $doc['data'][3]['attributes']);
 
     // Now request the same URLs, but as user B (same roles/permissions).
     $this->account = $user_b;
@@ -440,8 +440,8 @@ class UserTest extends ResourceTestBase {
     // Also when looking at the collection.
     $response = $this->request('GET', $collection_url, $request_options);
     $doc = Json::decode((string) $response->getBody());
-    $this->assertArrayNotHasKey('mail', $doc['data'][2]['attributes']);
-    $this->assertArrayHasKey('mail', $doc['data'][4]['attributes']);
+    $this->assertArrayNotHasKey('mail', $doc['data'][1]['attributes']);
+    $this->assertArrayHasKey('mail', $doc['data'][3]['attributes']);
   }
 
 }
