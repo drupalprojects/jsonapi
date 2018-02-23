@@ -3,6 +3,7 @@
 namespace Drupal\Tests\jsonapi\Functional;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Url;
 use Drupal\jsonapi\Normalizer\HttpExceptionNormalizer;
 use Drupal\node\Entity\Node;
@@ -293,6 +294,34 @@ class NodeTest extends ResourceTestBase {
     $this->assertResourceResponse(200, FALSE, $response);
     $updated_normalization = Json::decode((string) $response->getBody());
     $this->assertSame($normalization['data']['attributes']['path']['alias'], $updated_normalization['data']['attributes']['path']['alias']);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function testGetIndividual() {
+    parent::testGetIndividual();
+
+    // Unpublish node.
+    $this->entity->setUnpublished()->save();
+
+    // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
+    $url = Url::fromRoute(sprintf('jsonapi.%s.individual', static::$resourceTypeName), [static::$entityTypeId => $this->entity->uuid()]);
+    /* $url = $this->entity->toUrl('jsonapi'); */
+    $request_options = $this->getAuthenticationRequestOptions();
+
+    // 403 when accessing own unpublished node.
+    $response = $this->request('GET', $url, $request_options);
+    $this->assertResourceErrorResponse(403, 'The current user is not allowed to GET the selected resource.', $response, '/data');
+
+    // 200 after granting permission.
+    $this->grantPermissionsToTestedRole(['view own unpublished content']);
+    $response = $this->request('GET', $url, $request_options);
+    // The response varies by 'user', causing the 'user.permissions' cache
+    // context to be optimized away.
+    $expected_cache_contexts = Cache::mergeContexts($this->getExpectedCacheContexts(), ['user']);
+    $expected_cache_contexts = array_diff($expected_cache_contexts, ['user.permissions']);
+    $this->assertResourceResponse(200, FALSE, $response, $this->getExpectedCacheTags(), $expected_cache_contexts, FALSE, 'UNCACHEABLE');
   }
 
 }

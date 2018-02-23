@@ -60,6 +60,16 @@ abstract class ResourceTestBase extends BrowserTestBase {
   protected static $patchProtectedFieldNames;
 
   /**
+   * Fields that need unique values.
+   *
+   * @var string[]
+   *
+   * @see ::testPostIndividual()
+   * @see ::getModifiedEntityForPostTesting()
+   */
+  protected static $uniqueFieldNames = [];
+
+  /**
    * The entity ID for the first created entity in testPost().
    *
    * The default value of 2 should work for most content entities.
@@ -99,6 +109,13 @@ abstract class ResourceTestBase extends BrowserTestBase {
    * @var \Drupal\Core\Entity\EntityInterface
    */
   protected $entity;
+
+  /**
+   * Another entity of the same type used for testing.
+   *
+   * @var \Drupal\Core\Entity\EntityInterface
+   */
+  protected $anotherEntity;
 
   /**
    * The account to use for authentication.
@@ -228,6 +245,22 @@ abstract class ResourceTestBase extends BrowserTestBase {
    *   The entity to be tested.
    */
   abstract protected function createEntity();
+
+  /**
+   * Creates another entity to be tested.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface
+   *   Another entity based on $this->entity.
+   */
+  protected function createAnotherEntity() {
+    $entity = $this->entity->createDuplicate();
+    $label_key = $entity->getEntityType()->getKey('label');
+    if ($label_key) {
+      $entity->set($label_key, $entity->label() . '_dupe');
+    }
+    $entity->save();
+    return $entity;
+  }
 
   /**
    * Returns the expected JSON API document for the entity.
@@ -560,17 +593,32 @@ abstract class ResourceTestBase extends BrowserTestBase {
    *
    * @param array $document
    *   A JSON API document.
+   * @param string $entity_key
+   *   The entity key whose normalization to make invalid.
    *
    * @return array
    *   The updated JSON API document, now invalid.
    */
-  protected function makeLabelFieldNormalizationInvalid(array $document) {
-    // Add a second label to this entity to make it invalid.
-    $label_field = $this->entity->getEntityType()->hasKey('label') ? $this->entity->getEntityType()->getKey('label') : static::$labelFieldName;
-    $document['data']['attributes'][$label_field] = [
-      0 => $document['data']['attributes'][$label_field],
-      1 => 'Second Title',
-    ];
+  protected function makeNormalizationInvalid(array $document, $entity_key) {
+    $entity_type = $this->entity->getEntityType();
+    switch ($entity_key) {
+      case 'label':
+        // Add a second label to this entity to make it invalid.
+        $label_field = $entity_type->hasKey('label') ? $entity_type->getKey('label') : static::$labelFieldName;
+        $document['data']['attributes'][$label_field] = [
+          0 => $document['data']['attributes'][$label_field],
+          1 => 'Second Title',
+        ];
+        break;
+
+      case 'id':
+        $document['data']['attributes'][$entity_type->getKey('id')] = $this->anotherEntity->id();
+        break;
+
+      case 'uuid':
+        $document['data']['id'] = $this->anotherEntity->uuid();
+        break;
+    }
 
     return $document;
   }
@@ -780,9 +828,9 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $parseable_valid_request_body = Json::encode($this->getPostDocument());
     /* $parseable_valid_request_body_2 = Json::encode($this->getNormalizedPostEntity()); */
     $parseable_invalid_request_body_missing_type = Json::encode($this->removeResourceTypeFromDocument($this->getPostDocument(), 'type'));
-    $parseable_invalid_request_body = Json::encode($this->makeLabelFieldNormalizationInvalid($this->getPostDocument()));
+    $parseable_invalid_request_body = Json::encode($this->makeNormalizationInvalid($this->getPostDocument(), 'label'));
     $parseable_invalid_request_body_2 = Json::encode(NestedArray::mergeDeep(['data' => ['id' => $this->randomMachineName(129)]], $this->getPostDocument()));
-    /* $parseable_invalid_request_body_3 = Json::encode(NestedArray::mergeDeep(['data' => ['attributes' => ['field_rest_test' => $this->randomString()]]], $this->getNormalizedPostEntity())); */
+    $parseable_invalid_request_body_3 = Json::encode(NestedArray::mergeDeep(['data' => ['attributes' => ['field_rest_test' => $this->randomString()]]], $this->getPostDocument()));
 
     // The URL and Guzzle request options that will be used in this test. The
     // request options will be modified/expanded throughout this test:
@@ -910,13 +958,11 @@ abstract class ResourceTestBase extends BrowserTestBase {
       /* $this->assertResourceErrorResponse(403, "IDs should be properly generated and formatted UUIDs as described in RFC 4122.", $response, '/data/id'); */
     }
 
-    // @codingStandardsIgnoreStart
-//    $request_options[RequestOptions::BODY] = $parseable_invalid_request_body_3;
-//
-//    // DX: 403 when entity contains field without 'edit' access.
-//    $response = $this->request('POST', $url, $request_options);
-//    $this->assertResourceErrorResponse(403, "Access denied on creating field 'field_rest_test'.", $response);
-    // @codingStandardsIgnoreEnd
+    $request_options[RequestOptions::BODY] = $parseable_invalid_request_body_3;
+
+    // DX: 403 when entity contains field without 'edit' access.
+    $response = $this->request('POST', $url, $request_options);
+    $this->assertResourceErrorResponse(403, "The current user is not allowed to POST the selected field (field_rest_test).", $response, '/data/attributes/field_rest_test');
 
     $request_options[RequestOptions::BODY] = $parseable_valid_request_body;
 
@@ -983,6 +1029,54 @@ abstract class ResourceTestBase extends BrowserTestBase {
         }
       }
     }
+
+    // 201 for well-formed request that creates another entity.
+    // If the entity is stored, delete the first created entity (in case there
+    // is a uniqueness constraint).
+    if (get_class($this->entityStorage) !== ContentEntityNullStorage::class) {
+      $this->entityStorage->load(static::$firstCreatedEntityId)->delete();
+    }
+    $response = $this->request('POST', $url, $request_options);
+    $this->assertResourceResponse(201, FALSE, $response);
+    // @todo Remove this logic to extract a UUID from the response in https://www.drupal.org/project/jsonapi/issues/2944977
+    if (get_class($this->entityStorage) !== ContentEntityNullStorage::class) {
+      $uuid = $this->entityStorage->load(static::$secondCreatedEntityId)->uuid();
+    }
+    else {
+      $r = Json::decode((string) $response->getBody());
+      $uuid = NestedArray::getValue($r, ['data', 'id']);
+    }
+    // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
+    $location = Url::fromRoute(sprintf('jsonapi.%s.individual', static::$resourceTypeName), [static::$entityTypeId => $uuid])->setAbsolute(TRUE)->toString();
+    /* $location = $this->entityStorage->load(static::$secondCreatedEntityId)->toUrl('jsonapi')->setAbsolute(TRUE)->toString(); */
+    $this->assertSame([$location], $response->getHeader('Location'));
+    $this->assertFalse($response->hasHeader('X-Drupal-Cache'));
+
+    if ($this->entity->getEntityType()->getStorageClass() !== ContentEntityNullStorage::class && $this->entity->getEntityType()->hasKey('uuid')) {
+      // 500 when creating an entity with a duplicate UUID.
+      $doc = $this->getModifiedEntityForPostTesting();
+      $doc['data']['id'] = $uuid;
+      $doc['data']['attributes'][$label_field] = [['value' => $this->randomMachineName()]];
+      $request_options[RequestOptions::BODY] = Json::encode($doc);
+
+      $response = $this->request('POST', $url, $request_options);
+      $this->assertResourceErrorResponse(409, 'Conflict: Entity already exists.', $response);
+
+      // 201 when successfully creating an entity with a new UUID.
+      $doc = $this->getModifiedEntityForPostTesting();
+      $new_uuid = \Drupal::service('uuid')->generate();
+      $doc['data']['id'] = $new_uuid;
+      $doc['data']['attributes'][$label_field] = [['value' => $this->randomMachineName()]];
+      $request_options[RequestOptions::BODY] = Json::encode($doc);
+
+      $response = $this->request('POST', $url, $request_options);
+      $this->assertResourceResponse(201, FALSE, $response);
+      $entities = $this->entityStorage->loadByProperties(['uuid' => $new_uuid]);
+      $new_entity = reset($entities);
+      $this->assertNotNull($new_entity);
+      $new_entity->delete();
+    }
+
   }
 
   /**
@@ -995,11 +1089,14 @@ abstract class ResourceTestBase extends BrowserTestBase {
       return;
     }
 
+    // Patch testing requires that another entity of the same type exists.
+    $this->anotherEntity = $this->createAnotherEntity();
+
     // Try with all of the following request bodies.
     $unparseable_request_body = '!{>}<';
     $parseable_valid_request_body = Json::encode($this->getPatchDocument());
     /* $parseable_valid_request_body_2 = Json::encode($this->getNormalizedPatchEntity()); */
-    $parseable_invalid_request_body = Json::encode($this->makeLabelFieldNormalizationInvalid($this->getPatchDocument()));
+    $parseable_invalid_request_body = Json::encode($this->makeNormalizationInvalid($this->getPatchDocument(), 'label'));
     $parseable_invalid_request_body_2 = Json::encode(NestedArray::mergeDeep(['data' => ['attributes' => ['field_rest_test' => $this->randomString()]]], $this->getPatchDocument()));
     // The 'field_rest_test' field does not allow 'view' access, so does not end
     // up in the JSON API document. Even when we explicitly add it to the JSON
@@ -1121,6 +1218,19 @@ abstract class ResourceTestBase extends BrowserTestBase {
     ];
     $this->assertResourceResponse(403, Json::encode($expected), $response);
     /* $this->assertResourceErrorResponse(403, "The current user is not allowed to PATCH the selected field (field_rest_test).", $response, '/data/attributes/field_rest_test'); */
+
+    // DX: 403 when entity trying to update an entity's ID field.
+    $request_options[RequestOptions::BODY] = Json::encode($this->makeNormalizationInvalid($this->getPatchDocument(), 'id'));
+    $response = $this->request('PATCH', $url, $request_options);
+    $id_field_name = $this->entity->getEntityType()->getKey('id');
+    $this->assertResourceErrorResponse(403, "The current user is not allowed to PATCH the selected field ($id_field_name). The entity ID cannot be changed", $response, "/data/attributes/$id_field_name");
+
+    if ($this->entity->getEntityType()->hasKey('uuid')) {
+      // DX: 400 when entity trying to update an entity's UUID field.
+      $request_options[RequestOptions::BODY] = Json::encode($this->makeNormalizationInvalid($this->getPatchDocument(), 'uuid'));
+      $response = $this->request('PATCH', $url, $request_options);
+      $this->assertResourceErrorResponse(400, sprintf("The selected entity (%s) does not match the ID in the payload (%s).", $this->entity->uuid(), $this->anotherEntity->uuid()), $response);
+    }
 
     $request_options[RequestOptions::BODY] = $parseable_invalid_request_body_3;
 
@@ -1423,6 +1533,29 @@ abstract class ResourceTestBase extends BrowserTestBase {
     }
 
     return [$modified_entity, $original_values];
+  }
+
+  /**
+   * Gets the normalized POST entity with random values for its unique fields.
+   *
+   * @see ::testPostIndividual
+   * @see ::getPostDocument
+   *
+   * @return array
+   *   An array structure as returned by ::getNormalizedPostEntity().
+   */
+  protected function getModifiedEntityForPostTesting() {
+    $document = $this->getPostDocument();
+
+    // Ensure that all the unique fields of the entity type get a new random
+    // value.
+    foreach (static::$uniqueFieldNames as $field_name) {
+      $field_definition = $this->entity->getFieldDefinition($field_name);
+      $field_type_class = $field_definition->getItemDefinition()->getClass();
+      $document['data']['attributes'][$field_name] = $field_type_class::generateSampleValue($field_definition);
+    }
+
+    return $document;
   }
 
 }

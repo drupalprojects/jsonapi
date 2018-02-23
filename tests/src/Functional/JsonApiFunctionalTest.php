@@ -5,6 +5,7 @@ namespace Drupal\Tests\jsonapi\Functional;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Url;
 use Drupal\jsonapi\Query\OffsetPage;
+use Drupal\node\Entity\Node;
 
 /**
  * General functional test class.
@@ -470,9 +471,6 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
         'attributes' => [
           'langcode' => 'en',
           'title' => 'My custom title',
-          'status' => '1',
-          'promote' => '1',
-          'sticky' => '0',
           'default_langcode' => '1',
           'body' => [
             'value' => 'Custom value',
@@ -485,12 +483,6 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
             'data' => [
               'type' => 'node_type--node_type',
               'id' => 'article',
-            ],
-          ],
-          'uid' => [
-            'data' => [
-              'type' => 'user--user',
-              'id' => '1',
             ],
           ],
           'field_tags' => [
@@ -561,16 +553,19 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
 
     // 4. Article with a duplicate ID.
     $invalid_body = $body;
-    $invalid_body['data']['attributes']['nid'] = 1;
+    $invalid_body['data']['id'] = Node::load(1)->uuid();
     $response = $this->request('POST', $collection_url, [
       'body' => Json::encode($invalid_body),
       'auth' => [$this->user->getUsername(), $this->user->pass_raw],
-      'headers' => ['Content-Type' => 'application/vnd.api+json'],
+      'headers' => [
+        'Accept' => 'application/vnd.api+json',
+        'Content-Type' => 'application/vnd.api+json',
+      ],
     ]);
     $created_response = Json::decode($response->getBody()->__toString());
-    $this->assertEquals(500, $response->getStatusCode());
+    $this->assertEquals(409, $response->getStatusCode());
     $this->assertNotEmpty($created_response['errors']);
-    $this->assertEquals('Internal Server Error', $created_response['errors'][0]['title']);
+    $this->assertEquals('Conflict', $created_response['errors'][0]['title']);
     // 5. Article with wrong reference UUIDs for tags.
     $body_invalid_tags = $body;
     $body_invalid_tags['data']['relationships']['field_tags']['data'][0]['id'] = 'lorem';

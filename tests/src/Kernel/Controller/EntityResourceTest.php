@@ -415,7 +415,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ->getData());
     $this->assertEquals(1, $response->getResponseData()->getData()->id());
     $this->assertEquals(
-      ['node:1'],
+      ['node:1', 'user:1'],
       $response->getCacheableMetadata()->getCacheTags()
     );
     // to-many relationship.
