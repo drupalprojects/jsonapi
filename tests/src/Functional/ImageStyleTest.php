@@ -100,25 +100,15 @@ class ImageStyleTest extends ResourceTestBase {
         'attributes' => [
           'dependencies' => [],
           'effects' => [
-            // @todo Remove the first 7 lines in favor of the 9 commented lines in https://www.drupal.org/project/jsonapi/issues/2942979
-            // @codingStandardsIgnoreStart
-            'uuid' => $this->effectUuid,
-            'id' => 'image_scale_and_crop',
-            'weight' => 0,
-            'data' => [
-              'width' => 120,
-              'height' => 121,
+            $this->effectUuid => [
+              'uuid' => $this->effectUuid,
+              'id' => 'image_scale_and_crop',
+              'weight' => 0,
+              'data' => [
+                'width' => 120,
+                'height' => 121,
+              ],
             ],
-//            $this->effectUuid => [
-//              'uuid' => $this->effectUuid,
-//              'id' => 'image_scale_and_crop',
-//              'weight' => 0,
-//              'data' => [
-//                'width' => 120,
-//                'height' => 121,
-//              ],
-//            ],
-            // @codingStandardsIgnoreEnd
           ],
           'label' => 'Camelids',
           'langcode' => 'en',

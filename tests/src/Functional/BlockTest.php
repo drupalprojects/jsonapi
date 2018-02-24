@@ -105,13 +105,9 @@ class BlockTest extends ResourceTestBase {
           'langcode' => 'en',
           'status' => TRUE,
           'dependencies' => [
-            // @todo Remove this first line in favor of the 3 commented lines in https://www.drupal.org/project/jsonapi/issues/2942979
-            // @codingStandardsIgnoreStart
-            'classy',
-//            'theme' => [
-//              'classy',
-//            ],
-            // @codingStandardsIgnoreEnd
+            'theme' => [
+              'classy',
+            ],
           ],
           'theme' => 'classy',
           'region' => 'header',

@@ -3,7 +3,7 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
-use Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValue;
+use Drupal\jsonapi\Normalizer\Value\ConfigFieldItemNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue;
 use Drupal\jsonapi\ResourceType\ResourceType;
 
@@ -46,11 +46,8 @@ class ConfigEntityNormalizer extends EntityNormalizer {
    * {@inheritdoc}
    */
   protected function serializeField($field, array $context, $format) {
-    if (!is_array($field)) {
-      $field = [$field];
-    }
     $output = new FieldNormalizerValue(
-      [new FieldItemNormalizerValue($field)],
+      [new ConfigFieldItemNormalizerValue($field)],
       1
     );
     $output->setPropertyType('attributes');

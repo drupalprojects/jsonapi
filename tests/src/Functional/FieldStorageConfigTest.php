@@ -81,13 +81,9 @@ class FieldStorageConfigTest extends ResourceTestBase {
           'cardinality' => 1,
           'custom_storage' => FALSE,
           'dependencies' => [
-            // @todo Remove this first line in favor of the 3 commented lines in https://www.drupal.org/project/jsonapi/issues/2942979
-            // @codingStandardsIgnoreStart
-            'node',
-//            'module' => [
-//              'node',
-//            ],
-            // @codingStandardsIgnoreEnd
+            'module' => [
+              'node',
+            ],
           ],
           'entity_type' => 'node',
           'field_name' => 'true_llama',

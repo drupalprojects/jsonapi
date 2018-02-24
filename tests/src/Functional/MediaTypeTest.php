@@ -91,13 +91,9 @@ class MediaTypeTest extends ResourceTestBase {
           'new_revision' => FALSE,
           'queue_thumbnail_downloads' => FALSE,
           'source' => 'file',
-          // @todo Remove the first line in favor of the 3 commented lines in https://www.drupal.org/project/jsonapi/issues/2942979
-          // @codingStandardsIgnoreStart
-          'source_configuration' => '',
-//          'source_configuration' => [
-//            'source_field' => '',
-//          ],
-          // @codingStandardsIgnoreEnd
+          'source_configuration' => [
+            'source_field' => '',
+          ],
           'status' => TRUE,
           'uuid' => $this->entity->uuid(),
         ],

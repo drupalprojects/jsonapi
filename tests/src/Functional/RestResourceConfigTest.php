@@ -93,39 +93,24 @@ class RestResourceConfigTest extends ResourceTestBase {
           'langcode' => 'en',
           'status' => TRUE,
           'dependencies' => [
-            // @todo Remove the first 3 lines in favor of the 5 commented lines in https://www.drupal.org/project/jsonapi/issues/2942979
-            // @codingStandardsIgnoreStart
-            'dblog',
-            'serialization',
-            'user',
-//            'module' => [
-//              'dblog',
-//              'serialization',
-//              'user',
-//            ],
-            // @codingStandardsIgnoreEnd
+            'module' => [
+              'dblog',
+              'serialization',
+              'user',
+            ],
           ],
           'id' => 'llama',
           'plugin_id' => 'dblog',
           'granularity' => 'method',
           'configuration' => [
-            // @todo Remove the first 6 lines in favor of the 8 commented lines in https://www.drupal.org/project/jsonapi/issues/2942979
-            // @codingStandardsIgnoreStart
-            'supported_formats' => [
-              'json',
+            'GET' => [
+              'supported_formats' => [
+                'json',
+              ],
+              'supported_auth' => [
+                'cookie',
+              ],
             ],
-            'supported_auth' => [
-              'cookie',
-            ],
-//            'GET' => [
-//              'supported_formats' => [
-//                'json',
-//              ],
-//              'supported_auth' => [
-//                'cookie',
-//              ],
-//            ],
-            // @codingStandardsIgnoreEnd
           ],
         ],
       ],

@@ -82,13 +82,9 @@ class EntityFormModeTest extends ResourceTestBase {
         'attributes' => [
           'cache' => TRUE,
           'dependencies' => [
-            // @todo Remove the first line in favor of the 3 commented lines in https://www.drupal.org/project/jsonapi/issues/2942979
-            // @codingStandardsIgnoreStart
-            'user',
-//            'module' => [
-//              'user',
-//            ],
-            // @codingStandardsIgnoreEnd
+            'module' => [
+              'user',
+            ],
           ],
           'id' => 'user.test',
           'label' => 'Test',

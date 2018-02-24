@@ -88,29 +88,17 @@ class FilterFormatTest extends ResourceTestBase {
         'attributes' => [
           'dependencies' => [],
           'filters' => [
-            // @todo Remove this first 9 lines in favor of the 11 commented lines in https://www.drupal.org/project/jsonapi/issues/2942979
-            // @codingStandardsIgnoreStart
-            'id' => 'filter_html',
-            'provider' => 'filter',
-            'status' => TRUE,
-            'weight' => -10,
-            'settings' => [
-              'allowed_html' => '<p> <a> <b> <lo>',
-              'filter_html_help' => TRUE,
-              'filter_html_nofollow' => FALSE,
+            'filter_html' => [
+              'id' => 'filter_html',
+              'provider' => 'filter',
+              'status' => TRUE,
+              'weight' => -10,
+              'settings' => [
+                'allowed_html' => '<p> <a> <b> <lo>',
+                'filter_html_help' => TRUE,
+                'filter_html_nofollow' => FALSE,
+              ],
             ],
-//            'filter_html' => [
-//              'id' => 'filter_html',
-//              'provider' => 'filter',
-//              'status' => TRUE,
-//              'weight' => -10,
-//              'settings' => [
-//                'allowed_html' => '<p> <a> <b> <lo>',
-//                'filter_html_help' => TRUE,
-//                'filter_html_nofollow' => FALSE,
-//              ],
-//            ],
-            // @codingStandardsIgnoreEnd
           ],
           'format' => 'pablo',
           'langcode' => 'es',

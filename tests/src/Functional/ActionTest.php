@@ -84,13 +84,9 @@ class ActionTest extends ResourceTestBase {
           'self' => $self_url,
         ],
         'attributes' => [
-          // @todo Remove the first 3 lines in favor of the 5 commented lines in https://www.drupal.org/project/jsonapi/issues/2942979
-          // @codingStandardsIgnoreStart
-          'configuration' => 'anonymous',
-//          'configuration' => [
-//            'rid' => 'anonymous',
-//          ],
-          // @codingStandardsIgnoreEnd
+          'configuration' => [
+            'rid' => 'anonymous',
+          ],
           'dependencies' => [
             'config' => ['user.role.anonymous'],
             'module' => ['user'],
