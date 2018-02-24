@@ -130,7 +130,7 @@ class CommentTest extends ResourceTestBase {
   protected function getExpectedDocument() {
     $self_url = Url::fromUri('base:/jsonapi/comment/comment/' . $this->entity->uuid())->setAbsolute()->toString(TRUE)->getGeneratedUrl();
     $author = User::load($this->entity->getOwnerId());
-    return [
+    $document = [
       'jsonapi' => [
         'meta' => [
           'links' => [
@@ -159,8 +159,7 @@ class CommentTest extends ResourceTestBase {
           'comment_body' => [
             'value' => 'The name "llama" was adopted by European settlers from native Peruvians.',
             'format' => 'plain_text',
-            // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2921257.
-            /* 'processed' => "<p>The name "llama" was adopted by European settlers from native Peruvians.</p>\n", */
+            'processed' => "<p>The name &quot;llama&quot; was adopted by European settlers from native Peruvians.</p>\n",
           ],
           'default_langcode' => TRUE,
           'entity_type' => 'entity_test',
@@ -214,6 +213,11 @@ class CommentTest extends ResourceTestBase {
         ],
       ],
     ];
+    // @todo Remove this when JSON API requires Drupal 8.5 or newer.
+    if (floatval(\Drupal::VERSION) < 8.5) {
+      unset($document['data']['attributes']['comment_body']['processed']);
+    }
+    return $document;
   }
 
   /**

@@ -120,8 +120,7 @@ class BlockContentTest extends ResourceTestBase {
             'value' => 'The name "llama" was adopted by European settlers from native Peruvians.',
             'format' => 'plain_text',
             'summary' => NULL,
-            // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2921257.
-            /* 'processed' => "<p>The name &quot;llama&quot; was adopted by European settlers from native Peruvians.</p>\n", */
+            'processed' => "<p>The name &quot;llama&quot; was adopted by European settlers from native Peruvians.</p>\n",
           ],
           'changed' => $this->entity->getChangedTime(),
           // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932

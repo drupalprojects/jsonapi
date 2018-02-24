@@ -195,7 +195,7 @@ class TermTest extends ResourceTestBase {
       ];
     }
 
-    return [
+    $document = [
       'jsonapi' => [
         'meta' => [
           'links' => [
@@ -221,8 +221,7 @@ class TermTest extends ResourceTestBase {
           'description' => [
             'value' => 'It is a little known fact that llamas cannot count higher than seven.',
             'format' => NULL,
-            // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2921257.
-            /* 'processed' => "<p>It is a little known fact that llamas cannot count higher than seven.</p>\n", */
+            'processed' => "<p>It is a little known fact that llamas cannot count higher than seven.</p>\n",
           ],
           'langcode' => 'en',
           'name' => 'Llama',
@@ -250,6 +249,11 @@ class TermTest extends ResourceTestBase {
         ],
       ],
     ];
+    // @todo Remove this when JSON API requires Drupal 8.5 or newer.
+    if (floatval(\Drupal::VERSION) < 8.5) {
+      unset($document['data']['attributes']['description']['processed']);
+    }
+    return $document;
   }
 
   /**
