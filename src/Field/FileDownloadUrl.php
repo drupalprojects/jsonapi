@@ -5,6 +5,7 @@ namespace Drupal\jsonapi\Field;
 use Drupal\Core\Field\FieldItemList;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
+use Drupal\Core\TypedData\ComputedItemListTrait;
 
 /**
  * Extends core URL field functionality.
@@ -12,6 +13,8 @@ use Drupal\Core\StreamWrapper\StreamWrapperInterface;
  * @internal
  */
 class FileDownloadUrl extends FieldItemList {
+
+  use ComputedItemListTrait;
 
   /**
    * Creates a relative URL out of a URI.
@@ -40,15 +43,6 @@ class FileDownloadUrl extends FieldItemList {
   /**
    * {@inheritdoc}
    */
-  public function getValue($include_computed = FALSE) {
-    $this->initList();
-
-    return parent::getValue($include_computed);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function access($operation = 'view', AccountInterface $account = NULL, $return_as_object = FALSE) {
     return $this->getEntity()
       ->get('uri')
@@ -56,37 +50,9 @@ class FileDownloadUrl extends FieldItemList {
   }
 
   /**
-   * {@inheritdoc}
-   */
-  public function isEmpty() {
-    return $this->getEntity()->get('uri')->isEmpty();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getIterator() {
-    $this->initList();
-
-    return parent::getIterator();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function get($index) {
-    $this->initList();
-
-    return parent::get($index);
-  }
-
-  /**
    * Initialize the internal field list with the modified items.
    */
-  protected function initList() {
-    if ($this->list) {
-      return;
-    }
+  protected function computeValue() {
     $url_list = [];
     foreach ($this->getEntity()->get('uri') as $delta => $uri_item) {
       $path = $this->fileCreateRootRelativeUrl($uri_item->value);

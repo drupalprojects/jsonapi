@@ -1314,10 +1314,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // 200 for well-formed PATCH request that sends all fields (even including
     // read-only ones, but with unchanged values).
     $valid_request_body = NestedArray::mergeDeep($this->entityToJsonApi->normalize($this->entity), $this->getPatchDocument());
-    // @todo Remove this foreach in https://www.drupal.org/project/jsonapi/issues/2939810.
-    foreach (array_keys(static::$patchProtectedFieldNames) as $field_name) {
-      unset($valid_request_body['data']['attributes'][$field_name]);
-    }
     $request_options[RequestOptions::BODY] = Json::encode($valid_request_body);
     $response = $this->request('PATCH', $url, $request_options);
     $this->assertResourceResponse(200, FALSE, $response);

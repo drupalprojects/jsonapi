@@ -825,12 +825,8 @@ class EntityResource {
       }
 
       $origin_field_list = $origin->get($field_name);
-      if ($destination_field_list->getValue() != $origin_field_list->getValue()) {
-        $field_access = $destination_field_list->access('edit', NULL, TRUE);
-        if (!$field_access->isAllowed()) {
-          throw new EntityAccessDeniedHttpException($destination, $field_access, '/data/attributes/' . $field_name, sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_name));
-        }
-        $destination->{$field_name} = $origin->get($field_name);
+      if ($this->checkPatchFieldAccess($destination_field_list, $origin_field_list)) {
+        $destination->set($field_name, $origin_field_list->getValue());
       }
     }
     elseif ($origin instanceof ConfigEntityInterface && $destination instanceof ConfigEntityInterface) {
@@ -840,6 +836,52 @@ class EntityResource {
     else {
       throw new BadRequestHttpException('The serialized entity and the destination entity are of different types.');
     }
+  }
+
+  /**
+   * Checks whether the given field should be PATCHed.
+   *
+   * @param \Drupal\Core\Field\FieldItemListInterface $original_field
+   *   The original (stored) value for the field.
+   * @param \Drupal\Core\Field\FieldItemListInterface $received_field
+   *   The received value for the field.
+   *
+   * @return bool
+   *   Whether the field should be PATCHed or not.
+   *
+   * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
+   *   Thrown when the user sending the request is not allowed to update the
+   *   field. Only thrown when the user could not abuse this information to
+   *   determine the stored value.
+   *
+   * @internal
+   *
+   * @see \Drupal\rest\Plugin\rest\resource\EntityResource::checkPatchFieldAccess()
+   */
+  protected function checkPatchFieldAccess(FieldItemListInterface $original_field, FieldItemListInterface $received_field) {
+    // If the user is allowed to edit the field, it is always safe to set the
+    // received value. We may be setting an unchanged value, but that is ok.
+    $field_edit_access = $original_field->access('edit', NULL, TRUE);
+    if ($field_edit_access->isAllowed()) {
+      return TRUE;
+    }
+
+    // The user might not have access to edit the field, but still needs to
+    // submit the current field value as part of the PATCH request. For
+    // example, the entity keys required by denormalizers. Therefore, if the
+    // received value equals the stored value, return FALSE without throwing an
+    // exception. But only for fields that the user has access to view, because
+    // the user has no legitimate way of knowing the current value of fields
+    // that they are not allowed to view, and we must not make the presence or
+    // absence of a 403 response a way to find that out.
+    if ($original_field->access('view') && $original_field->equals($received_field)) {
+      return FALSE;
+    }
+
+    // It's helpful and safe to let the user know when they are not allowed to
+    // update a field.
+    $field_name = $received_field->getName();
+    throw new EntityAccessDeniedHttpException($original_field->getEntity(), $field_edit_access, '/data/attributes/' . $field_name, sprintf('The current user is not allowed to PATCH the selected field (%s).', $field_name));
   }
 
   /**
