@@ -127,8 +127,7 @@ class ConfigurableLanguageTest extends ResourceTestBase {
     $response = $this->request('GET', $url, $request_options);
 
     $normalization = Json::decode((string) $response->getBody());
-    // @todo Change this in https://www.drupal.org/project/jsonapi/issues/2915539.
-    $this->assertArrayHasKey('_core', $normalization['data']['attributes']);
+    $this->assertArrayNotHasKey('_core', $normalization['data']['attributes']);
   }
 
 }
