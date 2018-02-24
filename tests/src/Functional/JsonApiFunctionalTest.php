@@ -790,7 +790,6 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     for ($i = 0; $i < 2; $i++) {
       $this->assertEquals("Unprocessable Entity", $updated_response['errors'][$i]['title']);
       $this->assertEquals(422, $updated_response['errors'][$i]['status']);
-      $this->assertEquals(0, $updated_response['errors'][$i]['code']);
     }
     $this->assertEquals("title: This value should not be null.", $updated_response['errors'][0]['detail']);
     $this->assertEquals("body.0.format: The value you selected is not a valid choice.", $updated_response['errors'][1]['detail']);
