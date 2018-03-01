@@ -264,7 +264,7 @@ class NodeTest extends ResourceTestBase {
     // PATCH request: 403 when creating URL aliases unauthorized.
     $response = $this->request('PATCH', $url, $request_options);
     // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected = [
+    $expected_document = [
       'errors' => [
         [
           'title' => 'Forbidden',
@@ -283,7 +283,7 @@ class NodeTest extends ResourceTestBase {
         ],
       ],
     ];
-    $this->assertResourceResponse(403, Json::encode($expected), $response);
+    $this->assertResourceResponse(403, $expected_document, $response);
     /* $this->assertResourceErrorResponse(403, "The current user is not allowed to PATCH the selected field (path). The following permissions are required: 'create url aliases' OR 'administer url aliases'.", $response, '/data/attributes/path'); */
 
     // Grant permission to create URL aliases.
@@ -313,7 +313,7 @@ class NodeTest extends ResourceTestBase {
     // 403 when accessing own unpublished node.
     $response = $this->request('GET', $url, $request_options);
     // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected = [
+    $expected_document = [
       'errors' => [
         [
           'title' => 'Forbidden',
@@ -330,7 +330,7 @@ class NodeTest extends ResourceTestBase {
         ],
       ],
     ];
-    $this->assertResourceResponse(403, Json::encode($expected), $response);
+    $this->assertResourceResponse(403, $expected_document, $response);
     /* $this->assertResourceErrorResponse(403, 'The current user is not allowed to GET the selected resource.', $response, '/data'); */
 
     // 200 after granting permission.

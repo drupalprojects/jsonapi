@@ -389,11 +389,7 @@ class TermTest extends ResourceTestBase {
     $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
     $this->setUpAuthorization('GET');
     $response = $this->request('GET', $url, $request_options);
-    $expected = $this->getExpectedDocument();
-    static::recursiveKSort($expected);
-    $actual = Json::decode((string) $response->getBody());
-    static::recursiveKSort($actual);
-    $this->assertSame($expected, $actual);
+    $this->assertSameDocument($this->getExpectedDocument(), Json::decode($response->getBody()));
   }
 
   /**

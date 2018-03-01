@@ -207,7 +207,7 @@ class UserTest extends ResourceTestBase {
     // DX: 422 when changing email without providing the password.
     $response = $this->request('PATCH', $url, $request_options);
     // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected = [
+    $expected_document = [
       'errors' => [
         [
           'title' => 'Unprocessable Entity',
@@ -220,7 +220,7 @@ class UserTest extends ResourceTestBase {
         ],
       ],
     ];
-    $this->assertResourceResponse(422, Json::encode($expected), $response);
+    $this->assertResourceResponse(422, $expected_document, $response);
     /* $this->assertResourceErrorResponse(422, 'Unprocessable Entity', 'mail: Your current password is missing or incorrect; it\'s required to change the Email.', $response, '/data/attributes/mail'); */
 
     $normalization['data']['attributes']['pass']['existing'] = 'wrong';
@@ -228,7 +228,7 @@ class UserTest extends ResourceTestBase {
 
     // DX: 422 when changing email while providing a wrong password.
     $response = $this->request('PATCH', $url, $request_options);
-    $this->assertResourceResponse(422, Json::encode($expected), $response);
+    $this->assertResourceResponse(422, $expected_document, $response);
 
     $normalization['data']['attributes']['pass']['existing'] = $this->account->passRaw;
     $request_options[RequestOptions::BODY] = Json::encode($normalization);
@@ -247,7 +247,7 @@ class UserTest extends ResourceTestBase {
     // DX: 422 when changing password without providing the current password.
     $response = $this->request('PATCH', $url, $request_options);
     // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected = [
+    $expected_document = [
       'errors' => [
         [
           'title' => 'Unprocessable Entity',
@@ -260,7 +260,7 @@ class UserTest extends ResourceTestBase {
         ],
       ],
     ];
-    $this->assertResourceResponse(422, Json::encode($expected), $response);
+    $this->assertResourceResponse(422, $expected_document, $response);
     /* $this->assertResourceErrorResponse(422, 'Unprocessable Entity', 'pass: Your current password is missing or incorrect; it\'s required to change the Password.', $response, '/data/attributes/pass'); */
 
     $normalization['data']['attributes']['pass']['existing'] = $this->account->passRaw;
@@ -289,7 +289,7 @@ class UserTest extends ResourceTestBase {
     // DX: 403 when modifying username without required permission.
     $response = $this->request('PATCH', $url, $request_options);
     // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected = [
+    $expected_document = [
       'errors' => [
         [
           'title' => 'Forbidden',
@@ -306,7 +306,7 @@ class UserTest extends ResourceTestBase {
         ],
       ],
     ];
-    $this->assertResourceResponse(403, Json::encode($expected), $response);
+    $this->assertResourceResponse(403, $expected_document, $response);
     /* $this->assertResourceErrorResponse(403, 'Forbidden', 'The current user is not allowed to PATCH the selected field (name).', $response, '/data/attributes/name'); */
 
     $this->grantPermissionsToTestedRole(['change own username']);
@@ -369,7 +369,7 @@ class UserTest extends ResourceTestBase {
     $response = $this->request('PATCH', $url, $request_options);
     // Ensure the email address has not changed.
     $this->assertEquals('admin@example.com', $this->entityStorage->loadUnchanged(1)->getEmail());
-    $expected = [
+    $expected_document = [
       'errors' => [
         [
           'title' => 'Forbidden',
@@ -387,7 +387,7 @@ class UserTest extends ResourceTestBase {
       ],
     ];
     // @todo Uncomment this assertion in https://www.drupal.org/project/jsonapi/issues/2939810.
-    // $this->assertResourceResponse(403, Json::encode($expected), $response);
+    // $this->assertResourceResponse(403, $expected_document, $response);
     // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
     /* $this->assertResourceErrorResponse(403, 'Forbidden', 'The current user is not allowed to PATCH the selected field (uid). The entity ID cannot be changed', $response, '/data/attributes/uid'); */
   }

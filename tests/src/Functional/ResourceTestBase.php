@@ -428,8 +428,9 @@ abstract class ResourceTestBase extends BrowserTestBase {
    *
    * @param int $expected_status_code
    *   The expected response status.
-   * @param string|false $expected_body
-   *   The expected response body. FALSE in case this should not be asserted.
+   * @param array|null|false $expected_document
+   *   The expected document or NULL if there should not be a response body.
+   *   FALSE in case this should not be asserted.
    * @param \Psr\Http\Message\ResponseInterface $response
    *   The response to assert.
    * @param string[]|false $expected_cache_tags
@@ -448,7 +449,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
    *   FALSE if that header should be absent. Possible strings: 'MISS', 'HIT'.
    *   Defaults to FALSE.
    */
-  protected function assertResourceResponse($expected_status_code, $expected_body, ResponseInterface $response, $expected_cache_tags = FALSE, $expected_cache_contexts = FALSE, $expected_page_cache_header_value = FALSE, $expected_dynamic_page_cache_header_value = FALSE) {
+  protected function assertResourceResponse($expected_status_code, $expected_document, ResponseInterface $response, $expected_cache_tags = FALSE, $expected_cache_contexts = FALSE, $expected_page_cache_header_value = FALSE, $expected_dynamic_page_cache_header_value = FALSE) {
     $this->assertSame($expected_status_code, $response->getStatusCode());
     if ($expected_status_code === 204) {
       // DELETE responses should not include a Content-Type header. But Apache
@@ -460,8 +461,14 @@ abstract class ResourceTestBase extends BrowserTestBase {
     }
     else {
       $this->assertSame(['application/vnd.api+json'], $response->getHeader('Content-Type'));
-      if ($expected_body !== FALSE) {
-        $this->assertSame($expected_body, (string) $response->getBody());
+      if ($expected_document !== FALSE) {
+        $response_document = Json::decode((string) $response->getBody());
+        if ($expected_document === NULL) {
+          $this->assertNull($response_document);
+        }
+        else {
+          $this->assertSameDocument($expected_document, $response_document);
+        }
       }
     }
 
@@ -494,6 +501,20 @@ abstract class ResourceTestBase extends BrowserTestBase {
     else {
       $this->assertFalse($response->hasHeader('X-Drupal-Dynamic-Cache'));
     }
+  }
+
+  /**
+   * Asserts that an expected document matches the response body.
+   *
+   * @param array $expected_document
+   *   The expected JSON API document.
+   * @param array $actual_document
+   *   The actual response document to assert.
+   */
+  protected function assertSameDocument(array $expected_document, array $actual_document) {
+    static::recursiveKsort($expected_document);
+    static::recursiveKsort($actual_document);
+    $this->assertSame($expected_document, $actual_document);
   }
 
   /**
@@ -540,12 +561,12 @@ abstract class ResourceTestBase extends BrowserTestBase {
       $expected_error['source']['pointer'] = $pointer;
     }
 
-    $expected = [
+    $expected_document = [
       'errors' => [
         0 => $expected_error,
       ],
     ];
-    $this->assertResourceResponse($expected_status_code, Json::encode($expected), $response, $expected_cache_tags, $expected_cache_contexts, $expected_page_cache_header_value, $expected_dynamic_page_cache_header_value);
+    $this->assertResourceResponse($expected_status_code, $expected_document, $response, $expected_cache_tags, $expected_cache_contexts, $expected_page_cache_header_value, $expected_dynamic_page_cache_header_value);
   }
 
   /**
@@ -644,7 +665,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $expected_403_cacheability = $this->getExpectedUnauthorizedAccessCacheability();
     $reason = $this->getExpectedUnauthorizedAccessMessage('GET');
     // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected = [
+    $expected_document = [
       'errors' => [
         [
           'title' => 'Forbidden',
@@ -661,23 +682,24 @@ abstract class ResourceTestBase extends BrowserTestBase {
         ],
       ],
     ];
-    $this->assertResourceResponse(403, Json::encode($expected), $response);
+    $this->assertResourceResponse(403, $expected_document, $response);
     /* $this->assertResourceErrorResponse(403, "The current user is not allowed to GET the selected resource." . (strlen($reason) ? ' ' . $reason : ''), $response, '/data'); */
     // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2929428.
-    /* $this->assertResourceResponse(403, Json::encode($expected), $response, $expected_403_cacheability->getCacheTags(), $expected_403_cacheability->getCacheContexts(), FALSE, 'MISS'); */
+    /* $this->assertResourceResponse(403, $expected_document, $response, $expected_403_cacheability->getCacheTags(), $expected_403_cacheability->getCacheContexts(), FALSE, 'MISS'); */
     $this->assertArrayNotHasKey('Link', $response->getHeaders());
 
     $this->setUpAuthorization('GET');
 
     // 200 for well-formed HEAD request.
     $response = $this->request('HEAD', $url, $request_options);
-    $this->assertResourceResponse(200, '', $response, $this->getExpectedCacheTags(), $this->getExpectedCacheContexts(), FALSE, 'MISS');
+    $this->assertResourceResponse(200, NULL, $response, $this->getExpectedCacheTags(), $this->getExpectedCacheContexts(), FALSE, 'MISS');
     $head_headers = $response->getHeaders();
 
     // 200 for well-formed GET request. Page Cache hit because of HEAD request.
     // Same for Dynamic Page Cache hit.
     $response = $this->request('GET', $url, $request_options);
-    $this->assertResourceResponse(200, FALSE, $response, $this->getExpectedCacheTags(), $this->getExpectedCacheContexts(), FALSE, 'HIT');
+
+    $this->assertResourceResponse(200, $this->getExpectedDocument(), $response, $this->getExpectedCacheTags(), $this->getExpectedCacheContexts(), FALSE, 'HIT');
     // Assert that Dynamic Page Cache did not store a ResourceResponse object,
     // which needs serialization after every cache hit. Instead, it should
     // contain a flattened response. Otherwise performance suffers.
@@ -711,15 +733,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $this->assertTrue($found_cache_redirect);
     $this->assertTrue($found_cached_200_response);
     $this->assertTrue($other_cached_responses_are_4xx);
-
-    // Sort the serialization data first so we can do an identical comparison
-    // for the keys with the array order the same (it needs to match with
-    // identical comparison).
-    $expected = $this->getExpectedDocument();
-    static::recursiveKsort($expected);
-    $actual = Json::decode((string) $response->getBody());
-    static::recursiveKsort($actual);
-    $this->assertSame($expected, $actual);
 
     // Not only assert the normalization, also assert deserialization of the
     // response results in the expected object.
@@ -879,7 +892,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $response = $this->request('POST', $url, $request_options);
     $reason = $this->getExpectedUnauthorizedAccessMessage('POST');
     // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected = [
+    $expected_document = [
       'errors' => [
         [
           'title' => 'Forbidden',
@@ -896,7 +909,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
         ],
       ],
     ];
-    $this->assertResourceResponse(403, Json::encode($expected), $response);
+    $this->assertResourceResponse(403, $expected_document, $response);
     /* $this->assertResourceErrorResponse(403, "The current user is not allowed to POST the selected resource." . (strlen($reason) ? ' ' . $reason : ''), $response, '/data'); */
 
     $this->setUpAuthorization('POST');
@@ -914,7 +927,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $label_field = $this->entity->getEntityType()->hasKey('label') ? $this->entity->getEntityType()->getKey('label') : static::$labelFieldName;
     $label_field_capitalized = $this->entity->getFieldDefinition($label_field)->getLabel();
     // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected = [
+    $expected_document = [
       'errors' => [
         [
           'title' => 'Unprocessable Entity',
@@ -927,7 +940,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
         ],
       ],
     ];
-    $this->assertResourceResponse(422, Json::encode($expected), $response);
+    $this->assertResourceResponse(422, $expected_document, $response);
     /* $this->assertResourceErrorResponse(422, "$label_field: $label_field_capitalized: this field cannot hold more than 1 values.", $response, '/data/attributes/' . $label_field); */
 
     $request_options[RequestOptions::BODY] = $parseable_invalid_request_body_2;
@@ -938,7 +951,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     if ($this->entity->getEntityType()->hasKey('uuid')) {
       $response = $this->request('POST', $url, $request_options);
       // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-      $expected = [
+      $expected_document = [
         'errors' => [
           [
             'title' => 'Forbidden',
@@ -954,7 +967,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
           ],
         ],
       ];
-      $this->assertResourceResponse(403, Json::encode($expected), $response);
+      $this->assertResourceResponse(403, $expected_document, $response);
       /* $this->assertResourceErrorResponse(403, "IDs should be properly generated and formatted UUIDs as described in RFC 4122.", $response, '/data/id'); */
     }
 
@@ -1151,7 +1164,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $response = $this->request('PATCH', $url, $request_options);
     $reason = $this->getExpectedUnauthorizedAccessMessage('PATCH');
     // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected = [
+    $expected_document = [
       'errors' => [
         [
           'title' => 'Forbidden',
@@ -1168,7 +1181,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
         ],
       ],
     ];
-    $this->assertResourceResponse(403, Json::encode($expected), $response);
+    $this->assertResourceResponse(403, $expected_document, $response);
     /* $this->assertResourceErrorResponse(403, "The current user is not allowed to PATCH the selected resource." . (strlen($reason) ? ' ' . $reason : ''), $response, '/data'); */
 
     $this->setUpAuthorization('PATCH');
@@ -1178,7 +1191,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $label_field = $this->entity->getEntityType()->hasKey('label') ? $this->entity->getEntityType()->getKey('label') : static::$labelFieldName;
     $label_field_capitalized = $this->entity->getFieldDefinition($label_field)->getLabel();
     // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected = [
+    $expected_document = [
       'errors' => [
         [
           'title' => 'Unprocessable Entity',
@@ -1191,7 +1204,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
         ],
       ],
     ];
-    $this->assertResourceResponse(422, Json::encode($expected), $response);
+    $this->assertResourceResponse(422, $expected_document, $response);
     /* $this->assertResourceErrorResponse(422, "$label_field: $label_field_capitalized: this field cannot hold more than 1 values.", $response, '/data/attributes/' . $label_field); */
 
     $request_options[RequestOptions::BODY] = $parseable_invalid_request_body_2;
@@ -1199,7 +1212,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // DX: 403 when entity contains field without 'edit' access.
     $response = $this->request('PATCH', $url, $request_options);
     // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected = [
+    $expected_document = [
       'errors' => [
         [
           'title' => 'Forbidden',
@@ -1216,7 +1229,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
         ],
       ],
     ];
-    $this->assertResourceResponse(403, Json::encode($expected), $response);
+    $this->assertResourceResponse(403, $expected_document, $response);
     /* $this->assertResourceErrorResponse(403, "The current user is not allowed to PATCH the selected field (field_rest_test).", $response, '/data/attributes/field_rest_test'); */
 
     // DX: 403 when entity trying to update an entity's ID field.
@@ -1224,7 +1237,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $response = $this->request('PATCH', $url, $request_options);
     $id_field_name = $this->entity->getEntityType()->getKey('id');
     // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected = [
+    $expected_document = [
       'errors' => [
         [
           'title' => 'Forbidden',
@@ -1241,7 +1254,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
         ],
       ],
     ];
-    $this->assertResourceResponse(403, Json::encode($expected), $response);
+    $this->assertResourceResponse(403, $expected_document, $response);
     /* $this->assertResourceErrorResponse(403, "The current user is not allowed to PATCH the selected field ($id_field_name). The entity ID cannot be changed", $response, "/data/attributes/$id_field_name"); */
 
     if ($this->entity->getEntityType()->hasKey('uuid')) {
@@ -1258,7 +1271,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // in principle, but leads to information disclosure.
     $response = $this->request('PATCH', $url, $request_options);
     // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected = [
+    $expected_document = [
       'errors' => [
         [
           'title' => 'Forbidden',
@@ -1275,7 +1288,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
         ],
       ],
     ];
-    $this->assertResourceResponse(403, Json::encode($expected), $response);
+    $this->assertResourceResponse(403, $expected_document, $response);
     /* $this->assertResourceErrorResponse(403, "The current user is not allowed to PATCH the selected field (field_rest_test).", $response, '/data/attributes/field_rest_test'); */
 
     // DX: 403 when sending PATCH request with updated read-only fields.
@@ -1287,7 +1300,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
       $request_options[RequestOptions::BODY] = $this->entityToJsonApi->serialize($modified_entity);
       $response = $this->request('PATCH', $url, $request_options);
       // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-      $expected = [
+      $expected_document = [
         'errors' => [
           [
             'title' => 'Forbidden',
@@ -1306,7 +1319,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
           ],
         ],
       ];
-      $this->assertResourceResponse(403, Json::encode($expected), $response);
+      $this->assertResourceResponse(403, $expected_document, $response);
       /* $this->assertResourceErrorResponse(403, "The current user is not allowed to PATCH the selected field (" . $patch_protected_field_name . ")." . ($reason !== NULL ? ' ' . $reason : ''), $response, '/data/attributes/' . $patch_protected_field_name); */
       $modified_entity->get($patch_protected_field_name)->setValue($original_values[$patch_protected_field_name]);
     }
@@ -1379,12 +1392,12 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $request_options[RequestOptions::BODY] = Json::encode($doc_add_items);
     $response = $this->request('PATCH', $url, $request_options);
     $this->assertResourceResponse(200, FALSE, $response);
-    $expected = [
+    $expected_document = [
       0 => ['value' => 'One'],
       1 => ['value' => 'Two'],
       2 => ['value' => 'Three'],
     ];
-    $this->assertSame($expected, $this->entityStorage->loadUnchanged($this->entity->id())->get('field_rest_test_multivalue')->getValue());
+    $this->assertSame($expected_document, $this->entityStorage->loadUnchanged($this->entity->id())->get('field_rest_test_multivalue')->getValue());
   }
 
   /**
@@ -1413,7 +1426,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $response = $this->request('DELETE', $url, $request_options);
     $reason = $this->getExpectedUnauthorizedAccessMessage('DELETE');
     // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected = [
+    $expected_document = [
       'errors' => [
         [
           'title' => 'Forbidden',
@@ -1430,14 +1443,14 @@ abstract class ResourceTestBase extends BrowserTestBase {
         ],
       ],
     ];
-    $this->assertResourceResponse(403, Json::encode($expected), $response);
+    $this->assertResourceResponse(403, $expected_document, $response);
     /* $this->assertResourceErrorResponse(403, "The current user is not allowed to DELETE the selected resource." . (strlen($reason) ? ' ' . $reason : ''), $response, '/data'); */
 
     $this->setUpAuthorization('DELETE');
 
     // 204 for well-formed request.
     $response = $this->request('DELETE', $url, $request_options);
-    $this->assertResourceResponse(204, '', $response);
+    $this->assertResourceResponse(204, NULL, $response);
   }
 
   /**
