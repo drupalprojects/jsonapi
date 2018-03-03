@@ -396,7 +396,7 @@ class EntityResource {
       ->getDataDefinition()
       ->getFieldStorageDefinition()
       ->isMultiple();
-    if (!$is_multiple) {
+    if (!$is_multiple && $field_list->entity) {
       $response = $this->getIndividual($field_list->entity, $request);
       // Add cacheable metadata for host entity to individual response.
       $response->addCacheableDependency($cacheable_metadata);

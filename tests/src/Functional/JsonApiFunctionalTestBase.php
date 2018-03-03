@@ -122,6 +122,7 @@ abstract class JsonApiFunctionalTestBase extends BrowserTestBase {
         FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED
       );
       $this->createImageField('field_image', 'article');
+      $this->createImageField('field_heroless', 'article');
     }
 
     FieldStorageConfig::create([
