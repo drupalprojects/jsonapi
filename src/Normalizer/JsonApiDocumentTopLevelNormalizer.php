@@ -203,7 +203,6 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
     $normalized = $value_extractor->rasterizeValue();
     $included = array_filter($value_extractor->rasterizeIncludes());
     if (!empty($included)) {
-      $normalized['included'] = [];
       foreach ($included as $included_item) {
         if ($included_item['data'] === FALSE) {
           unset($included_item['data']);

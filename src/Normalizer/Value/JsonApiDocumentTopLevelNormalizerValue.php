@@ -168,10 +168,13 @@ class JsonApiDocumentTopLevelNormalizerValue implements ValueExtractorInterface,
     return array_values(array_reduce($includes, function ($unique_includes, $include) {
       $rasterized_include = $include->rasterizeValue();
 
-      $unique_key = $rasterized_include['data'] === FALSE ?
-        $rasterized_include['meta']['errors'][0]['detail'] :
-        $rasterized_include['data']['type'] . ':' . $rasterized_include['data']['id'];
-      $unique_includes[$unique_key] = $include;
+      if ($rasterized_include['data'] === FALSE) {
+        $unique_includes[] = $include;
+      }
+      else {
+        $unique_key = $rasterized_include['data']['type'] . ':' . $rasterized_include['data']['id'];
+        $unique_includes[$unique_key] = $include;
+      }
       return $unique_includes;
     }, []));
   }

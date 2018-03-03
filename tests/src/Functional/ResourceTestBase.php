@@ -481,7 +481,8 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // Expected cache contexts: X-Drupal-Cache-Contexts header.
     $this->assertSame($expected_cache_contexts !== FALSE, $response->hasHeader('X-Drupal-Cache-Contexts'));
     if (is_array($expected_cache_contexts)) {
-      $this->assertSame($expected_cache_contexts, explode(' ', $response->getHeader('X-Drupal-Cache-Contexts')[0]));
+      $optimized_expected_cache_contexts = \Drupal::service('cache_contexts_manager')->optimizeTokens($expected_cache_contexts);
+      $this->assertSame($optimized_expected_cache_contexts, explode(' ', $response->getHeader('X-Drupal-Cache-Contexts')[0]));
     }
 
     // Expected Page Cache header value: X-Drupal-Cache header.
@@ -809,6 +810,11 @@ abstract class ResourceTestBase extends BrowserTestBase {
     }
     */
     // @codingStandardsIgnoreEnd
+
+    // Feature: Sparse fieldsets.
+    $this->doTestSparseFieldSets($url, $request_options);
+    // Feature: Included.
+    $this->doTestIncluded($url, $request_options);
 
     // DX: 404 when GETting non-existing entity.
     $random_uuid = \Drupal::service('uuid')->generate();
@@ -1584,6 +1590,307 @@ abstract class ResourceTestBase extends BrowserTestBase {
     }
 
     return $document;
+  }
+
+  /**
+   * Tests sparse field sets.
+   *
+   * @param \Drupal\Core\Url $url
+   *   The base URL with which to test includes.
+   * @param array $request_options
+   *   Request options to apply.
+   *
+   * @see \GuzzleHttp\ClientInterface::request()
+   */
+  protected function doTestSparseFieldSets(Url $url, array $request_options) {
+    foreach ($this->getSparseFieldSets() as $type => $field_set) {
+      $query = ['fields[' . static::$resourceTypeName . ']' => implode(',', $field_set)];
+      $url->setOption('query', $query);
+      $response = $this->request('GET', $url, $request_options);
+      // Get the expected document and remove any unwanted fields.
+      $expected_document = $this->getExpectedDocument();
+      foreach (['attributes', 'relationships'] as $member) {
+        if (!empty($expected_document['data'][$member])) {
+          $remaining = array_intersect_key(
+            $expected_document['data'][$member],
+            array_flip($field_set)
+          );
+          if (empty($remaining)) {
+            unset($expected_document['data'][$member]);
+          }
+          else {
+            $expected_document['data'][$member] = $remaining;
+          }
+        }
+      }
+      // 'self' link should include the 'fields' query param.
+      $expected_document['links']['self'] = $url->setAbsolute()->toString();
+      // Dynamic Page Cache miss because cache should vary based on the 'field'
+      // query param.
+      $this->assertResourceResponse(
+        200,
+        $expected_document,
+        $response,
+        $this->getExpectedCacheTags(),
+        $this->getExpectedCacheContexts(),
+        FALSE,
+        'MISS'
+      );
+    }
+    // Test Dynamic Page Cache hit for a query with the same field set.
+    $response = $this->request('GET', $url, $request_options);
+    $this->assertResourceResponse(200, FALSE, $response, $this->getExpectedCacheTags(), $this->getExpectedCacheContexts(), FALSE, 'HIT');
+  }
+
+  /**
+   * Tests included resources.
+   *
+   * @param \Drupal\Core\Url $url
+   *   The base URL with which to test includes.
+   * @param array $request_options
+   *   Request options to apply.
+   *
+   * @see \GuzzleHttp\ClientInterface::request()
+   */
+  protected function doTestIncluded(Url $url, array $request_options) {
+    $individual_response = $this->request('GET', $url, $request_options);
+    $individual_response_document = Json::decode((string) $individual_response->getBody());
+    // @todo add explicit tests for non-accessible relationship fields.
+    $accessible_relationship_field_names = isset($individual_response_document['data']['relationships'])
+      ? array_keys($individual_response_document['data']['relationships'])
+      : [];
+    // If there are no accessible relationships, we can't include anything.
+    if (empty($accessible_relationship_field_names)) {
+      return;
+    }
+    // Builds a map of relationship field names to related resources by making
+    // requests to the 'related' link in the document. We will later merge this
+    // into an expected response so that we can verify all the included
+    // data and cacheable metadata.
+    $related_responses = $this->getRelatedResponses(
+      static::extractRelatedLinks($accessible_relationship_field_names, $individual_response_document),
+      $request_options
+    );
+    $field_sets = [
+      'empty' => [],
+      'all' => $accessible_relationship_field_names,
+    ];
+    if (count($accessible_relationship_field_names) > 1) {
+      $about_half_the_fields = floor(count($accessible_relationship_field_names) / 2);
+      $field_sets['some'] = array_slice($accessible_relationship_field_names, $about_half_the_fields);
+    }
+    foreach ($field_sets as $type => $field_set) {
+      $query = ['include' => implode(',', $field_set)];
+      $url->setOption('query', $query);
+      $response = $this->request('GET', $url, $request_options);
+      // The expected response is based on the expected individual response for
+      // this resource type, it will then be decorated using the related
+      // response data.
+      $expected_document = $this->getExpectedDocument();
+      // Update the expected 'self' link with expected include query parameter.
+      $expected_document['links']['self'] = $url->setAbsolute()->toString();
+      $expected_cacheability = (new CacheableMetadata())
+        ->setCacheContexts($this->getExpectedCacheContexts())
+        ->setCacheTags($this->getExpectedCacheTags());
+      $expected_response = static::decorateExpectedResponseForIncludedFields(
+        (new ResourceResponse($expected_document))->addCacheableDependency($expected_cacheability),
+        array_intersect_key($related_responses, array_flip($field_set))
+      );
+      $response_document = Json::decode((string) $response->getBody());
+      $expected_document = $expected_response->getResponseData();
+      if (!empty($expected_document['meta']['errors'])) {
+        // The 'related' responses will not have included document pointers, so
+        // we can't assert those here either.
+        foreach ($response_document['meta']['errors'] as &$error) {
+          unset($error['source']['pointer']);
+        }
+      }
+      if (!empty($expected_document['included'])) {
+        static::sortResourceCollection($expected_document['included']);
+        static::sortResourceCollection($response_document['included']);
+      }
+      // @todo uncomment this assertion in https://www.drupal.org/project/jsonapi/issues/2929428
+      // Dynamic Page Cache miss because cache should vary based on the
+      // 'include' query param.
+      // @codingStandardsIgnoreStart
+      // $expected_cacheability = $expected_response->getCacheableMetadata();
+      // $this->assertResourceResponse(
+      //   200,
+      //   FALSE,
+      //   $response,
+      //   $expected_cacheability->getCacheTags(),
+      //   \Drupal::service('cache_contexts_manager')->optimizeTokens($expected_cacheability->getCacheContexts()),
+      //   FALSE,
+      //   $expected_cacheability->getCacheMaxAge() === 0 ? 'UNCACHEABLE' : 'MISS'
+      // );
+      // @codingStandardsIgnoreEnd
+      $this->assertSameDocument($expected_document, $response_document);
+    }
+  }
+
+  /**
+   * Decorates the expected response with included data and cache metadata.
+   *
+   * This adds the expected includes to the expected document and also builds
+   * the expected cacheability data. It does so based of responses from the
+   * related routes for individual relationships.
+   *
+   * @param \Drupal\jsonapi\ResourceResponse $expected_response
+   *   The expected ResourceResponse.
+   * @param \Drupal\jsonapi\ResourceResponse[] $related_responses
+   *   The related ResourceResponses, keyed by relationship field names.
+   *
+   * @return \Drupal\jsonapi\ResourceResponse
+   *   The decorated ResourceResponse.
+   */
+  protected static function decorateExpectedResponseForIncludedFields(ResourceResponse $expected_response, array $related_responses) {
+    $expected_document = $expected_response->getResponseData();
+    $expected_cacheability = $expected_response->getCacheableMetadata();
+    foreach ($related_responses as $related_response) {
+      $related_document = $related_response->getResponseData();
+      $expected_cacheability->addCacheableDependency($related_response->getCacheableMetadata());
+      if (!empty($related_document['errors'])) {
+        // If any of the related response documents had top-level errors, we
+        // should later expect the document to have 'meta' errors too.
+        foreach ($related_document['errors'] as $error) {
+          unset($error['source']['pointer']);
+          $expected_document['meta']['errors'][] = $error;
+        }
+      }
+      elseif (isset($related_document['data'])) {
+        $related_data = $related_document['data'];
+        $related_resources = (static::isResourceIdentifier($related_data))
+          ? [$related_data]
+          : $related_data;
+        foreach ($related_resources as $related_resource) {
+          if (empty($expected_document['included']) || !static::collectionHasResourceIdentifier($related_resource, $expected_document['included'])) {
+            $expected_document['included'][] = $related_resource;
+          }
+        }
+      }
+    }
+    return (new ResourceResponse($expected_document))->addCacheableDependency($expected_cacheability);
+  }
+
+  /**
+   * Returns an array of sparse fields sets to test.
+   *
+   * @return array
+   *   An array of sparse field sets (an array of field names), keyed by a label
+   *   for the field set.
+   */
+  protected function getSparseFieldSets() {
+    $field_names = array_keys($this->entity->toArray());
+    return [
+      'empty' => [],
+      'some' => array_slice($field_names, floor(count($field_names) / 2)),
+      'all' => $field_names,
+    ];
+  }
+
+  /**
+   * Extracts links from a document using a list of relationship field names.
+   *
+   * @param array $field_names
+   *   A list of resource relationship field names.
+   * @param array $document
+   *   A JSON API document.
+   *
+   * @return array
+   *   The extracted related links, keyed by relationship field name.
+   */
+  protected static function extractRelatedLinks(array $field_names, array $document) {
+    return array_reduce($field_names, function ($links, $field_name) use ($document) {
+      if ($link = array_reduce(
+        ['data', 'relationships', $field_name, 'links', 'related'],
+        'array_column',
+        [$document]
+      )) {
+        $links[$field_name] = reset($link);
+      }
+      return $links;
+    }, []);
+  }
+
+  /**
+   * Gets responses from an array of 'related' links.
+   *
+   * @param array $links
+   *   An array of 'related' links keyed by relationship field name.
+   * @param array $request_options
+   *   Request options to apply.
+   *
+   * @return array
+   *   The related ResourceResponses, keyed by relationship field names.
+   *
+   * @see \GuzzleHttp\ClientInterface::request()
+   */
+  protected function getRelatedResponses(array $links, array $request_options) {
+    return array_reduce(array_keys($links), function ($related_responses, $field_name) use ($links, $request_options) {
+      $related_response = $this->request('GET', Url::fromUri($links[$field_name]), $request_options);
+      $cacheability = new CacheableMetadata();
+      if ($cache_tags = $related_response->getHeader('X-Drupal-Cache-Tags')) {
+        $cacheability->addCacheTags(explode(' ', $cache_tags[0]));
+      }
+      if ($cache_contexts = $related_response->getHeader('X-Drupal-Cache-Contexts')) {
+        $cacheability->addCacheContexts(explode(' ', $cache_contexts[0]));
+      }
+      if ($dynamic_cache = $related_response->getHeader('X-Drupal-Dynamic-Cache')) {
+        $cacheability->setCacheMaxAge(($dynamic_cache[0] === 'UNCACHEABLE') ? 0 : Cache::PERMANENT);
+      }
+      $related_document = Json::decode($related_response->getBody());
+      $related_responses[$field_name] = (new ResourceResponse($related_document))
+        ->addCacheableDependency($cacheability);
+      return $related_responses;
+    }, []);
+  }
+
+  /**
+   * Sorts a collection of resources or resource identifiers.
+   *
+   * This is useful for asserting collections or resources where order cannot
+   * be known in advance.
+   *
+   * @param array $resources
+   *   The resource or resource identifier.
+   */
+  protected static function sortResourceCollection(array &$resources) {
+    usort($resources, function ($a, $b) {
+      return strcmp("{$a['type']}:{$a['id']}", "{$b['type']}:{$b['id']}");
+    });
+  }
+
+  /**
+   * Determines if a given resource exists in a list of resources.
+   *
+   * @param array $needle
+   *   The resource or resource identifier.
+   * @param array $haystack
+   *   The list of resources or resource identifiers to search.
+   *
+   * @return bool
+   *   TRUE if the needle exists is present in the haystack, FALSE otherwise.
+   */
+  protected static function collectionHasResourceIdentifier(array $needle, array $haystack) {
+    foreach ($haystack as $resource) {
+      if ($resource['type'] == $needle['type'] && $resource['id'] == $needle['id']) {
+        return TRUE;
+      }
+    }
+    return FALSE;
+  }
+
+  /**
+   * Checks if a given array is a resource identifier.
+   *
+   * @param array $data
+   *   An array to check.
+   *
+   * @return bool
+   *   TRUE if the array has a type and ID, FALSE otherwise.
+   */
+  protected static function isResourceIdentifier(array $data) {
+    return array_key_exists('type', $data) && array_key_exists('id', $data);
   }
 
 }
