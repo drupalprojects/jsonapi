@@ -99,15 +99,17 @@ class EntityToJsonApi {
   protected function calculateContext(EntityInterface $entity) {
     // TODO: Supporting includes requires adding the 'include' query string.
     $path_prefix = $this->resourceTypeRepository->getPathPrefix();
-    $path = sprintf('/%s/%s/%s/%s', $path_prefix, $entity->getEntityTypeId(), $entity->bundle(), $entity->uuid());
+    $resource_type = $this->resourceTypeRepository->get(
+      $entity->getEntityTypeId(),
+      $entity->bundle()
+    );
+    $resource_path = $resource_type->getPath();
+    $path = sprintf('/%s/%s/%s', $path_prefix, $resource_path, $entity->uuid());
     $request = Request::create($path, 'GET');
     return [
       'account' => $this->currentUser,
       'cacheable_metadata' => new CacheableMetadata(),
-      'resource_type' => $this->resourceTypeRepository->get(
-        $entity->getEntityTypeId(),
-        $entity->bundle()
-      ),
+      'resource_type' => $resource_type,
       'request' => $request,
     ];
   }

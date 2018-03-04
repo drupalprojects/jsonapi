@@ -105,7 +105,8 @@ class Routes implements ContainerInjectionInterface {
       }
 
       $path_prefix = $this->resourceTypeRepository->getPathPrefix();
-      $route_base_path = sprintf('/%s/%s/%s', $path_prefix, $resource_type->getEntityTypeId(), $resource_type->getBundle());
+      $resource_path = $resource_type->getPath();
+      $route_base_path = sprintf('/%s/%s', $path_prefix, $resource_path);
       $build_route_name = function ($key) use ($resource_type) {
         return sprintf('jsonapi.%s.%s', $resource_type->getTypeName(), $key);
       };
