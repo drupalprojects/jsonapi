@@ -126,7 +126,6 @@ class BlockContentTest extends ResourceTestBase {
           // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
           /* 'changed' => $this->formatExpectedTimestampItemValues($this->entity->getChangedTime()), */
           'info' => 'Llama',
-          'revision_default' => TRUE,
           'revision_id' => 1,
           'revision_log' => NULL,
           'revision_created' => (int) $this->entity->getRevisionCreationTime(),

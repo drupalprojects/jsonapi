@@ -7,6 +7,7 @@ use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
+use Drupal\Core\TypedData\TypedDataInternalPropertiesHelper;
 use Drupal\jsonapi\Normalizer\Value\EntityNormalizerValue;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValueInterface;
 use Drupal\jsonapi\ResourceType\ResourceType;
@@ -183,7 +184,13 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
    */
   protected function getFields($entity, $bundle, ResourceType $resource_type) {
     $output = [];
-    $fields = $entity->getFields();
+    // @todo Remove this when JSON API requires Drupal 8.5 or newer.
+    if (floatval(\Drupal::VERSION) >= 8.5) {
+      $fields = TypedDataInternalPropertiesHelper::getNonInternalProperties($entity->getTypedData());
+    }
+    else {
+      $fields = $entity->getFields();
+    }
     // Filter the array based on the field names.
     $enabled_field_names = array_filter(
       array_keys($fields),

@@ -150,7 +150,6 @@ class NodeTest extends ResourceTestBase {
             'langcode' => 'en',
           ],
           'promote' => TRUE,
-          'revision_default' => TRUE,
           'revision_log' => NULL,
           'revision_timestamp' => 123456789,
           // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932

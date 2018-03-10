@@ -177,7 +177,6 @@ class MediaTest extends ResourceTestBase {
           // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
           /* 'revision_created' => $this->formatExpectedTimestampItemValues((int) $this->entity->getRevisionCreationTime()), */
           'default_langcode' => TRUE,
-          'revision_default' => TRUE,
           'revision_log_message' => NULL,
           // @todo Attempt to remove this in https://www.drupal.org/project/drupal/issues/2933518.
           'revision_translation_affected' => TRUE,
@@ -190,12 +189,6 @@ class MediaTest extends ResourceTestBase {
               'meta' => [
                 'description' => NULL,
                 'display' => NULL,
-                // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2921257.
-                // @codingStandardsIgnoreStart
-                /*
-                'url' => $file->url(),
-                */
-                // @codingStandardsIgnoreEnd
               ],
               'type' => 'file--file',
             ],
@@ -212,12 +205,6 @@ class MediaTest extends ResourceTestBase {
                 'width' => '180',
                 'height' => '180',
                 'title' => 'Llama',
-                // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2921257.
-                // @codingStandardsIgnoreStart
-                /*
-                'url' => $thumbnail->url(),
-                */
-                // @codingStandardsIgnoreEnd
               ],
               'type' => 'file--file',
             ],
