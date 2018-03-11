@@ -309,12 +309,16 @@ abstract class ResourceTestBase extends BrowserTestBase {
   /**
    * The expected cache tags for the GET/HEAD response of the test entity.
    *
-   * @see ::testGetIndividual()
+   * @param array|null $sparse_fieldset
+   *   If a sparse fieldset is being requested, limit the expected cache tags
+   *   for this entity's fields to just these fields.
    *
    * @return string[]
    *   A set of cache tags.
+   *
+   * @see ::testGetIndividual()
    */
-  protected function getExpectedCacheTags() {
+  protected function getExpectedCacheTags(array $sparse_fieldset = NULL) {
     $expected_cache_tags = [
       'http_response',
     ];
@@ -324,12 +328,16 @@ abstract class ResourceTestBase extends BrowserTestBase {
   /**
    * The expected cache contexts for the GET/HEAD response of the test entity.
    *
-   * @see ::testGetIndividual()
+   * @param array|null $sparse_fieldset
+   *   If a sparse fieldset is being requested, limit the expected cache
+   *   contexts for this entity's fields to just these fields.
    *
    * @return string[]
    *   A set of cache contexts.
+   *
+   * @see ::testGetIndividual()
    */
-  protected function getExpectedCacheContexts() {
+  protected function getExpectedCacheContexts(array $sparse_fieldset = NULL) {
     return [
       // Cache contexts for JSON API URL query parameters.
       'url.query_args:fields',
@@ -1604,6 +1612,10 @@ abstract class ResourceTestBase extends BrowserTestBase {
    */
   protected function doTestSparseFieldSets(Url $url, array $request_options) {
     foreach ($this->getSparseFieldSets() as $type => $field_set) {
+      if ($type === 'all') {
+        assert($this->getExpectedCacheTags($field_set) === $this->getExpectedCacheTags());
+        assert($this->getExpectedCacheContexts($field_set) === $this->getExpectedCacheContexts());
+      }
       $query = ['fields[' . static::$resourceTypeName . ']' => implode(',', $field_set)];
       $url->setOption('query', $query);
       $response = $this->request('GET', $url, $request_options);
@@ -1631,8 +1643,8 @@ abstract class ResourceTestBase extends BrowserTestBase {
         200,
         $expected_document,
         $response,
-        $this->getExpectedCacheTags(),
-        $this->getExpectedCacheContexts(),
+        $this->getExpectedCacheTags($field_set),
+        $this->getExpectedCacheContexts($field_set),
         FALSE,
         'MISS'
       );

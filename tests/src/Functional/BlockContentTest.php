@@ -4,6 +4,7 @@ namespace Drupal\Tests\jsonapi\Functional;
 
 use Drupal\block_content\Entity\BlockContent;
 use Drupal\block_content\Entity\BlockContentType;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Url;
 use Drupal\Tests\rest\Functional\BcTimestampNormalizerUnixTestTrait;
 
@@ -184,25 +185,27 @@ class BlockContentTest extends ResourceTestBase {
       ->addCacheTags(['block_content:1']);
   }
 
-  // @codingStandardsIgnoreStart
   /**
    * {@inheritdoc}
    */
-  protected function getExpectedCacheTags() {
-    // @todo Uncomment first line, remove second line in https://www.drupal.org/project/jsonapi/issues/2940342.
-//    return Cache::mergeTags(parent::getExpectedCacheTags(), ['config:filter.format.plain_text']);
-    return parent::getExpectedCacheTags();
+  protected function getExpectedCacheTags(array $sparse_fieldset = NULL) {
+    $tags = parent::getExpectedCacheTags($sparse_fieldset);
+    if ($sparse_fieldset === NULL || in_array('body', $sparse_fieldset)) {
+      $tags = Cache::mergeTags($tags, ['config:filter.format.plain_text']);
+    }
+    return $tags;
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function getExpectedCacheContexts() {
-    // @todo Uncomment first line, remove second line in https://www.drupal.org/project/jsonapi/issues/2940342.
-//    return Cache::mergeContexts(['url.site'], $this->container->getParameter('renderer.config')['required_cache_contexts']);
-    return parent::getExpectedCacheContexts();
+  protected function getExpectedCacheContexts(array $sparse_fieldset = NULL) {
+    $contexts = parent::getExpectedCacheContexts($sparse_fieldset);
+    if ($sparse_fieldset === NULL || in_array('body', $sparse_fieldset)) {
+      $contexts = Cache::mergeContexts($contexts, ['languages:language_interface', 'theme']);
+    }
+    return $contexts;
   }
-  // @codingStandardsIgnoreEnd
 
   /**
    * {@inheritdoc}

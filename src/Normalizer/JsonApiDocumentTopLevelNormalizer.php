@@ -229,11 +229,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
     }
 
     if ($data instanceof EntityReferenceFieldItemListInterface) {
-      $output = $this->serializer->normalize($data, $format, $context);
-      // The only normalizer value that computes nested includes automatically
-      // is the JsonApiDocumentTopLevelNormalizerValue.
-      $output->setIncludes($output->getAllIncludes());
-      return $output;
+      return $this->serializer->normalize($data, $format, $context);
     }
     else {
       $is_collection = $data instanceof EntityCollection;

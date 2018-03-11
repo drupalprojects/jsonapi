@@ -7,6 +7,7 @@ use Drupal\comment\Entity\CommentType;
 use Drupal\comment\Tests\CommentTestTrait;
 use Drupal\Component\Serialization\Json;
 use Drupal\Component\Utility\NestedArray;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Url;
 use Drupal\entity_test\Entity\EntityTest;
 use Drupal\Tests\rest\Functional\BcTimestampNormalizerUnixTestTrait;
@@ -248,25 +249,36 @@ class CommentTest extends ResourceTestBase {
     ];
   }
 
-  // @codingStandardsIgnoreStart
   /**
    * {@inheritdoc}
    */
-  protected function getExpectedCacheTags() {
-    // @todo Uncomment first line, remove second line in https://www.drupal.org/project/jsonapi/issues/2940342.
-//    return Cache::mergeTags(parent::getExpectedCacheTags(), ['config:filter.format.plain_text']);
-    return parent::getExpectedCacheTags();
+  protected function getExpectedCacheTags(array $sparse_fieldset = NULL) {
+    // @todo Remove this when JSON API requires Drupal 8.5 or newer.
+    if (floatval(\Drupal::VERSION) < 8.5) {
+      return parent::getExpectedCacheTags($sparse_fieldset);
+    }
+
+    $tags = parent::getExpectedCacheTags($sparse_fieldset);
+    if ($sparse_fieldset === NULL || in_array('comment_body', $sparse_fieldset)) {
+      $tags = Cache::mergeTags($tags, ['config:filter.format.plain_text']);
+    }
+    return $tags;
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function getExpectedCacheContexts() {
-    // @todo Uncomment first line, remove second line in https://www.drupal.org/project/jsonapi/issues/2940342.
-//    return Cache::mergeContexts(['languages:language_interface', 'theme'], parent::getExpectedCacheContexts());
-    return parent::getExpectedCacheContexts();
+  protected function getExpectedCacheContexts(array $sparse_fieldset = NULL) {
+    // @todo Remove this when JSON API requires Drupal 8.5 or newer.
+    if (floatval(\Drupal::VERSION) < 8.5) {
+      return parent::getExpectedCacheContexts($sparse_fieldset);
+    }
+    $contexts = parent::getExpectedCacheContexts($sparse_fieldset);
+    if ($sparse_fieldset === NULL || in_array('comment_body', $sparse_fieldset)) {
+      $contexts = Cache::mergeContexts($contexts, ['languages:language_interface', 'theme']);
+    }
+    return $contexts;
   }
-  // @codingStandardsIgnoreEnd
 
   /**
    * {@inheritdoc}

@@ -4,6 +4,7 @@ namespace Drupal\Tests\jsonapi\Kernel\Normalizer;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\file\Entity\File;
 use Drupal\jsonapi\ResourceType\ResourceType;
@@ -48,6 +49,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     'system',
     'taxonomy',
     'text',
+    'filter',
     'user',
     'file',
     'image',
@@ -96,6 +98,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       ['target_bundles' => ['tags']],
       FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED
     );
+    $this->createTextField('node', 'article', 'body', 'Body');
 
     $this->createImageField('field_image', 'article');
 
@@ -136,6 +139,10 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       'title' => 'dummy_title',
       'type' => 'article',
       'uid' => 1,
+      'body' => [
+        'format' => 'plain_text',
+        'value' => $this->randomStringValidate(42),
+      ],
       'field_tags' => [
         ['target_id' => $this->term1->id()],
         ['target_id' => $this->term2->id()],
@@ -677,6 +684,68 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       ];
     }
     return $node;
+  }
+
+  /**
+   * Ensure that cacheability metadata is properly added.
+   *
+   * @param \Drupal\Core\Cache\CacheableMetadata $expected_metadata
+   *   The expected cacheable metadata.
+   * @param array|null $fields
+   *   Fields to include in the response, keyed by resource type.
+   * @param array|null $includes
+   *   Resources paths to include in the response.
+   *
+   * @dataProvider testCacheableMetadataProvider
+   */
+  public function testCacheableMetadata(CacheableMetadata $expected_metadata, $fields = NULL, $includes = NULL) {
+    list($request, $resource_type) = $this->generateProphecies('node', 'article');
+    $actual_metadata = new CacheableMetadata();
+    $context = [
+      'request' => $this->decorateRequest($request, $fields, $includes),
+      'resource_type' => $resource_type,
+      'cacheable_metadata' => $actual_metadata,
+    ];
+    $this->getNormalizer()->normalize(new JsonApiDocumentTopLevel($this->node), 'api_json', $context);
+    $this->assertArraySubset($expected_metadata->getCacheTags(), $actual_metadata->getCacheTags());
+    $this->assertArraySubset($expected_metadata->getCacheContexts(), $actual_metadata->getCacheContexts());
+    $this->assertSame($expected_metadata->getCacheMaxAge(), $actual_metadata->getCacheMaxAge());
+  }
+
+  /**
+   * Provides test cases for asserting cacheable metadata behavior.
+   */
+  public function testCacheableMetadataProvider() {
+    $cacheable_metadata = function ($metadata) {
+      return CacheableMetadata::createFromRenderArray(['#cache' => $metadata]);
+    };
+
+    return [
+      [
+        floatval(\Drupal::VERSION) < 8.5
+        ? $cacheable_metadata([])
+        : $cacheable_metadata(['contexts' => ['languages:language_interface']]),
+        ['node--article' => 'body'],
+      ],
+    ];
+  }
+
+  /**
+   * Decorates a request with sparse fieldsets and includes.
+   */
+  protected function decorateRequest(Request $request, array $fields = NULL, array $includes = NULL) {
+    $parameters = new ParameterBag();
+    $parameters->add($fields ? ['fields' => $fields] : []);
+    $parameters->add($includes ? ['include' => $includes] : []);
+    $request->query = $parameters;
+    return $request;
+  }
+
+  /**
+   * Helper to load the normalizer.
+   */
+  protected function getNormalizer() {
+    return $this->container->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi');
   }
 
   /**

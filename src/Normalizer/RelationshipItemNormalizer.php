@@ -2,6 +2,7 @@
 
 namespace Drupal\jsonapi\Normalizer;
 
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\jsonapi\Normalizer\Value\RelationshipItemNormalizerValue;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
@@ -65,10 +66,6 @@ class RelationshipItemNormalizer extends FieldItemNormalizer {
     if (isset($context['langcode'])) {
       $values['lang'] = $context['langcode'];
     }
-    $normalizer_value = new RelationshipItemNormalizerValue(
-      $values,
-      $relationship_item->getTargetResourceType()
-    );
 
     $host_field_name = $relationship_item->getParent()->getPropertyName();
     if (!empty($context['include']) && in_array($host_field_name, $context['include'])) {
@@ -77,17 +74,17 @@ class RelationshipItemNormalizer extends FieldItemNormalizer {
       $included_normalizer_value = $this
         ->jsonapiDocumentToplevelNormalizer
         ->buildNormalizerValue($entity_and_access['entity'], $format, $context);
-      $normalizer_value->setInclude($included_normalizer_value);
-      $normalizer_value->addCacheableDependency($entity_and_access['access']);
-      $normalizer_value->addCacheableDependency($included_normalizer_value);
-      // Add the cacheable dependency of the included item directly to the
-      // response cacheable metadata. This is similar to the flatten include
-      // data structure, instead of a content graph.
-      if (!empty($context['cacheable_metadata'])) {
-        $context['cacheable_metadata']->addCacheableDependency($normalizer_value);
-      }
     }
-    return $normalizer_value;
+    else {
+      $included_normalizer_value = NULL;
+    }
+
+    return new RelationshipItemNormalizerValue(
+      $values,
+      new CacheableMetadata(),
+      $relationship_item->getTargetResourceType(),
+      $included_normalizer_value
+    );
   }
 
   /**
