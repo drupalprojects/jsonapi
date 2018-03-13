@@ -7,6 +7,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\jsonapi\Normalizer\Value\RelationshipItemNormalizerValue;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
 use Drupal\jsonapi\Controller\EntityResource;
+use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Converts the Drupal entity reference item object to a JSON API structure.
@@ -49,6 +50,16 @@ class RelationshipItemNormalizer extends FieldItemNormalizer {
   public function __construct(ResourceTypeRepositoryInterface $resource_type_repository, JsonApiDocumentTopLevelNormalizer $jsonapi_document_toplevel_normalizer) {
     $this->resourceTypeRepository = $resource_type_repository;
     $this->jsonapiDocumentToplevelNormalizer = $jsonapi_document_toplevel_normalizer;
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * @todo Remove this override when the dependency on \Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer is removed.
+   */
+  public function setSerializer(SerializerInterface $serializer) {
+    parent::setSerializer($serializer);
+    $this->jsonapiDocumentToplevelNormalizer->setSerializer($serializer);
   }
 
   /**

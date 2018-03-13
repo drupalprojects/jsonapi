@@ -53,6 +53,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     'user',
     'file',
     'image',
+    'jsonapi_test_normalizers_kernel',
   ];
 
   /**
@@ -220,7 +221,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $response = new ResourceResponse();
     $normalized = $this
       ->container
-      ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
+      ->get('jsonapi.serializer_do_not_use_removal_imminent')
       ->normalize(
         new JsonApiDocumentTopLevel($this->node),
         'api_json',
@@ -318,8 +319,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
 
     $response = new ResourceResponse();
     $normalized = $this
-      ->container
-      ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
+      ->getNormalizer()
       ->normalize(
         $document_wrapper->reveal(),
         'api_json',
@@ -358,7 +358,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $response = new ResourceResponse();
     $normalized = $this
       ->container
-      ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
+      ->get('jsonapi.serializer_do_not_use_removal_imminent')
       ->normalize(
         $document_wrapper->reveal(),
         'api_json',
@@ -436,7 +436,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $response = new ResourceResponse();
     $normalized = $this
       ->container
-      ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
+      ->get('jsonapi.serializer_do_not_use_removal_imminent')
       ->normalize($document_wrapper->reveal(), 'api_json', [
         'request' => $request,
         'resource_type' => $resource_type,
@@ -463,8 +463,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
 
     list($request, $resource_type) = $this->generateProphecies('node', 'article', 'id');
     $node = $this
-      ->container
-      ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
+      ->getNormalizer()
       ->denormalize(Json::decode($payload), NULL, 'api_json', [
         'request' => $request,
         'resource_type' => $resource_type,
@@ -533,8 +532,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       list($request, $resource_type) = $this->generateProphecies('node', 'article');
       $this->container->get('request_stack')->push($request);
       $node = $this
-        ->container
-        ->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
+        ->getNormalizer()
         ->denormalize(Json::decode($payload), NULL, 'api_json', [
           'request' => $request,
           'resource_type' => $resource_type,
@@ -598,7 +596,8 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     list($request, $resource_type) = $this->generateProphecies('node', 'article');
     $this->container->get('request_stack')->push($request);
     try {
-      $this->container->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
+      $this
+        ->getNormalizer()
         ->denormalize(Json::decode($payload), NULL, 'api_json', [
           'request' => $request,
           'resource_type' => $resource_type,
@@ -617,7 +616,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     list($request, $resource_type) = $this->generateProphecies('node', 'article');
     $this->container->get('request_stack')->push($request);
     try {
-      $this->container->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi')
+      $this->container->get('jsonapi_test_normalizers_kernel.jsonapi_document_toplevel')
         ->denormalize(Json::decode($payload), NULL, 'api_json', [
           'request' => $request,
           'resource_type' => $resource_type,
@@ -745,7 +744,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
    * Helper to load the normalizer.
    */
   protected function getNormalizer() {
-    return $this->container->get('serializer.normalizer.jsonapi_document_toplevel.jsonapi');
+    return $this->container->get('jsonapi_test_normalizers_kernel.jsonapi_document_toplevel');
   }
 
   /**
