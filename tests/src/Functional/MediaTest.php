@@ -300,4 +300,33 @@ class MediaTest extends ResourceTestBase {
     $this->markTestSkipped('POSTing File Media items is not supported until https://www.drupal.org/node/1927648 is solved.');
   }
 
+  /**
+   * {@inheritdoc}
+   *
+   * @todo Determine if this override should be removed in https://www.drupal.org/project/jsonapi/issues/2952522
+   */
+  protected function getExpectedGetRelationshipDocumentData($relationship_field_name) {
+    $data = parent::getExpectedGetRelationshipDocumentData($relationship_field_name);
+    switch ($relationship_field_name) {
+      case 'thumbnail':
+        $data['meta'] = [
+          'alt' => 'Thumbnail',
+          'width' => '180',
+          'height' => '180',
+          'title' => 'Llama',
+        ];
+        return $data;
+
+      case 'field_media_file':
+        $data['meta'] = [
+          'description' => NULL,
+          'display' => NULL,
+        ];
+        return $data;
+
+      default:
+        return $data;
+    }
+  }
+
 }

@@ -10,11 +10,14 @@ use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Cache\CacheableResponseInterface;
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\ContentEntityNullStorage;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\Plugin\Field\FieldType\BooleanItem;
 use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
+use Drupal\Core\TypedData\DataReferenceTargetDefinition;
 use Drupal\Core\Url;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
@@ -32,6 +35,8 @@ use Symfony\Component\HttpFoundation\Response;
  * Subclass this for every JSON API resource type.
  */
 abstract class ResourceTestBase extends BrowserTestBase {
+
+  use ResourceResponseTestTrait;
 
   /**
    * {@inheritdoc}
@@ -180,8 +185,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $this->entityStorage = $this->container->get('entity_type.manager')
       ->getStorage(static::$entityTypeId);
     $this->entity = $this->createEntity();
-    \Drupal::service('jsonapi.resource_type.repository')->clearCachedDefinitions();
-    \Drupal::service('router.builder')->rebuild();
 
     if ($this->entity instanceof FieldableEntityInterface) {
       // Add access-protected field.
@@ -220,6 +223,9 @@ abstract class ResourceTestBase extends BrowserTestBase {
           ->setTranslatable(FALSE)
           ->save();
       }
+
+      \Drupal::service('jsonapi.resource_type.repository')->clearCachedDefinitions();
+      \Drupal::service('router.builder')->rebuild();
 
       // Reload entity so that it has the new field.
       $reloaded_entity = $this->entityStorage->loadUnchanged($this->entity->id());
@@ -667,7 +673,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     /* $url = $this->entity->toUrl('jsonapi'); */
     $request_options = [];
     $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
-    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions('GET'));
+    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
 
     // DX: 403 when unauthorized.
     $response = $this->request('GET', $url, $request_options);
@@ -838,6 +844,251 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $response = $this->request('GET', $url, $request_options);
     $this->assertSame(404, $response->getStatusCode());
     $this->assertSame(['text/html; charset=UTF-8'], $response->getHeader('Content-Type'));
+  }
+
+  /**
+   * Tests GETing related resource of an individual resource.
+   *
+   * Expected responses are built by making requests to 'relationship' routes.
+   * Using the fetched resource identifiers, if any, all targeted resources are
+   * fetched individually. These individual responses are then 'merged' into a
+   * single expected ResourceResponse. This is repeated for every relationship
+   * field of the resource type under test.
+   */
+  public function testRelated() {
+    $request_options = [];
+    $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
+    $this->doTestRelated($request_options);
+    $this->setUpAuthorization('GET');
+    $this->doTestRelated($request_options);
+  }
+
+  /**
+   * Tests GETing relationships of an individual resource.
+   *
+   * Unlike the "related" routes, relationship routes only return information
+   * about the "relationship" itself, not the targeted resources. For JSON API
+   * with Drupal, relationship routes are like looking at an entity reference
+   * field without loading the entities. It only reveals the type of the
+   * targeted resource and the target resource IDs. These type+ID combos are
+   * referred to as "resource identifiers."
+   */
+  public function testGetRelationships() {
+    $request_options = [];
+    $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
+    $this->doTestGetRelationships($request_options);
+    $this->setUpAuthorization('GET');
+    $this->doTestGetRelationships($request_options);
+  }
+
+  /**
+   * Performs one round of related route testing.
+   *
+   * By putting this behavior in its own method, authorization and other
+   * variations can be done in the calling method around assertions. For
+   * example, it can be run once with an authorized user and again without one.
+   *
+   * @param array $request_options
+   *   Request options to apply.
+   *
+   * @see \GuzzleHttp\ClientInterface::request()
+   */
+  protected function doTestRelated(array $request_options) {
+    $relationship_field_names = $this->getRelationshipFieldNames();
+    // If there are no relationship fields, we can't test related routes.
+    if (empty($relationship_field_names)) {
+      return;
+    }
+    // Builds an array of expected responses, keyed by relationship field name.
+    $expected_relationship_responses = $this->getExpectedRelatedResponses($relationship_field_names, $request_options);
+    // Fetches actual responses as an array keyed by relationship field name.
+    $relationship_responses = $this->getRelatedResponses($relationship_field_names, $request_options);
+    foreach ($relationship_field_names as $relationship_field_name) {
+      /* @var \Drupal\jsonapi\ResourceResponse $expected_resource_response */
+      $expected_resource_response = $expected_relationship_responses[$relationship_field_name];
+      $actual_response = $relationship_responses[$relationship_field_name];
+      // @todo uncomment this assertion in https://www.drupal.org/project/jsonapi/issues/2929428
+      // Dynamic Page Cache miss because cache should vary based on the
+      // 'include' query param.
+      // @codingStandardsIgnoreStart
+      //$expected_cacheability = $expected_resource_response->getCacheableMetadata();
+      //$this->assertResourceResponse(
+      //  $expected_resource_response->getStatusCode(),
+      //  $expected_document,
+      //  $actual_response,
+      //  $expected_cacheability->getCacheTags(),
+      //  \Drupal::service('cache_contexts_manager')->optimizeTokens($expected_cacheability->getCacheContexts()),
+      //  FALSE,
+      //  $expected_cacheability->getCacheMaxAge() === 0 ? 'UNCACHEABLE' : 'MISS'
+      //);
+      // @codingStandardsIgnoreEnd
+      $expected_document = $expected_resource_response->getResponseData();
+      $actual_document = Json::decode((string) $actual_response->getBody());
+      $this->assertSameDocument($expected_document, $actual_document);
+    }
+  }
+
+  /**
+   * Performs one round of relationship route testing.
+   *
+   * @param array $request_options
+   *   Request options to apply.
+   *
+   * @see \GuzzleHttp\ClientInterface::request()
+   * @see ::doTestRelated
+   */
+  protected function doTestGetRelationships(array $request_options) {
+    $relationship_field_names = $this->getRelationshipFieldNames();
+    // If there are no relationship fields, we can't test relationship routes.
+    if (empty($relationship_field_names)) {
+      return;
+    }
+    $related_responses = $this->getRelationshipResponses($relationship_field_names, $request_options);
+    foreach ($relationship_field_names as $relationship_field_name) {
+      $expected_resource_response = $this->getExpectedGetRelationshipResponse($relationship_field_name);
+      $expected_document = $expected_resource_response->getResponseData();
+      $actual_response = $related_responses[$relationship_field_name];
+      $actual_document = Json::decode((string) $actual_response->getBody());
+      $this->assertSameDocument($expected_document, $actual_document);
+    }
+  }
+
+  /**
+   * Gets an expected ResourceResponse for the given relationship.
+   *
+   * @param string $relationship_field_name
+   *   The relationship for which to get an expected response.
+   *
+   * @return \Drupal\jsonapi\ResourceResponse
+   *   The expected ResourceResponse.
+   */
+  protected function getExpectedGetRelationshipResponse($relationship_field_name) {
+    $expected_document = $this->getExpectedGetRelationshipDocument($relationship_field_name);
+    $status_code = isset($expected_document['errors'][0]['status']) ? $expected_document['errors'][0]['status'] : 200;
+    $resource_response = new ResourceResponse($expected_document, $status_code);
+    return $resource_response;
+  }
+
+  /**
+   * Gets an expected document for the given relationship.
+   *
+   * @param string $relationship_field_name
+   *   The relationship for which to get an expected response.
+   *
+   * @return array
+   *   The expected document array.
+   */
+  protected function getExpectedGetRelationshipDocument($relationship_field_name) {
+    $entity_type_id = $this->entity->getEntityTypeId();
+    $bundle = $this->entity->bundle();
+    $id = $this->entity->uuid();
+    $self_link = Url::fromUri("base:/jsonapi/$entity_type_id/$bundle/$id/relationships/$relationship_field_name")->setAbsolute()->toString(TRUE)->getGeneratedUrl();
+    $related_link = Url::fromUri("base:/jsonapi/$entity_type_id/$bundle/$id/$relationship_field_name")->setAbsolute()->toString(TRUE)->getGeneratedUrl();
+    $data = $this->getExpectedGetRelationshipDocumentData($relationship_field_name);
+    return [
+      'data' => $data,
+      // @todo Uncomment this in https://www.drupal.org/project/jsonapi/issues/2949807
+      // @codingStandardsIgnoreStart
+      //'jsonapi' => [
+      //  'meta' => [
+      //    'links' => [
+      //      'self' => 'http://jsonapi.org/format/1.0/',
+      //    ],
+      //  ],
+      //  'version' => '1.0',
+      //],
+      // @codingStandardsIgnoreEnd
+      'links' => [
+        'self' => $self_link,
+        'related' => $related_link,
+      ],
+    ];
+  }
+
+  /**
+   * Gets the expected document data for the given relationship.
+   *
+   * @param string $relationship_field_name
+   *   The relationship for which to get an expected response.
+   *
+   * @return mixed
+   *   The expected document data.
+   */
+  protected function getExpectedGetRelationshipDocumentData($relationship_field_name) {
+    /* @var \Drupal\Core\Field\FieldItemListInterface $field */
+    $field = $this->entity->{$relationship_field_name};
+    $is_multiple = $field->getFieldDefinition()->getFieldStorageDefinition()->getCardinality() !== 1;
+    if ($field->isEmpty()) {
+      return $is_multiple ? [] : NULL;
+    }
+    if (!$is_multiple) {
+      $entity = $field->entity;
+      return is_null($entity) ? NULL : static::toResourceIdentifier($entity);
+    }
+    else {
+      return array_filter(array_map(function ($item) {
+        $entity = $item->entity;
+        return is_null($entity) ? NULL : static::toResourceIdentifier($entity);
+      }, iterator_to_array($field)));
+    }
+  }
+
+  /**
+   * Builds an array of expected related ResourceResponses, keyed by field name.
+   *
+   * @param array $relationship_field_names
+   *   The relationship field names for which to build expected
+   *   ResourceResponses.
+   * @param array $request_options
+   *   Request options to apply.
+   *
+   * @return mixed
+   *   An array of expected ResourceResponses, keyed by thier relationship field
+   *   name.
+   *
+   * @see \GuzzleHttp\ClientInterface::request()
+   */
+  protected function getExpectedRelatedResponses(array $relationship_field_names, array $request_options) {
+    // Get the relationships responses which contain resource identifiers for
+    // every related resource.
+    $relationship_responses = static::toResourceResponses($this->getRelationshipResponses($relationship_field_names, $request_options));
+    foreach ($relationship_responses as $relationship_field_name => $relationship_response) {
+      $self_link = static::getRelatedLink(static::toResourceIdentifier($this->entity), $relationship_field_name);
+      $relationship_document = $relationship_response->getResponseData();
+      // The relationships may be empty, in which case we shouldn't attempt to
+      // fetch the individual identified resources.
+      if (empty($relationship_document['data'])) {
+        $related_response = isset($relationship_document['errors'])
+          ? $relationship_response
+          : new ResourceResponse([
+            // Empty to-one relationships should be NULL and empty to-many
+            // relationships should be an empty array.
+            'data' => is_null($relationship_document['data']) ? NULL : [],
+            'jsonapi' => [
+              'meta' => [
+                'links' => [
+                  'self' => 'http://jsonapi.org/format/1.0/',
+                ],
+              ],
+              'version' => '1.0',
+            ],
+            'links' => ['self' => $self_link],
+          ]);
+      }
+      else {
+        $is_to_one_relationship = static::isResourceIdentifier($relationship_document['data']);
+        $resource_identifiers = $is_to_one_relationship
+          ? [$relationship_document['data']]
+          : $relationship_document['data'];
+        // @todo Add explicit tests for individually inaccessible entities on a related route because relationship data is accessible if the field is accessible, but the individual targeted resource still may be inaccessible.
+        $individual_responses = static::toResourceResponses($this->getResponses(static::getResourceLinks($resource_identifiers), $request_options));
+        $related_response = static::toCollectionResourceResponse($individual_responses, $self_link, !$is_to_one_relationship);
+      }
+      $expected_related_responses[$relationship_field_name] = $related_response;
+    }
+    return $expected_related_responses ?: [];
   }
 
   /**
@@ -1665,31 +1916,23 @@ abstract class ResourceTestBase extends BrowserTestBase {
    * @see \GuzzleHttp\ClientInterface::request()
    */
   protected function doTestIncluded(Url $url, array $request_options) {
-    $individual_response = $this->request('GET', $url, $request_options);
-    $individual_response_document = Json::decode((string) $individual_response->getBody());
-    // @todo add explicit tests for non-accessible relationship fields.
-    $accessible_relationship_field_names = isset($individual_response_document['data']['relationships'])
-      ? array_keys($individual_response_document['data']['relationships'])
-      : [];
-    // If there are no accessible relationships, we can't include anything.
-    if (empty($accessible_relationship_field_names)) {
+    $relationship_field_names = $this->getRelationshipFieldNames();
+    // If there are no relationship fields, we can't include anything.
+    if (empty($relationship_field_names)) {
       return;
     }
     // Builds a map of relationship field names to related resources by making
     // requests to the 'related' link in the document. We will later merge this
     // into an expected response so that we can verify all the included
     // data and cacheable metadata.
-    $related_responses = $this->getRelatedResponses(
-      static::extractRelatedLinks($accessible_relationship_field_names, $individual_response_document),
-      $request_options
-    );
+    $related_responses = static::toResourceResponses($this->getRelatedResponses($relationship_field_names, $request_options));
     $field_sets = [
       'empty' => [],
-      'all' => $accessible_relationship_field_names,
+      'all' => $relationship_field_names,
     ];
-    if (count($accessible_relationship_field_names) > 1) {
-      $about_half_the_fields = floor(count($accessible_relationship_field_names) / 2);
-      $field_sets['some'] = array_slice($accessible_relationship_field_names, $about_half_the_fields);
+    if (count($relationship_field_names) > 1) {
+      $about_half_the_fields = floor(count($relationship_field_names) / 2);
+      $field_sets['some'] = array_slice($relationship_field_names, $about_half_the_fields);
     }
     foreach ($field_sets as $type => $field_set) {
       $query = ['include' => implode(',', $field_set)];
@@ -1801,108 +2044,41 @@ abstract class ResourceTestBase extends BrowserTestBase {
   }
 
   /**
-   * Extracts links from a document using a list of relationship field names.
-   *
-   * @param array $field_names
-   *   A list of resource relationship field names.
-   * @param array $document
-   *   A JSON API document.
+   * Gets a list of relationship field names for the resource type under test.
    *
    * @return array
-   *   The extracted related links, keyed by relationship field name.
+   *   An array of relationship field names.
    */
-  protected static function extractRelatedLinks(array $field_names, array $document) {
-    return array_reduce($field_names, function ($links, $field_name) use ($document) {
-      if ($link = array_reduce(
-        ['data', 'relationships', $field_name, 'links', 'related'],
-        'array_column',
-        [$document]
-      )) {
-        $links[$field_name] = reset($link);
+  protected function getRelationshipFieldNames() {
+    // Only content entity types can have relationships.
+    $fields = $this->entity instanceof ContentEntityInterface
+      ? iterator_to_array($this->entity)
+      : [];
+    return array_reduce($fields, function ($field_names, $field) {
+      /* @var \Drupal\Core\Field\FieldItemListInterface $field */
+      if ($this->isReferenceFieldDefinition($field->getFieldDefinition())) {
+        $field_names[] = $field->getName();
       }
-      return $links;
+      return $field_names;
     }, []);
   }
 
   /**
-   * Gets responses from an array of 'related' links.
+   * Determines if a given field definition is a reference field.
    *
-   * @param array $links
-   *   An array of 'related' links keyed by relationship field name.
-   * @param array $request_options
-   *   Request options to apply.
-   *
-   * @return array
-   *   The related ResourceResponses, keyed by relationship field names.
-   *
-   * @see \GuzzleHttp\ClientInterface::request()
-   */
-  protected function getRelatedResponses(array $links, array $request_options) {
-    return array_reduce(array_keys($links), function ($related_responses, $field_name) use ($links, $request_options) {
-      $related_response = $this->request('GET', Url::fromUri($links[$field_name]), $request_options);
-      $cacheability = new CacheableMetadata();
-      if ($cache_tags = $related_response->getHeader('X-Drupal-Cache-Tags')) {
-        $cacheability->addCacheTags(explode(' ', $cache_tags[0]));
-      }
-      if ($cache_contexts = $related_response->getHeader('X-Drupal-Cache-Contexts')) {
-        $cacheability->addCacheContexts(explode(' ', $cache_contexts[0]));
-      }
-      if ($dynamic_cache = $related_response->getHeader('X-Drupal-Dynamic-Cache')) {
-        $cacheability->setCacheMaxAge(($dynamic_cache[0] === 'UNCACHEABLE') ? 0 : Cache::PERMANENT);
-      }
-      $related_document = Json::decode($related_response->getBody());
-      $related_responses[$field_name] = (new ResourceResponse($related_document))
-        ->addCacheableDependency($cacheability);
-      return $related_responses;
-    }, []);
-  }
-
-  /**
-   * Sorts a collection of resources or resource identifiers.
-   *
-   * This is useful for asserting collections or resources where order cannot
-   * be known in advance.
-   *
-   * @param array $resources
-   *   The resource or resource identifier.
-   */
-  protected static function sortResourceCollection(array &$resources) {
-    usort($resources, function ($a, $b) {
-      return strcmp("{$a['type']}:{$a['id']}", "{$b['type']}:{$b['id']}");
-    });
-  }
-
-  /**
-   * Determines if a given resource exists in a list of resources.
-   *
-   * @param array $needle
-   *   The resource or resource identifier.
-   * @param array $haystack
-   *   The list of resources or resource identifiers to search.
+   * @param \Drupal\Core\Field\FieldDefinitionInterface $field_definition
+   *   The field definition to inspect.
    *
    * @return bool
-   *   TRUE if the needle exists is present in the haystack, FALSE otherwise.
+   *   TRUE if the field definition is found to be a reference field. FALSE
+   *   otherwise.
    */
-  protected static function collectionHasResourceIdentifier(array $needle, array $haystack) {
-    foreach ($haystack as $resource) {
-      if ($resource['type'] == $needle['type'] && $resource['id'] == $needle['id']) {
-        return TRUE;
-      }
-    }
-    return FALSE;
-  }
-
-  /**
-   * Checks if a given array is a resource identifier.
-   *
-   * @param array $data
-   *   An array to check.
-   *
-   * @return bool
-   *   TRUE if the array has a type and ID, FALSE otherwise.
-   */
-  protected static function isResourceIdentifier(array $data) {
-    return array_key_exists('type', $data) && array_key_exists('id', $data);
+  protected function isReferenceFieldDefinition(FieldDefinitionInterface $field_definition) {
+    /* @var \Drupal\Core\Field\TypedData\FieldItemDataDefinition $item_definition */
+    $item_definition = $field_definition->getItemDefinition();
+    $main_property = $item_definition->getMainPropertyName();
+    $property_definition = $item_definition->getPropertyDefinition($main_property);
+    return $property_definition instanceof DataReferenceTargetDefinition;
   }
 
 }

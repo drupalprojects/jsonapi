@@ -255,4 +255,11 @@ class BlockContentTest extends ResourceTestBase {
     return parent::testDeleteIndividual();
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function testRelated() {
+    $this->markTestSkipped('Remove this in https://www.drupal.org/project/jsonapi/issues/2940339');
+  }
+
 }

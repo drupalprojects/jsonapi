@@ -394,4 +394,11 @@ class CommentTest extends ResourceTestBase {
       ->addCacheTags(['comment:1']);
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function testRelated() {
+    $this->markTestSkipped('Remove this in https://www.drupal.org/project/jsonapi/issues/2940339');
+  }
+
 }
