@@ -220,8 +220,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
 
     $response = new ResourceResponse();
     $normalized = $this
-      ->container
-      ->get('jsonapi.serializer_do_not_use_removal_imminent')
+      ->getNormalizer()
       ->normalize(
         new JsonApiDocumentTopLevel($this->node),
         'api_json',
@@ -357,8 +356,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
 
     $response = new ResourceResponse();
     $normalized = $this
-      ->container
-      ->get('jsonapi.serializer_do_not_use_removal_imminent')
+      ->getNormalizer()
       ->normalize(
         $document_wrapper->reveal(),
         'api_json',
@@ -435,8 +433,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
 
     $response = new ResourceResponse();
     $normalized = $this
-      ->container
-      ->get('jsonapi.serializer_do_not_use_removal_imminent')
+      ->getNormalizer()
       ->normalize($document_wrapper->reveal(), 'api_json', [
         'request' => $request,
         'resource_type' => $resource_type,
