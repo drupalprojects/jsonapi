@@ -132,7 +132,7 @@ services:
 
   jsonapi.entity.to_jsonapi:
     class: Drupal\jsonapi\EntityToJsonApi
-    arguments: ['@jsonapi.serializer_do_not_use_removal_imminent', '@jsonapi.resource_type.repository', '@current_user']
+    arguments: ['@jsonapi.serializer_do_not_use_removal_imminent', '@jsonapi.resource_type.repository', '@current_user', '@request_stack']
 
   logger.channel.jsonapi:
     parent: logger.channel_base
