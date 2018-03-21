@@ -8,6 +8,7 @@ use Drupal\comment\Tests\CommentTestTrait;
 use Drupal\Component\Serialization\Json;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
 use Drupal\entity_test\Entity\EntityTest;
 use Drupal\Tests\rest\Functional\BcTimestampNormalizerUnixTestTrait;
@@ -392,6 +393,16 @@ class CommentTest extends ResourceTestBase {
     // @see \Drupal\comment\CommentAccessControlHandler::checkAccess()
     return parent::getExpectedUnauthorizedAccessCacheability()
       ->addCacheTags(['comment:1']);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function entityFieldAccess(EntityInterface $entity, $field_name, $operation) {
+    // Also reset the 'entity_test' entity access control handler because
+    // comment access also depends on access to the commented entity type.
+    \Drupal::entityTypeManager()->getAccessControlHandler('entity_test')->resetCache();
+    return parent::entityFieldAccess($entity, $field_name, $operation);
   }
 
   /**

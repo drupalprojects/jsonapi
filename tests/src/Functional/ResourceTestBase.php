@@ -6,6 +6,7 @@ use Behat\Mink\Driver\BrowserKitDriver;
 use Drupal\Component\Serialization\Json;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Component\Utility\Random;
+use Drupal\Core\Access\AccessResultReasonInterface;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Cache\CacheableResponseInterface;
@@ -15,6 +16,7 @@ use Drupal\Core\Entity\ContentEntityNullStorage;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Field\Plugin\Field\FieldType\BooleanItem;
 use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
 use Drupal\Core\TypedData\DataReferenceTargetDefinition;
@@ -41,7 +43,13 @@ abstract class ResourceTestBase extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['jsonapi', 'basic_auth', 'rest_test', 'text'];
+  protected static $modules = [
+    'jsonapi',
+    'basic_auth',
+    'rest_test',
+    'jsonapi_test_field_access',
+    'text',
+  ];
 
   /**
    * The tested entity type.
@@ -204,6 +212,27 @@ abstract class ResourceTestBase extends BrowserTestBase {
         ->setTranslatable(FALSE)
         ->save();
 
+      FieldStorageConfig::create([
+        'entity_type' => static::$entityTypeId,
+        'field_name' => 'field_jsonapi_test_entity_ref',
+        'type' => 'entity_reference',
+      ])
+        ->setSetting('target_type', 'user')
+        ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
+        ->save();
+
+      FieldConfig::create([
+        'entity_type' => static::$entityTypeId,
+        'field_name' => 'field_jsonapi_test_entity_ref',
+        'bundle' => $this->entity->bundle(),
+      ])
+        ->setTranslatable(FALSE)
+        ->setSetting('handler', 'default')
+        ->setSetting('handler_settings', [
+          'target_bundles' => [$this->account->bundle() => $this->account->bundle()],
+        ])
+        ->save();
+
       // @todo Do this unconditionally when JSON API requires Drupal 8.5 or newer.
       if (floatval(\Drupal::VERSION) >= 8.5) {
         // Add multi-value field.
@@ -235,6 +264,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
         // Set a default value on the fields.
         $this->entity->set('field_rest_test', ['value' => 'All the faith he had had had had no effect on the outcome of his life.']);
+        $this->entity->set('field_jsonapi_test_entity_ref', ['user' => $this->account->id()]);
         // @todo Do this unconditionally when JSON API requires Drupal 8.5 or newer.
         if (floatval(\Drupal::VERSION) >= 8.5) {
           $this->entity->set('field_rest_test_multivalue', [['value' => 'One'], ['value' => 'Two']]);
@@ -908,6 +938,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     foreach ($relationship_field_names as $relationship_field_name) {
       /* @var \Drupal\jsonapi\ResourceResponse $expected_resource_response */
       $expected_resource_response = $expected_relationship_responses[$relationship_field_name];
+      /* @var \Psr\Http\Message\ResponseInterface $actual_response */
       $actual_response = $relationship_responses[$relationship_field_name];
       // @todo uncomment this assertion in https://www.drupal.org/project/jsonapi/issues/2929428
       // Dynamic Page Cache miss because cache should vary based on the
@@ -924,6 +955,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
       //  $expected_cacheability->getCacheMaxAge() === 0 ? 'UNCACHEABLE' : 'MISS'
       //);
       // @codingStandardsIgnoreEnd
+      $this->assertSame($expected_resource_response->getStatusCode(), $actual_response->getStatusCode());
       $expected_document = $expected_resource_response->getResponseData();
       $actual_document = Json::decode((string) $actual_response->getBody());
       $this->assertSameDocument($expected_document, $actual_document);
@@ -950,8 +982,10 @@ abstract class ResourceTestBase extends BrowserTestBase {
       $expected_resource_response = $this->getExpectedGetRelationshipResponse($relationship_field_name);
       $expected_document = $expected_resource_response->getResponseData();
       $actual_response = $related_responses[$relationship_field_name];
+      /* @var \Psr\Http\Message\ResponseInterface $actual_response */
       $actual_document = Json::decode((string) $actual_response->getBody());
       $this->assertSameDocument($expected_document, $actual_document);
+      $this->assertSame($expected_resource_response->getStatusCode(), $actual_response->getStatusCode());
     }
   }
 
@@ -965,6 +999,30 @@ abstract class ResourceTestBase extends BrowserTestBase {
    *   The expected ResourceResponse.
    */
   protected function getExpectedGetRelationshipResponse($relationship_field_name) {
+    $access = $this->entityFieldAccess($this->entity, $relationship_field_name, 'view');
+    if (!$access->isAllowed()) {
+      $detail = 'The current user is not allowed to view this relationship.';
+      if ($access instanceof AccessResultReasonInterface && ($reason = $access->getReason())) {
+        $detail .= ' ' . $reason;
+      }
+      return (new ResourceResponse([
+        'errors' => [
+          [
+            'status' => 403,
+            'title' => 'Forbidden',
+            'detail' => $detail,
+            'links' => [
+              'info' => HttpExceptionNormalizer::getInfoUrl(403),
+            ],
+            'code' => 0,
+            'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
+            'source' => [
+              'pointer' => $relationship_field_name,
+            ],
+          ],
+        ],
+      ], 403))->addCacheableDependency($access);
+    }
     $expected_document = $this->getExpectedGetRelationshipDocument($relationship_field_name);
     $status_code = isset($expected_document['errors'][0]['status']) ? $expected_document['errors'][0]['status'] : 200;
     $resource_response = new ResourceResponse($expected_document, $status_code);
@@ -1054,37 +1112,63 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // Get the relationships responses which contain resource identifiers for
     // every related resource.
     $relationship_responses = static::toResourceResponses($this->getRelationshipResponses($relationship_field_names, $request_options));
-    foreach ($relationship_responses as $relationship_field_name => $relationship_response) {
-      $self_link = static::getRelatedLink(static::toResourceIdentifier($this->entity), $relationship_field_name);
-      $relationship_document = $relationship_response->getResponseData();
-      // The relationships may be empty, in which case we shouldn't attempt to
-      // fetch the individual identified resources.
-      if (empty($relationship_document['data'])) {
-        $related_response = isset($relationship_document['errors'])
-          ? $relationship_response
-          : new ResourceResponse([
-            // Empty to-one relationships should be NULL and empty to-many
-            // relationships should be an empty array.
-            'data' => is_null($relationship_document['data']) ? NULL : [],
-            'jsonapi' => [
-              'meta' => [
-                'links' => [
-                  'self' => 'http://jsonapi.org/format/1.0/',
-                ],
+    foreach ($relationship_field_names as $relationship_field_name) {
+      $access = $this->entityFieldAccess($this->entity, $relationship_field_name, 'view');
+      if (!$access->isAllowed()) {
+        $detail = 'The current user is not allowed to view this relationship.';
+        if ($access instanceof AccessResultReasonInterface && ($reason = $access->getReason())) {
+          $detail .= ' ' . $reason;
+        }
+        $related_response = (new ResourceResponse([
+          'errors' => [
+            [
+              'status' => 403,
+              'title' => 'Forbidden',
+              'detail' => $detail,
+              'links' => [
+                'info' => HttpExceptionNormalizer::getInfoUrl(403),
               ],
-              'version' => '1.0',
+              'code' => 0,
+              'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
+              'source' => [
+                'pointer' => $relationship_field_name,
+              ],
             ],
-            'links' => ['self' => $self_link],
-          ]);
+          ],
+        ], 403))->addCacheableDependency($access);
       }
       else {
-        $is_to_one_relationship = static::isResourceIdentifier($relationship_document['data']);
-        $resource_identifiers = $is_to_one_relationship
-          ? [$relationship_document['data']]
-          : $relationship_document['data'];
-        // @todo Add explicit tests for individually inaccessible entities on a related route because relationship data is accessible if the field is accessible, but the individual targeted resource still may be inaccessible.
-        $individual_responses = static::toResourceResponses($this->getResponses(static::getResourceLinks($resource_identifiers), $request_options));
-        $related_response = static::toCollectionResourceResponse($individual_responses, $self_link, !$is_to_one_relationship);
+        $self_link = static::getRelatedLink(static::toResourceIdentifier($this->entity), $relationship_field_name);
+        $relationship_response = $relationship_responses[$relationship_field_name];
+        $relationship_document = $relationship_response->getResponseData();
+        // The relationships may be empty, in which case we shouldn't attempt to
+        // fetch the individual identified resources.
+        if (empty($relationship_document['data'])) {
+          $related_response = isset($relationship_document['errors'])
+            ? $relationship_response
+            : new ResourceResponse([
+              // Empty to-one relationships should be NULL and empty to-many
+              // relationships should be an empty array.
+              'data' => is_null($relationship_document['data']) ? NULL : [],
+              'jsonapi' => [
+                'meta' => [
+                  'links' => [
+                    'self' => 'http://jsonapi.org/format/1.0/',
+                  ],
+                ],
+                'version' => '1.0',
+              ],
+              'links' => ['self' => $self_link],
+            ]);
+        }
+        else {
+          $is_to_one_relationship = static::isResourceIdentifier($relationship_document['data']);
+          $resource_identifiers = $is_to_one_relationship
+            ? [$relationship_document['data']]
+            : $relationship_document['data'];
+          $individual_responses = static::toResourceResponses($this->getResponses(static::getResourceLinks($resource_identifiers), $request_options));
+          $related_response = static::toCollectionResourceResponse($individual_responses, $self_link, !$is_to_one_relationship);
+        }
       }
       $expected_related_responses[$relationship_field_name] = $related_response;
     }
@@ -2006,8 +2090,11 @@ abstract class ResourceTestBase extends BrowserTestBase {
         // If any of the related response documents had top-level errors, we
         // should later expect the document to have 'meta' errors too.
         foreach ($related_document['errors'] as $error) {
-          unset($error['source']['pointer']);
-          $expected_document['meta']['errors'][] = $error;
+          // @todo remove this conditional when inaccessible relationships are able to raise errors.
+          if ($error['detail'] !== 'The current user is not allowed to view this relationship.') {
+            unset($error['source']['pointer']);
+            $expected_document['meta']['errors'][] = $error;
+          }
         }
       }
       elseif (isset($related_document['data'])) {
@@ -2059,6 +2146,31 @@ abstract class ResourceTestBase extends BrowserTestBase {
       }
       return $field_names;
     }, []);
+  }
+
+  /**
+   * Check access for the given operation, field and entity.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity for which to check field access.
+   * @param string $field_name
+   *   The field for which to check access.
+   * @param string $operation
+   *   The operation for which to check access.
+   *
+   * @return \Drupal\Core\Access\AccessResultInterface
+   *   The AccessResult.
+   */
+  protected function entityFieldAccess(EntityInterface $entity, $field_name, $operation) {
+    // The default entity access control handler assumes that permissions do not
+    // change during the lifetime of a request and caches access results.
+    // However, we're changing permissions during a test run and need fresh
+    // results, so reset the cache.
+    \Drupal::entityTypeManager()->getAccessControlHandler($this->entity->getEntityTypeId())->resetCache();
+
+    $field_access = $entity->{$field_name}->access($operation, $this->account, TRUE);
+    $entity_access = $entity->access($operation, $this->account, TRUE);
+    return $entity_access->andIf($field_access);
   }
 
   /**

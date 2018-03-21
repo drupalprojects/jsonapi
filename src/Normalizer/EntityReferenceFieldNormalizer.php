@@ -89,7 +89,6 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
       return new NullFieldNormalizerValue($field_access, 'relationships');
     }
 
-    /* @var $field \Drupal\Core\Field\FieldItemListInterface */
     // Build the relationship object based on the Entity Reference and normalize
     // that object instead.
     $main_property = $field->getItemDefinition()->getMainPropertyName();

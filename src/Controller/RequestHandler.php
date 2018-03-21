@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
+use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Acts as intermediate request forwarder for resource plugins.
@@ -85,7 +86,7 @@ class RequestHandler {
   /**
    * Creates a new RequestHandler instance.
    *
-   * @param \Drupal\jsonapi\Serializer\Serializer $serializer
+   * @param \Symfony\Component\Serializer\SerializerInterface $serializer
    *   The JSON API serializer.
    * @param \Drupal\jsonapi\Context\CurrentContext $current_context
    *   The current JSON API context.
@@ -102,7 +103,7 @@ class RequestHandler {
    * @param \Drupal\jsonapi\LinkManager\LinkManager $link_manager
    *   The JSON API link manager.
    */
-  public function __construct($serializer, CurrentContext $current_context, RendererInterface $renderer, ResourceTypeRepositoryInterface $resource_type_repository, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $field_manager, FieldTypePluginManagerInterface $field_type_manager, LinkManager $link_manager) {
+  public function __construct(SerializerInterface $serializer, CurrentContext $current_context, RendererInterface $renderer, ResourceTypeRepositoryInterface $resource_type_repository, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $field_manager, FieldTypePluginManagerInterface $field_type_manager, LinkManager $link_manager) {
     $this->serializer = $serializer;
     $this->currentContext = $current_context;
     $this->renderer = $renderer;

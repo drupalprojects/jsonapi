@@ -444,18 +444,4 @@ class UserTest extends ResourceTestBase {
     $this->assertArrayHasKey('mail', $doc['data'][3]['attributes']);
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function testRelated() {
-    $this->markTestSkipped('Remove this in https://www.drupal.org/project/jsonapi/issues/2940339');
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function testGetRelationships() {
-    $this->markTestSkipped('Remove this in https://www.drupal.org/project/jsonapi/issues/2952506');
-  }
-
 }
