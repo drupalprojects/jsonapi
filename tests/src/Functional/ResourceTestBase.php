@@ -1570,9 +1570,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
           [
             'title' => 'Forbidden',
             'status' => 403,
-            // @todo Remove this line in favor of the commented line once https://www.drupal.org/project/drupal/issues/2938053 lands.
-            'detail' => "The current user is not allowed to PATCH the selected field (" . $patch_protected_field_name . ").",
-            /* 'detail' => "The current user is not allowed to PATCH the selected field (" . $patch_protected_field_name . ")." . ($reason !== NULL ? ' ' . $reason : ''), */
+            'detail' => "The current user is not allowed to PATCH the selected field (" . $patch_protected_field_name . ")." . ($reason !== NULL ? ' ' . $reason : ''),
             'links' => [
               'info' => HttpExceptionNormalizer::getInfoUrl(403),
             ],

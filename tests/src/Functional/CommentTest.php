@@ -43,14 +43,14 @@ class CommentTest extends ResourceTestBase {
    * {@inheritdoc}
    */
   protected static $patchProtectedFieldNames = [
-    'status' => NULL,
+    'status' => "The 'administer comments' permission is required.",
     // @todo These are relationships, and cannot be tested in the same way. Fix in https://www.drupal.org/project/jsonapi/issues/2939810.
     // 'pid' => NULL,
     // 'entity_id' => NULL,
     // 'uid' => NULL,
-    'name' => NULL,
-    'homepage' => NULL,
-    'created' => NULL,
+    'name' => "The 'administer comments' permission is required.",
+    'homepage' => "The 'administer comments' permission is required.",
+    'created' => "The 'administer comments' permission is required.",
     'changed' => NULL,
     'thread' => NULL,
     'entity_type' => NULL,
