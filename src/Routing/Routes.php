@@ -114,6 +114,7 @@ class Routes implements ContainerInjectionInterface {
 
       $defaults = [
         RouteObjectInterface::CONTROLLER_NAME => static::FRONT_CONTROLLER,
+        'resource_type' => $resource_type->getTypeName(),
       ];
       // Options that apply to all routes.
       $options = [
@@ -121,32 +122,43 @@ class Routes implements ContainerInjectionInterface {
         '_is_jsonapi' => TRUE,
       ];
 
+      $parameters = [
+        'resource_type' => [
+          'type' => 'jsonapi_resource_type',
+        ],
+      ];
+
       // Collection endpoint, like /jsonapi/file/photo.
-      $route_collection = (new Route($route_base_path, $defaults))
+      $route_collection = (new Route($route_base_path))
+        ->addDefaults($defaults + ['serialization_class' => JsonApiDocumentTopLevel::class])
         ->setRequirement('_entity_type', (string) $resource_type->getEntityTypeId())
         ->setRequirement('_bundle', (string) $resource_type->getBundle())
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
-        ->setOption('serialization_class', JsonApiDocumentTopLevel::class)
+        ->setOption('parameters', $parameters)
         ->setMethods(['GET', 'POST']);
       $route_collection->addOptions($options);
       $collection->add($build_route_name('collection'), $route_collection);
 
       // Individual endpoint, like /jsonapi/file/photo/123.
-      $parameters = [$resource_type->getEntityTypeId() => ['type' => 'entity:' . $resource_type->getEntityTypeId()]];
+      $parameters = array_merge($parameters, [
+        $resource_type->getEntityTypeId() => [
+          'type' => 'entity:' . $resource_type->getEntityTypeId(),
+        ],
+      ]);
       $route_individual = (new Route(sprintf('%s/{%s}', $route_base_path, $resource_type->getEntityTypeId())))
-        ->addDefaults($defaults)
+        ->addDefaults($defaults + ['serialization_class' => JsonApiDocumentTopLevel::class])
         ->setRequirement('_entity_type', (string) $resource_type->getEntityTypeId())
         ->setRequirement('_bundle', (string) $resource_type->getBundle())
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
-        ->setOption('serialization_class', JsonApiDocumentTopLevel::class)
         ->setMethods(['GET', 'PATCH', 'DELETE']);
       $route_individual->addOptions($options);
       $collection->add($build_route_name('individual'), $route_individual);
 
       // Related resource, like /jsonapi/file/photo/123/comments.
-      $route_related = (new Route(sprintf('%s/{%s}/{related}', $route_base_path, $resource_type->getEntityTypeId()), $defaults))
+      $route_related = (new Route(sprintf('%s/{%s}/{related}', $route_base_path, $resource_type->getEntityTypeId())))
+        ->addDefaults($defaults)
         ->setRequirement('_entity_type', (string) $resource_type->getEntityTypeId())
         ->setRequirement('_bundle', (string) $resource_type->getBundle())
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
@@ -157,13 +169,18 @@ class Routes implements ContainerInjectionInterface {
       $collection->add($build_route_name('related'), $route_related);
 
       // Related endpoint, like /jsonapi/file/photo/123/relationships/comments.
-      $route_relationship = (new Route(sprintf('%s/{%s}/relationships/{related}', $route_base_path, $resource_type->getEntityTypeId()), $defaults + ['_on_relationship' => TRUE]))
+      $route_relationship = (new Route(sprintf('%s/{%s}/relationships/{related}', $route_base_path, $resource_type->getEntityTypeId())))
+        ->addDefaults(
+          $defaults + [
+            '_on_relationship' => TRUE,
+            'serialization_class' => EntityReferenceFieldItemList::class,
+          ]
+        )
         ->setRequirement('_entity_type', (string) $resource_type->getEntityTypeId())
         ->setRequirement('_bundle', (string) $resource_type->getBundle())
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
-        ->setOption('serialization_class', EntityReferenceFieldItemList::class)
         ->setMethods(['GET', 'POST', 'PATCH', 'DELETE']);
       $route_relationship->addOptions($options);
       $collection->add($build_route_name('relationship'), $route_relationship);

@@ -12,7 +12,6 @@ use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer;
 use Drupal\jsonapi\LinkManager\LinkManager;
-use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Symfony\Component\Routing\Route;
@@ -40,7 +39,6 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
    */
   public function setUp() {
     $link_manager = $this->prophesize(LinkManager::class);
-    $current_context_manager = $this->prophesize(CurrentContext::class);
     $resource_type_repository = $this->prophesize(ResourceTypeRepository::class);
     $field_resolver = $this->prophesize(FieldResolver::class);
 
@@ -74,11 +72,8 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
     $current_route = $this->prophesize(Route::class);
     $current_route->getDefault('_on_relationship')->willReturn(FALSE);
 
-    $current_context_manager->isOnRelationship()->willReturn(FALSE);
-
     $this->normalizer = new JsonApiDocumentTopLevelNormalizer(
       $link_manager->reveal(),
-      $current_context_manager->reveal(),
       $entity_type_manager->reveal(),
       $resource_type_repository->reveal(),
       $field_resolver->reveal()

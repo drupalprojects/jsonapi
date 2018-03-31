@@ -20,13 +20,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 class FieldResolver {
 
   /**
-   * The entity type id.
-   *
-   * @var \Drupal\jsonapi\Context\CurrentContext
-   */
-  protected $currentContext;
-
-  /**
    * The entity type manager.
    *
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
@@ -57,8 +50,6 @@ class FieldResolver {
   /**
    * Creates a FieldResolver instance.
    *
-   * @param \Drupal\jsonapi\Context\CurrentContext $current_context
-   *   The JSON API CurrentContext service.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    * @param \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager
@@ -68,29 +59,11 @@ class FieldResolver {
    * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface $resource_type_repository
    *   The resource type repository.
    */
-  public function __construct(CurrentContext $current_context, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $field_manager, EntityTypeBundleInfoInterface $entity_type_bundle_info, ResourceTypeRepositoryInterface $resource_type_repository) {
-    $this->currentContext = $current_context;
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $field_manager, EntityTypeBundleInfoInterface $entity_type_bundle_info, ResourceTypeRepositoryInterface $resource_type_repository) {
     $this->entityTypeManager = $entity_type_manager;
     $this->fieldManager = $field_manager;
     $this->entityTypeBundleInfo = $entity_type_bundle_info;
     $this->resourceTypeRepository = $resource_type_repository;
-  }
-
-  /**
-   * Maps a Drupal field name to a public field name.
-   *
-   * Example:
-   *   'field_author.entity.field_first_name' -> 'author.firstName'.
-   *
-   * @param string $internal_field_name
-   *   The Drupal field name to map to a public field name.
-   *
-   * @return string
-   *   The mapped field name.
-   */
-  public function resolveExternal($internal_field_name) {
-    $resource_type = $this->currentContext->getResourceType();
-    return $resource_type->getPublicName($internal_field_name);
   }
 
   /**

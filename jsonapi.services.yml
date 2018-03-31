@@ -74,7 +74,7 @@ services:
       - { name: jsonapi_normalizer_do_not_use_removal_imminent }
   serializer.normalizer.jsonapi_document_toplevel.jsonapi:
     class: Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer
-    arguments: ['@jsonapi.link_manager', '@jsonapi.current_context', '@entity_type.manager', '@jsonapi.resource_type.repository', '@jsonapi.field_resolver']
+    arguments: ['@jsonapi.link_manager', '@entity_type.manager', '@jsonapi.resource_type.repository', '@jsonapi.field_resolver']
     tags:
       - { name: jsonapi_normalizer_do_not_use_removal_imminent }
   serializer.normalizer.entity_reference_field.jsonapi:
@@ -102,12 +102,9 @@ services:
   jsonapi.link_manager:
     class: Drupal\jsonapi\LinkManager\LinkManager
     arguments: ['@router.no_access_checks', '@url_generator']
-  jsonapi.current_context:
-    class: Drupal\jsonapi\Context\CurrentContext
-    arguments: ['@jsonapi.resource_type.repository', '@request_stack', '@current_route_match']
   jsonapi.field_resolver:
     class: Drupal\jsonapi\Context\FieldResolver
-    arguments: ['@jsonapi.current_context', '@entity_type.manager', '@entity_field.manager', '@entity_type.bundle.info', '@jsonapi.resource_type.repository']
+    arguments: ['@entity_type.manager', '@entity_field.manager', '@entity_type.bundle.info', '@jsonapi.resource_type.repository']
   access_check.jsonapi.custom_query_parameter_names:
     class: Drupal\jsonapi\Access\CustomQueryParameterNamesAccessCheck
     tags:
@@ -118,6 +115,11 @@ services:
       # Priority 10, to ensure it runs before @paramconverter.entity.
       - { name: paramconverter, priority: 10 }
     arguments: ['@entity.manager']
+  paramconverter.jsonapi.resource_type:
+    class: Drupal\jsonapi\ParamConverter\ResourceTypeConverter
+    arguments: ['@jsonapi.resource_type.repository']
+    tags:
+      - { name: paramconverter }
   jsonapi.exception_subscriber:
     class: Drupal\jsonapi\EventSubscriber\DefaultExceptionSubscriber
     tags:
@@ -143,7 +145,6 @@ services:
     class: \Drupal\jsonapi\Controller\RequestHandler
     arguments:
       - '@jsonapi.serializer_do_not_use_removal_imminent'
-      - '@jsonapi.current_context'
       - '@renderer'
       - '@jsonapi.resource_type.repository'
       - '@entity_type.manager'

@@ -8,7 +8,6 @@ use Drupal\Component\Uuid\Uuid;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
-use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\Context\FieldResolver;
 use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
 use Drupal\jsonapi\Normalizer\Value\JsonApiDocumentTopLevelNormalizerValue;
@@ -44,13 +43,6 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
   protected $linkManager;
 
   /**
-   * The current JSON API request context.
-   *
-   * @var \Drupal\jsonapi\Context\CurrentContext
-   */
-  protected $currentContext;
-
-  /**
    * The entity type manager.
    *
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
@@ -76,8 +68,6 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
    *
    * @param \Drupal\jsonapi\LinkManager\LinkManager $link_manager
    *   The link manager to get the links.
-   * @param \Drupal\jsonapi\Context\CurrentContext $current_context
-   *   The current context.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface $resource_type_repository
@@ -85,9 +75,8 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
    * @param \Drupal\jsonapi\Context\FieldResolver $field_resolver
    *   The JSON API field resolver.
    */
-  public function __construct(LinkManager $link_manager, CurrentContext $current_context, EntityTypeManagerInterface $entity_type_manager, ResourceTypeRepositoryInterface $resource_type_repository, FieldResolver $field_resolver) {
+  public function __construct(LinkManager $link_manager, EntityTypeManagerInterface $entity_type_manager, ResourceTypeRepositoryInterface $resource_type_repository, FieldResolver $field_resolver) {
     $this->linkManager = $link_manager;
-    $this->currentContext = $current_context;
     $this->entityTypeManager = $entity_type_manager;
     $this->resourceTypeRepository = $resource_type_repository;
     $this->fieldResolver = $field_resolver;
@@ -100,9 +89,6 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
     // Validate a few common errors in document formatting.
     $this->validateRequestBody($data);
 
-    $context += [
-      'on_relationship' => $this->currentContext->isOnRelationship(),
-    ];
     $normalized = [];
 
     if (!empty($data['data']['attributes'])) {
@@ -193,9 +179,6 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
    * {@inheritdoc}
    */
   public function normalize($object, $format = NULL, array $context = []) {
-    if (empty($context['resource_type'])) {
-      $context['resource_type'] = $this->currentContext->getResourceType();
-    }
     $value_extractor = $this->buildNormalizerValue($object->getData(), $format, $context);
     if (!empty($context['cacheable_metadata'])) {
       $context['cacheable_metadata']->addCacheableDependency($value_extractor);

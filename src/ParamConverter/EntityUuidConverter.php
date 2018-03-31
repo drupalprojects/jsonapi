@@ -42,7 +42,10 @@ class EntityUuidConverter extends EntityConverter {
    * {@inheritdoc}
    */
   public function applies($definition, $name, Route $route) {
-    return $route->getOption('_is_jsonapi');
+    return (
+      $route->getOption('_is_jsonapi') &&
+      !empty($definition['type']) && strpos($definition['type'], 'entity') === 0
+    );
   }
 
 }

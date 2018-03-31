@@ -7,8 +7,8 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\jsonapi\LinkManager\LinkManager;
+use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\ResourceType\ResourceType;
-use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\Controller\RequestHandler;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
 use Drupal\Tests\UnitTestCase;
@@ -37,20 +37,23 @@ class RequestHandlerTest extends UnitTestCase {
     $request->getContent()->willReturn('this is not used');
     $request->isMethodCacheable()->willReturn(FALSE);
     $request->getMethod()->willReturn(NULL);
-    $request->get(Argument::any())->willReturn(NULL);
+    $request->get('serialization_class')->willReturn(JsonApiDocumentTopLevel::class);
+    $request->get(Argument::type('string'))->willReturn(NULL);
     $request->getMimeType(Argument::any())->willReturn(NULL);
     $serializer = $this->prophesize(SerializerInterface::class);
     $serializer->deserialize(Argument::type('string'), Argument::type('string'), Argument::any(), Argument::type('array'))
       ->willThrow(new UnexpectedValueException('Foo'));
     $serializer->serialize(Argument::any(), Argument::any(), Argument::any())
       ->willReturn('{"errors":[{"status":422,"message":"Foo"}]}');
-    $current_context = $this->prophesize(CurrentContext::class);
-    $current_context->getResourceType()
-      ->willReturn(new ResourceType($this->randomMachineName(), $this->randomMachineName(), NULL));
+
+    $resource_type = new ResourceType(
+      $this->randomMachineName(),
+      $this->randomMachineName(),
+      'invalid'
+    );
 
     $request_handler = new RequestHandler(
       $serializer->reveal(),
-      $current_context->reveal(),
       $this->prophesize(RendererInterface::class)->reveal(),
       $this->prophesize(ResourceTypeRepositoryInterface::class)->reveal(),
       $this->prophesize(EntityTypeManagerInterface::class)->reveal(),
@@ -62,7 +65,7 @@ class RequestHandlerTest extends UnitTestCase {
     try {
       $request_handler->deserializeBody(
         $request->reveal(),
-        'invalid'
+        $resource_type
       );
       $this->fail('Expected exception.');
     }

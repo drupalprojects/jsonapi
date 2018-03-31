@@ -15,7 +15,6 @@ use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
-use Drupal\jsonapi\Context\CurrentContext;
 use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
 use Drupal\jsonapi\Exception\UnprocessableHttpEntityException;
 use Drupal\jsonapi\Query\Filter;
@@ -66,13 +65,6 @@ class EntityResource {
   /**
    * The current context service.
    *
-   * @var \Drupal\jsonapi\Context\CurrentContext
-   */
-  protected $currentContext;
-
-  /**
-   * The current context service.
-   *
    * @var \Drupal\Core\Field\FieldTypePluginManagerInterface
    */
   protected $pluginManager;
@@ -100,8 +92,6 @@ class EntityResource {
    *   The entity type manager.
    * @param \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager
    *   The entity type field manager.
-   * @param \Drupal\jsonapi\Context\CurrentContext $current_context
-   *   The current context.
    * @param \Drupal\Core\Field\FieldTypePluginManagerInterface $plugin_manager
    *   The plugin manager for fields.
    * @param \Drupal\jsonapi\LinkManager\LinkManager $link_manager
@@ -109,11 +99,10 @@ class EntityResource {
    * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface $resource_type_repository
    *   The link manager service.
    */
-  public function __construct(ResourceType $resource_type, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $field_manager, CurrentContext $current_context, FieldTypePluginManagerInterface $plugin_manager, LinkManager $link_manager, ResourceTypeRepositoryInterface $resource_type_repository) {
+  public function __construct(ResourceType $resource_type, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $field_manager, FieldTypePluginManagerInterface $plugin_manager, LinkManager $link_manager, ResourceTypeRepositoryInterface $resource_type_repository) {
     $this->resourceType = $resource_type;
     $this->entityTypeManager = $entity_type_manager;
     $this->fieldManager = $field_manager;
-    $this->currentContext = $current_context;
     $this->pluginManager = $plugin_manager;
     $this->linkManager = $link_manager;
     $this->resourceTypeRepository = $resource_type_repository;
