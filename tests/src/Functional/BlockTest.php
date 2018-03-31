@@ -136,6 +136,14 @@ class BlockTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
+  protected function getExpectedCacheContexts(array $sparse_fieldset = NULL) {
+    // @see ::createEntity()
+    return array_values(array_diff(parent::getExpectedCacheContexts(), ['user.permissions']));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   protected function getExpectedCacheTags(array $sparse_fieldset = NULL) {
     // Because the 'user.permissions' cache context is missing, the cache tag
     // for the anonymous user role is never added automatically.

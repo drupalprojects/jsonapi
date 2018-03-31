@@ -14,6 +14,8 @@ use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
  * Class to generate links and queries for entities.
  *
  * @deprecated
+ *
+ * @todo Make this take cacheability into account in https://www.drupal.org/project/jsonapi/issues/2952714.
  */
 class LinkManager {
 

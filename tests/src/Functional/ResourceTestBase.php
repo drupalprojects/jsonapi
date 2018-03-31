@@ -1232,8 +1232,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     // DX: 400 when unparseable request body.
     $response = $this->request('POST', $url, $request_options);
-    // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2943165.
-    /* $this->assertResourceErrorResponse(400, 'Bad Request', 'Syntax error', $response); */
+    $this->assertResourceErrorResponse(400, 'Syntax error', $response);
 
     $request_options[RequestOptions::BODY] = $parseable_invalid_request_body;
 
@@ -1504,8 +1503,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     // DX: 400 when unparseable request body.
     $response = $this->request('PATCH', $url, $request_options);
-    // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2943165.
-    /* $this->assertResourceErrorResponse(400, 'Syntax error', $response); */
+    $this->assertResourceErrorResponse(400, 'Syntax error', $response);
 
     $request_options[RequestOptions::BODY] = $parseable_invalid_request_body;
 

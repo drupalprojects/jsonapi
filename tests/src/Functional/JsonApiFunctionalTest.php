@@ -591,9 +591,22 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $created_response = Json::decode($response->getBody()->__toString());
     $this->assertEquals(201, $response->getStatusCode());
     $this->assertEquals(0, count($created_response['data']['relationships']['field_tags']['data']));
-    // 6. Serialization error.
+    // 6. Decoding error.
     $response = $this->request('POST', $collection_url, [
       'body' => '{"bad json",,,}',
+      'auth' => [$this->user->getUsername(), $this->user->pass_raw],
+      'headers' => [
+        'Content-Type' => 'application/vnd.api+json',
+        'Accept' => 'application/vnd.api+json',
+      ],
+    ]);
+    $created_response = Json::decode($response->getBody()->__toString());
+    $this->assertEquals(400, $response->getStatusCode());
+    $this->assertNotEmpty($created_response['errors']);
+    $this->assertEquals('Bad Request', $created_response['errors'][0]['title']);
+    // 6.1 Denormalizing error.
+    $response = $this->request('POST', $collection_url, [
+      'body' => '{"data":{"type":"something"},"valid yet nonsensical json":[]}',
       'auth' => [$this->user->getUsername(), $this->user->pass_raw],
       'headers' => [
         'Content-Type' => 'application/vnd.api+json',
@@ -604,7 +617,7 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $this->assertEquals(422, $response->getStatusCode());
     $this->assertNotEmpty($created_response['errors']);
     $this->assertEquals('Unprocessable Entity', $created_response['errors'][0]['title']);
-    // 6.1 Relationships are not included in "data".
+    // 6.2 Relationships are not included in "data".
     $malformed_body = $body;
     unset($malformed_body['data']['relationships']);
     $malformed_body['relationships'] = $body['data']['relationships'];
