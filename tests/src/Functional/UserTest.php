@@ -183,7 +183,11 @@ class UserTest extends ResourceTestBase {
    * Tests PATCHing security-sensitive base fields of the logged in account.
    */
   public function testPatchDxForSecuritySensitiveBaseFields() {
-    $original_normalization = $this->entityToJsonApi->normalize($this->account);
+    // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
+    $url = Url::fromRoute(sprintf('jsonapi.user--user.individual'), ['user' => $this->account->uuid()]);
+    /* $url = $this->account->toUrl('jsonapi'); */
+
+    $original_normalization = $this->normalize($this->account, $url);
     // @todo Remove the array_diff_key() call in https://www.drupal.org/node/2821077.
     $original_normalization['data']['attributes'] = array_diff_key(
       $original_normalization['data']['attributes'],
@@ -192,9 +196,6 @@ class UserTest extends ResourceTestBase {
 
     // Since this test must be performed by the user that is being modified,
     // we must use $this->account, not $this->entity.
-    // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
-    $url = Url::fromRoute(sprintf('jsonapi.user--user.individual'), ['user' => $this->account->uuid()]);
-    /* $url = $this->account->toUrl('jsonapi'); */
     $request_options = [];
     $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
     $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
@@ -344,13 +345,14 @@ class UserTest extends ResourceTestBase {
    * Tests PATCHing security-sensitive base fields to change other users.
    */
   public function testPatchSecurityOtherUser() {
-    $original_normalization = $this->entityToJsonApi->normalize($this->account);
-
-    // Since this test must be performed by the user that is being modified,
-    // we must use $this->account, not $this->entity.
     // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
     $url = Url::fromRoute(sprintf('jsonapi.user--user.individual'), ['user' => $this->account->uuid()]);
     /* $url = $this->account->toUrl('jsonapi'); */
+
+    $original_normalization = $this->normalize($this->account, $url);
+
+    // Since this test must be performed by the user that is being modified,
+    // we must use $this->account, not $this->entity.
     $request_options = [];
     $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
     $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());

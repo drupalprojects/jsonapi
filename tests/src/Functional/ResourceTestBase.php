@@ -24,6 +24,7 @@ use Drupal\Core\Url;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\jsonapi\Normalizer\HttpExceptionNormalizer;
+use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\ResourceResponse;
 use Drupal\path\Plugin\Field\FieldType\PathItem;
 use Drupal\Tests\BrowserTestBase;
@@ -31,6 +32,7 @@ use Drupal\user\Entity\Role;
 use Drupal\user\RoleInterface;
 use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -152,20 +154,12 @@ abstract class ResourceTestBase extends BrowserTestBase {
   protected $serializer;
 
   /**
-   * The Entity-to-JSON-API service.
-   *
-   * @var \Drupal\jsonapi\EntityToJsonApi
-   */
-  protected $entityToJsonApi;
-
-  /**
    * {@inheritdoc}
    */
   public function setUp() {
     parent::setUp();
 
     $this->serializer = $this->container->get('jsonapi.serializer_do_not_use_removal_imminent');
-    $this->entityToJsonApi = $this->container->get('jsonapi.entity.to_jsonapi');
 
     // Ensure the anonymous user role has no permissions at all.
     $user_role = Role::load(RoleInterface::ANONYMOUS_ID);
@@ -272,6 +266,26 @@ abstract class ResourceTestBase extends BrowserTestBase {
         $this->entity->save();
       }
     }
+  }
+
+  /**
+   * Generates a JSON API normalization for the given entity.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to generate a JSON API normalization for.
+   * @param \Drupal\Core\Url $url
+   *   The URL to use as the "self" link.
+   *
+   * @return array
+   *   The JSON API normalization for the given entity.
+   */
+  protected function normalize(EntityInterface $entity, Url $url) {
+    return $this->serializer->normalize(new JsonApiDocumentTopLevel($entity), 'api_json', [
+      'resource_type' => $this->container->get('jsonapi.resource_type.repository')->getByTypeName(static::$resourceTypeName),
+      // Pass a Request object to the normalizer; this will be considered the
+      // "current request" for generating the "self" link.
+      'request' => Request::create($url->toString(TRUE)->getGeneratedUrl()),
+    ]);
   }
 
   /**
@@ -1361,14 +1375,11 @@ abstract class ResourceTestBase extends BrowserTestBase {
       // Assert that the entity was indeed created, and that the response body
       // contains the serialized created entity.
       $created_entity = $this->entityStorage->loadUnchanged(static::$firstCreatedEntityId);
-      $created_entity_document = $this->entityToJsonApi->normalize($created_entity);
+      $created_entity_document = $this->normalize($created_entity, $url);
       // @todo Remove this if-test in https://www.drupal.org/node/2543726: execute
       // its body unconditionally.
       if (static::$entityTypeId !== 'taxonomy_term') {
         $decoded_response_body = Json::decode((string) $response->getBody());
-        // @todo Remove the two lines below once https://www.drupal.org/project/jsonapi/issues/2925043 lands.
-        unset($created_entity_document['links']);
-        unset($decoded_response_body['links']);
         $this->assertSame($created_entity_document, $decoded_response_body);
       }
       // Assert that the entity was indeed created using the POSTed values.
@@ -1644,7 +1655,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // response, change the modified entity field that caused the error response
     // back to its original value, repeat.
     foreach (static::$patchProtectedFieldNames as $patch_protected_field_name => $reason) {
-      $request_options[RequestOptions::BODY] = $this->entityToJsonApi->serialize($modified_entity);
+      $request_options[RequestOptions::BODY] = Json::encode($this->normalize($modified_entity, $url));
       $response = $this->request('PATCH', $url, $request_options);
       // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
       $expected_document = [
@@ -1671,7 +1682,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     // 200 for well-formed PATCH request that sends all fields (even including
     // read-only ones, but with unchanged values).
-    $valid_request_body = NestedArray::mergeDeep($this->entityToJsonApi->normalize($this->entity), $this->getPatchDocument());
+    $valid_request_body = NestedArray::mergeDeep($this->normalize($this->entity, $url), $this->getPatchDocument());
     $request_options[RequestOptions::BODY] = Json::encode($valid_request_body);
     $response = $this->request('PATCH', $url, $request_options);
     $this->assertResourceResponse(200, FALSE, $response);
@@ -1698,7 +1709,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // Assert that the entity was indeed updated, and that the response body
     // contains the serialized updated entity.
     $updated_entity = $this->entityStorage->loadUnchanged($this->entity->id());
-    $updated_entity_document = $this->entityToJsonApi->normalize($updated_entity);
+    $updated_entity_document = $this->normalize($updated_entity, $url);
     $this->assertSame($updated_entity_document, Json::decode((string) $response->getBody()));
     // Assert that the entity was indeed created using the PATCHed values.
     foreach ($this->getPatchDocument() as $field_name => $field_normalization) {
