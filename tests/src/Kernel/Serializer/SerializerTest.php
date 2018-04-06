@@ -4,6 +4,7 @@ namespace Drupal\Tests\jsonapi\Kernel\Serializer;
 
 use Drupal\Core\Render\Markup;
 use Drupal\jsonapi\Normalizer\Value\FieldNormalizerValue;
+use Drupal\jsonapi_test_data_type\TraversableObject;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\Tests\jsonapi\Kernel\JsonapiKernelTestBase;
@@ -30,6 +31,7 @@ class SerializerTest extends JsonapiKernelTestBase {
     'field',
     'text',
     'filter',
+    'jsonapi_test_data_type',
   ];
 
   /**
@@ -92,6 +94,12 @@ class SerializerTest extends JsonapiKernelTestBase {
     $nested_field = [
       $this->node->field_text,
     ];
+
+    // When an object implements \IteratorAggregate and has corresponding
+    // fallback normalizer, it should be normalized by fallback normalizer.
+    $traversableObject = new TraversableObject();
+    $value = $this->sut->normalize($traversableObject, 'api_json', $context);
+    $this->assertEquals($traversableObject->property, $value);
 
     // When wrapped in an array, we should still be using the JSON API
     // serializer.

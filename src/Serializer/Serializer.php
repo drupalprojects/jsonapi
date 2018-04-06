@@ -42,11 +42,13 @@ final class Serializer extends SymfonySerializer {
    * {@inheritdoc}
    */
   public function normalize($data, $format = NULL, array $context = []) {
-    if ($this->selfSupportsNormalization($data, $format) || (is_array($data) || $data instanceof \Traversable)) {
+    if ($this->selfSupportsNormalization($data, $format)) {
       return parent::normalize($data, $format, $context);
     }
-
-    return $this->fallbackNormalizer->normalize($data, $format, $context);
+    if ($this->fallbackNormalizer->supportsNormalization($data, $format)) {
+      return $this->fallbackNormalizer->normalize($data, $format, $context);
+    }
+    return parent::normalize($data, $format, $context);
   }
 
   /**
