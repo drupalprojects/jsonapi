@@ -6,7 +6,6 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\Config\ConfigException;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
-use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Controller\EntityResource;
