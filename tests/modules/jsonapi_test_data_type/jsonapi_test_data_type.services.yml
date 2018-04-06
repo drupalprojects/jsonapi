@@ -4,3 +4,7 @@ services:
     tags:
       # The priority must be higher than serializer.normalizer.primitive_data.
       - { name: normalizer , priority: 1000 }
+  serializer.normalizer.traversable_object.jsonapi_test_data_type:
+    class: Drupal\jsonapi_test_data_type\Normalizer\TraversableObjectNormalizer
+    tags:
+      - { name: normalizer }
