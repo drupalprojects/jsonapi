@@ -5,6 +5,7 @@ namespace Drupal\Tests\jsonapi\Kernel\Normalizer;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\jsonapi\Context\FieldResolver;
 use Drupal\jsonapi\Query\Sort;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\SortNormalizer
@@ -89,9 +90,9 @@ class SortNormalizerTest extends KernelTestBase {
   /**
    * @covers ::denormalize
    * @dataProvider denormalizeFailProvider
-   * @expectedException \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
    */
   public function testDenormalizeFail($input) {
+    $this->setExpectedException(BadRequestHttpException::class);
     $sort = $this->normalizer->denormalize($input, Sort::class);
   }
 

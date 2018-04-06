@@ -16,6 +16,7 @@ use Drupal\jsonapi\Normalizer\EntityReferenceFieldNormalizer;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * @coversDefaultClass \Drupal\jsonapi\Normalizer\EntityReferenceFieldNormalizer
@@ -132,7 +133,6 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
 
   /**
    * @covers ::denormalize
-   * @expectedException \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
    * @dataProvider denormalizeInvalidResourceProvider
    */
   public function testDenormalizeInvalidResource($data, $field_name) {
@@ -141,6 +141,7 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
       'related' => $field_name,
       'target_entity' => $this->prophesize(FieldableEntityInterface::class)->reveal(),
     ];
+    $this->setExpectedException(BadRequestHttpException::class);
     $this->normalizer->denormalize($data, NULL, 'api_json', $context);
   }
 
