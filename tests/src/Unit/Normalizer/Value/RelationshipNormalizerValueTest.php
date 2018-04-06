@@ -118,26 +118,21 @@ class RelationshipNormalizerValueTest extends UnitTestCase {
 
   /**
    * @covers ::rasterizeValue
-   *
-   * @expectedException \RuntimeException
    */
   public function testRasterizeValueFails() {
     $uid1 = $this->prophesize(FieldItemNormalizerValue::class);
     $uid1->rasterizeValue()->willReturn(1);
-    $uid1->getInclude()->willReturn(NULL);
     $link_manager = $this->prophesize(LinkManager::class);
     $link_manager
       ->getEntityLink(Argument::any(), Argument::any(), Argument::type('array'), Argument::type('string'))
       ->willReturn('dummy_entity_link');
-    $object = new RelationshipNormalizerValue([$uid1->reveal()], 1, [
+    $this->setExpectedException(\RuntimeException::class, 'Unexpected normalizer item value for this Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValue.');
+    new RelationshipNormalizerValue(AccessResult::allowed(), [$uid1->reveal()], 1, [
       'link_manager' => $link_manager->reveal(),
       'host_entity_id' => 'lorem',
       'resource_type' => new ResourceType($this->randomMachineName(), $this->randomMachineName(), NULL),
       'field_name' => 'ipsum',
     ]);
-    $object->rasterizeValue();
-    // If the exception was not thrown, then the following fails.
-    $this->assertTrue(FALSE);
   }
 
 }

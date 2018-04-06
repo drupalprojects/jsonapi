@@ -13,6 +13,7 @@ use Prophecy\Argument;
 use Symfony\Cmf\Component\Routing\ChainRouterInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * @coversDefaultClass \Drupal\jsonapi\LinkManager\LinkManager
@@ -152,10 +153,10 @@ class LinkManagerTest extends UnitTestCase {
    * Test errors.
    *
    * @covers ::getPagerLinks
-   * @expectedException \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
    * @dataProvider getPagerLinksErrorProvider
    */
   public function testGetPagerLinksError($offset, $size, $has_next_page, $total, $include_count, array $pages) {
+    $this->setExpectedException(BadRequestHttpException::class);
     $this->testGetPagerLinks($offset, $size, $has_next_page, $total, $include_count, $pages);
   }
 
@@ -186,7 +187,7 @@ class LinkManagerTest extends UnitTestCase {
       ->will(function ($args) {
           return $args[0] . '?dolor=sid';
       })
-    ->shouldBeCalled();
+      ->shouldBeCalled();
 
     $container = new ContainerBuilder();
     $container->set('unrouted_url_assembler', $assembler->reveal());

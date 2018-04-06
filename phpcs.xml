@@ -8,4 +8,5 @@
   <exclude-pattern>README\.md</exclude-pattern>
 
   <rule ref="Drupal"/>
+  <rule ref="DrupalPractice.Commenting.ExpectedException"/>
 </ruleset>

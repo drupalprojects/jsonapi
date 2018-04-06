@@ -3,8 +3,11 @@
 namespace Drupal\Tests\jsonapi\Kernel\Controller;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\Config\ConfigException;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\Core\Routing\CurrentRouteMatch;
+use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Controller\EntityResource;
 use Drupal\jsonapi\Resource\EntityCollection;
@@ -170,13 +173,13 @@ class EntityResourceTest extends JsonapiKernelTestBase {
 
   /**
    * @covers ::getIndividual
-   * @expectedException \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
    */
   public function testGetIndividualDenied() {
     $role = Role::load(RoleInterface::ANONYMOUS_ID);
     $role->revokePermission('access content');
     $role->save();
     $entity_resource = $this->buildEntityResource('node', 'article');
+    $this->setExpectedException(EntityAccessDeniedHttpException::class);
     $entity_resource->getIndividual($this->node, new Request());
   }
 
@@ -624,9 +627,9 @@ class EntityResourceTest extends JsonapiKernelTestBase {
   /**
    * @covers ::patchIndividual
    * @dataProvider patchIndividualConfigFailedProvider
-   * @expectedException \Drupal\Core\Config\ConfigException
    */
   public function testPatchIndividualFailedConfig($values) {
+    $this->setExpectedException(ConfigException::class);
     $this->testPatchIndividualConfig($values);
   }
 

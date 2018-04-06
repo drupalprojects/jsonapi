@@ -6,6 +6,7 @@ use Drupal\entity_test\Entity\EntityTestBundle;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\Tests\jsonapi\Kernel\JsonapiKernelTestBase;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * @coversDefaultClass \Drupal\jsonapi\Context\FieldResolver
@@ -106,10 +107,9 @@ class FieldResolverTest extends JsonapiKernelTestBase {
    *
    * @covers ::resolveInternal
    * @dataProvider resolveInternalErrorProvider
-   *
-   * @expectedException \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
    */
   public function testResolveInternalError($entity_type, $bundle, $external_path) {
+    $this->setExpectedException(BadRequestHttpException::class);
     $this->sut->resolveInternal($entity_type, $bundle, $external_path);
   }
 
