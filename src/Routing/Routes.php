@@ -134,6 +134,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_entity_type', (string) $resource_type->getEntityTypeId())
         ->setRequirement('_bundle', (string) $resource_type->getBundle())
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
+        ->setRequirement('_csrf_request_header_token', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setMethods(['GET', 'POST']);
       $route_collection->addOptions($options);
@@ -150,6 +151,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_entity_type', (string) $resource_type->getEntityTypeId())
         ->setRequirement('_bundle', (string) $resource_type->getBundle())
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
+        ->setRequirement('_csrf_request_header_token', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
         ->setMethods(['GET', 'PATCH', 'DELETE']);
@@ -179,6 +181,7 @@ class Routes implements ContainerInjectionInterface {
         ->setRequirement('_entity_type', (string) $resource_type->getEntityTypeId())
         ->setRequirement('_bundle', (string) $resource_type->getBundle())
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
+        ->setRequirement('_csrf_request_header_token', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
         ->setMethods(['GET', 'POST', 'PATCH', 'DELETE']);
