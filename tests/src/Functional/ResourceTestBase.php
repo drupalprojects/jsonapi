@@ -30,6 +30,7 @@ use Drupal\path\Plugin\Field\FieldType\PathItem;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\user\Entity\Role;
 use Drupal\user\RoleInterface;
+use Drupal\user\UserInterface;
 use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -184,88 +185,109 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $this->container->get('current_user')->setAccount($this->account);
 
     // Create an entity.
-    $this->entityStorage = $this->container->get('entity_type.manager')
-      ->getStorage(static::$entityTypeId);
-    $this->entity = $this->createEntity();
+    $this->entityStorage = $this->container->get('entity_type.manager')->getStorage(static::$entityTypeId);
+    $this->entity = $this->setUpFields($this->createEntity(), $this->account);
+  }
 
-    if ($this->entity instanceof FieldableEntityInterface) {
-      // Add access-protected field.
+  /**
+   * Sets up additional fields for testing.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The primary test entity.
+   * @param \Drupal\user\UserInterface $account
+   *   The primary test user account.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface
+   *   The reloaded entity with the new fields attached.
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  protected function setUpFields(EntityInterface $entity, UserInterface $account) {
+    if (!$entity instanceof FieldableEntityInterface) {
+      return $entity;
+    }
+
+    $entity_bundle = $entity->bundle();
+    $account_bundle = $account->bundle();
+
+    // Add access-protected field.
+    FieldStorageConfig::create([
+      'entity_type' => static::$entityTypeId,
+      'field_name' => 'field_rest_test',
+      'type' => 'text',
+    ])
+      ->setCardinality(1)
+      ->save();
+    FieldConfig::create([
+      'entity_type' => static::$entityTypeId,
+      'field_name' => 'field_rest_test',
+      'bundle' => $entity_bundle,
+    ])
+      ->setLabel('Test field')
+      ->setTranslatable(FALSE)
+      ->save();
+
+    FieldStorageConfig::create([
+      'entity_type' => static::$entityTypeId,
+      'field_name' => 'field_jsonapi_test_entity_ref',
+      'type' => 'entity_reference',
+    ])
+      ->setSetting('target_type', 'user')
+      ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
+      ->save();
+
+    FieldConfig::create([
+      'entity_type' => static::$entityTypeId,
+      'field_name' => 'field_jsonapi_test_entity_ref',
+      'bundle' => $entity_bundle,
+    ])
+      ->setTranslatable(FALSE)
+      ->setSetting('handler', 'default')
+      ->setSetting('handler_settings', [
+        'target_bundles' => [$account_bundle => $account_bundle],
+      ])
+      ->save();
+
+    // @todo Do this unconditionally when JSON API requires Drupal 8.5 or newer.
+    if (floatval(\Drupal::VERSION) >= 8.5) {
+      // Add multi-value field.
       FieldStorageConfig::create([
         'entity_type' => static::$entityTypeId,
-        'field_name' => 'field_rest_test',
-        'type' => 'text',
+        'field_name' => 'field_rest_test_multivalue',
+        'type' => 'string',
       ])
-        ->setCardinality(1)
+        ->setCardinality(3)
         ->save();
       FieldConfig::create([
         'entity_type' => static::$entityTypeId,
-        'field_name' => 'field_rest_test',
-        'bundle' => $this->entity->bundle(),
+        'field_name' => 'field_rest_test_multivalue',
+        'bundle' => $entity_bundle,
       ])
-        ->setLabel('Test field')
+        ->setLabel('Test field: multi-value')
         ->setTranslatable(FALSE)
         ->save();
+    }
 
-      FieldStorageConfig::create([
-        'entity_type' => static::$entityTypeId,
-        'field_name' => 'field_jsonapi_test_entity_ref',
-        'type' => 'entity_reference',
-      ])
-        ->setSetting('target_type', 'user')
-        ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
-        ->save();
+    \Drupal::service('jsonapi.resource_type.repository')->clearCachedDefinitions();
+    \Drupal::service('router.builder')->rebuild();
 
-      FieldConfig::create([
-        'entity_type' => static::$entityTypeId,
-        'field_name' => 'field_jsonapi_test_entity_ref',
-        'bundle' => $this->entity->bundle(),
-      ])
-        ->setTranslatable(FALSE)
-        ->setSetting('handler', 'default')
-        ->setSetting('handler_settings', [
-          'target_bundles' => [$this->account->bundle() => $this->account->bundle()],
-        ])
-        ->save();
+    // Reload entity so that it has the new field.
+    $reloaded_entity = $this->entityStorage->loadUnchanged($entity->id());
+    // Some entity types are not stored, hence they cannot be reloaded.
+    if ($reloaded_entity !== NULL) {
+      $entity = $reloaded_entity;
 
+      // Set a default value on the fields.
+      $entity->set('field_rest_test', ['value' => 'All the faith he had had had had no effect on the outcome of his life.']);
+      $entity->set('field_jsonapi_test_entity_ref', ['user' => $account->id()]);
       // @todo Do this unconditionally when JSON API requires Drupal 8.5 or newer.
       if (floatval(\Drupal::VERSION) >= 8.5) {
-        // Add multi-value field.
-        FieldStorageConfig::create([
-          'entity_type' => static::$entityTypeId,
-          'field_name' => 'field_rest_test_multivalue',
-          'type' => 'string',
-        ])
-          ->setCardinality(3)
-          ->save();
-        FieldConfig::create([
-          'entity_type' => static::$entityTypeId,
-          'field_name' => 'field_rest_test_multivalue',
-          'bundle' => $this->entity->bundle(),
-        ])
-          ->setLabel('Test field: multi-value')
-          ->setTranslatable(FALSE)
-          ->save();
+        $entity->set('field_rest_test_multivalue', [['value' => 'One'], ['value' => 'Two']]);
       }
-
-      \Drupal::service('jsonapi.resource_type.repository')->clearCachedDefinitions();
-      \Drupal::service('router.builder')->rebuild();
-
-      // Reload entity so that it has the new field.
-      $reloaded_entity = $this->entityStorage->loadUnchanged($this->entity->id());
-      // Some entity types are not stored, hence they cannot be reloaded.
-      if ($reloaded_entity !== NULL) {
-        $this->entity = $reloaded_entity;
-
-        // Set a default value on the fields.
-        $this->entity->set('field_rest_test', ['value' => 'All the faith he had had had had no effect on the outcome of his life.']);
-        $this->entity->set('field_jsonapi_test_entity_ref', ['user' => $this->account->id()]);
-        // @todo Do this unconditionally when JSON API requires Drupal 8.5 or newer.
-        if (floatval(\Drupal::VERSION) >= 8.5) {
-          $this->entity->set('field_rest_test_multivalue', [['value' => 'One'], ['value' => 'Two']]);
-        }
-        $this->entity->save();
-      }
+      $entity->save();
     }
+
+    return $entity;
   }
 
   /**
