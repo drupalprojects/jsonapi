@@ -2,11 +2,10 @@
 
 namespace Drupal\Tests\jsonapi\Unit\EventSubscriber;
 
+use Drupal\jsonapi\EventSubscriber\ResourceResponseValidator;
 use JsonSchema\Validator;
 use Drupal\Core\Extension\Extension;
 use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\Render\RendererInterface;
-use Drupal\jsonapi\EventSubscriber\ResourceResponseSubscriber;
 use Drupal\rest\ResourceResponse;
 use Drupal\schemata\SchemaFactory;
 use Drupal\schemata\Encoder\JsonSchemaEncoder;
@@ -19,12 +18,12 @@ use Symfony\Component\Routing\Route;
 use Symfony\Component\Serializer\Serializer;
 
 /**
- * @coversDefaultClass \Drupal\jsonapi\EventSubscriber\ResourceResponseSubscriber
+ * @coversDefaultClass \Drupal\jsonapi\EventSubscriber\ResourceResponseValidator
  * @group jsonapi
  *
  * @internal
  */
-class ResourceResponseSubscriberTest extends UnitTestCase {
+class ResourceResponseValidatorTest extends UnitTestCase {
 
   /**
    * The subscriber under test.
@@ -48,9 +47,8 @@ class ResourceResponseSubscriberTest extends UnitTestCase {
     $module_path = dirname(dirname(dirname(dirname(__DIR__))));
     $module->getPath()->willReturn($module_path);
     $module_handler->getModule('jsonapi')->willReturn($module->reveal());
-    $subscriber = new ResourceResponseSubscriber(
+    $subscriber = new ResourceResponseValidator(
       new Serializer([], [new JsonSchemaEncoder()]),
-      $this->prophesize(RendererInterface::class)->reveal(),
       $this->prophesize(LoggerInterface::class)->reveal(),
       $module_handler->reveal(),
       ''
