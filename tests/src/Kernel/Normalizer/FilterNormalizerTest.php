@@ -61,10 +61,14 @@ class FilterNormalizerTest extends KernelTestBase {
    */
   public function denormalizeProvider() {
     return [
-      [
+      'shorthand' => [
         ['uid' => ['value' => 1]],
         [['path' => 'uid', 'value' => 1, 'operator' => '=']],
       ],
+      'extreme shorthand' => [
+        ['uid' => 1],
+        [['path' => 'uid', 'value' => 1, 'operator' => '=']],
+      ]
     ];
   }
 
