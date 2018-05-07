@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\jsonapi\Unit\Routing;
 
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Routing\JsonApiParamEnhancer;
 use Drupal\jsonapi\Query\OffsetPage;
 use Drupal\jsonapi\Query\Filter;
@@ -9,7 +10,6 @@ use Drupal\jsonapi\Query\Sort;
 use Drupal\jsonapi\Routing\Routes;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
-use Prophecy\Promise\ReturnPromise;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,11 +32,17 @@ class JsonApiParamEnhancerTest extends UnitTestCase {
   public function testApplies() {
     list($filter_normalizer, $sort_normalizer, $page_normalizer) = $this->getMockNormalizers();
     $object = new JsonApiParamEnhancer($filter_normalizer, $sort_normalizer, $page_normalizer);
-    $route = $this->prophesize(Route::class);
-    $route->getDefault(RouteObjectInterface::CONTROLLER_NAME)->will(new ReturnPromise([Routes::FRONT_CONTROLLER, 'lorem']));
+    $passing = $this->prophesize(Route::class);
+    $passing->getDefaults()->willReturn([
+      RouteObjectInterface::CONTROLLER_NAME => Routes::FRONT_CONTROLLER,
+    ]);
+    $failing = $this->prophesize(Route::class);
+    $failing->getDefaults()->willReturn([
+      RouteObjectInterface::CONTROLLER_NAME => 'failing',
+    ]);
 
-    $this->assertTrue($object->applies($route->reveal()));
-    $this->assertFalse($object->applies($route->reveal()));
+    $this->assertTrue($object->applies($passing->reveal()));
+    $this->assertFalse($object->applies($failing->reveal()));
   }
 
   /**
@@ -52,11 +58,9 @@ class JsonApiParamEnhancerTest extends UnitTestCase {
     $query->has('filter')->willReturn(TRUE);
     $request->query = $query->reveal();
 
-    $route = $this->prophesize(Route::class);
-    $route->getRequirement('_entity_type')->willReturn('dolor');
-    $route->getRequirement('_bundle')->willReturn('sit');
     $defaults = $object->enhance([
-      RouteObjectInterface::ROUTE_OBJECT => $route->reveal(),
+      RouteObjectInterface::CONTROLLER_NAME => Routes::FRONT_CONTROLLER,
+      Routes::RESOURCE_TYPE_KEY => new ResourceType('foo', 'bar', NULL),
     ], $request->reveal());
     $this->assertInstanceOf(Filter::class, $defaults['_json_api_params']['filter']);
     $this->assertInstanceOf(OffsetPage::class, $defaults['_json_api_params']['page']);
@@ -76,11 +80,9 @@ class JsonApiParamEnhancerTest extends UnitTestCase {
     $query->has('page')->willReturn(TRUE);
     $request->query = $query->reveal();
 
-    $route = $this->prophesize(Route::class);
-    $route->getRequirement('_entity_type')->willReturn('dolor');
-    $route->getRequirement('_bundle')->willReturn('sit');
     $defaults = $object->enhance([
-      RouteObjectInterface::ROUTE_OBJECT => $route->reveal(),
+      RouteObjectInterface::CONTROLLER_NAME => Routes::FRONT_CONTROLLER,
+      Routes::RESOURCE_TYPE_KEY => new ResourceType('foo', 'bar', NULL),
     ], $request->reveal());
     $this->assertInstanceOf(OffsetPage::class, $defaults['_json_api_params']['page']);
     $this->assertTrue(empty($defaults['_json_api_params']['filter']));
@@ -100,11 +102,9 @@ class JsonApiParamEnhancerTest extends UnitTestCase {
     $query->has('sort')->willReturn(TRUE);
     $request->query = $query->reveal();
 
-    $route = $this->prophesize(Route::class);
-    $route->getRequirement('_entity_type')->willReturn('dolor');
-    $route->getRequirement('_bundle')->willReturn('sit');
     $defaults = $object->enhance([
-      RouteObjectInterface::ROUTE_OBJECT => $route->reveal(),
+      RouteObjectInterface::CONTROLLER_NAME => Routes::FRONT_CONTROLLER,
+      Routes::RESOURCE_TYPE_KEY => new ResourceType('foo', 'bar', NULL),
     ], $request->reveal());
     $this->assertInstanceOf(Sort::class, $defaults['_json_api_params']['sort']);
     $this->assertInstanceOf(OffsetPage::class, $defaults['_json_api_params']['page']);

@@ -29,6 +29,13 @@ class Routes implements ContainerInjectionInterface {
   const FRONT_CONTROLLER = 'jsonapi.request_handler:handle';
 
   /**
+   * The route default key for the route's resource type information.
+   *
+   * @var string
+   */
+  const RESOURCE_TYPE_KEY = 'resource_type';
+
+  /**
    * The JSON API resource type repository.
    *
    * @var \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface
@@ -114,7 +121,7 @@ class Routes implements ContainerInjectionInterface {
 
       $defaults = [
         RouteObjectInterface::CONTROLLER_NAME => static::FRONT_CONTROLLER,
-        'resource_type' => $resource_type->getTypeName(),
+        static::RESOURCE_TYPE_KEY => $resource_type->getTypeName(),
       ];
       // Options that apply to all routes.
       $options = [
@@ -123,7 +130,7 @@ class Routes implements ContainerInjectionInterface {
       ];
 
       $parameters = [
-        'resource_type' => [
+        static::RESOURCE_TYPE_KEY => [
           'type' => 'jsonapi_resource_type',
         ],
       ];
@@ -131,8 +138,6 @@ class Routes implements ContainerInjectionInterface {
       // Collection endpoint, like /jsonapi/file/photo.
       $route_collection = (new Route($route_base_path))
         ->addDefaults($defaults + ['serialization_class' => JsonApiDocumentTopLevel::class])
-        ->setRequirement('_entity_type', (string) $resource_type->getEntityTypeId())
-        ->setRequirement('_bundle', (string) $resource_type->getBundle())
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setRequirement('_csrf_request_header_token', 'TRUE')
         ->setOption('parameters', $parameters)
@@ -148,8 +153,6 @@ class Routes implements ContainerInjectionInterface {
       ]);
       $route_individual = (new Route(sprintf('%s/{%s}', $route_base_path, $resource_type->getEntityTypeId())))
         ->addDefaults($defaults + ['serialization_class' => JsonApiDocumentTopLevel::class])
-        ->setRequirement('_entity_type', (string) $resource_type->getEntityTypeId())
-        ->setRequirement('_bundle', (string) $resource_type->getBundle())
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setRequirement('_csrf_request_header_token', 'TRUE')
         ->setOption('parameters', $parameters)
@@ -161,8 +164,6 @@ class Routes implements ContainerInjectionInterface {
       // Related resource, like /jsonapi/file/photo/123/comments.
       $route_related = (new Route(sprintf('%s/{%s}/{related}', $route_base_path, $resource_type->getEntityTypeId())))
         ->addDefaults($defaults)
-        ->setRequirement('_entity_type', (string) $resource_type->getEntityTypeId())
-        ->setRequirement('_bundle', (string) $resource_type->getBundle())
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setOption('parameters', $parameters)
         ->setOption('_auth', $this->authProviderList())
@@ -178,8 +179,6 @@ class Routes implements ContainerInjectionInterface {
             'serialization_class' => EntityReferenceFieldItemList::class,
           ]
         )
-        ->setRequirement('_entity_type', (string) $resource_type->getEntityTypeId())
-        ->setRequirement('_bundle', (string) $resource_type->getBundle())
         ->setRequirement('_jsonapi_custom_query_parameter_names', 'TRUE')
         ->setRequirement('_csrf_request_header_token', 'TRUE')
         ->setOption('parameters', $parameters)
@@ -190,6 +189,36 @@ class Routes implements ContainerInjectionInterface {
     }
 
     return $collection;
+  }
+
+  /**
+   * Determines if the given route defaults are those of a JSON API route.
+   *
+   * @param array $route_defaults
+   *   A route's defaults.
+   *
+   * @return bool
+   *   Whether the route targets a JSON API route.
+   */
+  public static function isJsonApiRoute(array $route_defaults) {
+    return isset($route_defaults[RouteObjectInterface::CONTROLLER_NAME])
+      && $route_defaults[RouteObjectInterface::CONTROLLER_NAME] === static::FRONT_CONTROLLER;
+  }
+
+  /**
+   * Gets a route's resource type from its defaults.
+   *
+   * @param array $defaults
+   *   A request's route defaults.
+   *
+   * @return \Drupal\jsonapi\ResourceType\ResourceType
+   *   The request's resource type, NULL if one does not exist.
+   */
+  public static function getResourceTypeFromRouteDefaults(array $defaults) {
+    if (!static::isJsonApiRoute($defaults)) {
+      return NULL;
+    }
+    return $defaults[static::RESOURCE_TYPE_KEY];
   }
 
   /**
