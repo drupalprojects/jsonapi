@@ -5,6 +5,7 @@ namespace Drupal\jsonapi\EventSubscriber;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\jsonapi\ResourceResponse;
+use Drupal\jsonapi\Routing\Routes;
 use Drupal\schemata\SchemaFactory;
 use JsonSchema\Validator;
 use Psr\Log\LoggerInterface;
@@ -193,7 +194,7 @@ class ResourceResponseValidator implements EventSubscriberInterface {
     // Get the schema for the current resource. For that we will need to
     // introspect the request to find the entity type and bundle matched by the
     // router.
-    $route = $request->attributes->get(RouteObjectInterface::ROUTE_OBJECT);
+    $resource_type = $request->get(Routes::RESOURCE_TYPE_KEY);
     $route_name = $request->attributes->get(RouteObjectInterface::ROUTE_NAME);
 
     // We shouldn't validate related/relationships.
@@ -204,8 +205,8 @@ class ResourceResponseValidator implements EventSubscriberInterface {
       return TRUE;
     }
 
-    $entity_type_id = $route->getRequirement('_entity_type');
-    $bundle = $route->getRequirement('_bundle');
+    $entity_type_id = $resource_type->getEntityTypeId();
+    $bundle = $resource_type->getBundle();
     $output_format = 'schema_json';
     $described_format = 'api_json';
 

@@ -3,6 +3,8 @@
 namespace Drupal\Tests\jsonapi\Unit\EventSubscriber;
 
 use Drupal\jsonapi\EventSubscriber\ResourceResponseValidator;
+use Drupal\jsonapi\ResourceType\ResourceType;
+use Drupal\jsonapi\Routing\Routes;
 use JsonSchema\Validator;
 use Drupal\Core\Extension\Extension;
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -14,7 +16,6 @@ use Prophecy\Argument;
 use Psr\Log\LoggerInterface;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Route;
 use Symfony\Component\Serializer\Serializer;
 
 /**
@@ -63,8 +64,7 @@ class ResourceResponseValidatorTest extends UnitTestCase {
   public function testDoValidateResponse() {
     $request = $this->createRequest(
       'jsonapi.node--article.individual',
-      '/jsonapi/node/article/{node}',
-      ['_entity_type' => 'node', '_bundle' => 'article']
+      new ResourceType('node', 'article', NULL)
     );
 
     $response = $this->createResponse('{"data":null}');
@@ -105,8 +105,7 @@ class ResourceResponseValidatorTest extends UnitTestCase {
   public function testValidateResponseSchemata() {
     $request = $this->createRequest(
       'jsonapi.node--article.individual',
-      '/jsonapi/node/article/{node}',
-      ['_entity_type' => 'node', '_bundle' => 'article']
+      new ResourceType('node', 'article', NULL)
     );
 
     $response = $this->createResponse('{"data":null}');
@@ -138,8 +137,7 @@ class ResourceResponseValidatorTest extends UnitTestCase {
     // 'related' routes.
     $request = $this->createRequest(
       'jsonapi.node--article.related',
-      '/jsonapi/node/article/{node}/foo',
-      ['_entity_type' => 'node', '_bundle' => 'article']
+      new ResourceType('node', 'article', NULL)
     );
 
     // Since only the generic schema should be validated, the validator should
@@ -156,8 +154,7 @@ class ResourceResponseValidatorTest extends UnitTestCase {
     // 'relationship' routes.
     $request = $this->createRequest(
       'jsonapi.node--article.relationship',
-      '/jsonapi/node/article/{node}/relationships/foo',
-      ['_entity_type' => 'node', '_bundle' => 'article']
+      new ResourceType('node', 'article', NULL)
     );
 
     // Since only the generic schema should be validated, the validator should
@@ -193,8 +190,7 @@ class ResourceResponseValidatorTest extends UnitTestCase {
   public function validateResponseProvider() {
     $defaults = [
       'route_name' => 'jsonapi.node--article.individual',
-      'route' => '/jsonapi/node/article/{node}',
-      'requirements' => ['_entity_type' => 'node', '_bundle' => 'article'],
+      'resource_type' => new ResourceType('node', 'article', NULL),
     ];
 
     $test_data = [
@@ -267,9 +263,9 @@ EOD
     ];
 
     $test_cases = array_map(function ($input) use ($defaults) {
-      list($json, $expected, $description, $route_name, $route, $requirements) = array_values($input + $defaults);
+      list($json, $expected, $description, $route_name, $resource_type) = array_values($input + $defaults);
       return [
-        $this->createRequest($route_name, $route, $requirements),
+        $this->createRequest($route_name, $resource_type),
         $this->createResponse($json),
         $expected,
         $description,
@@ -284,18 +280,16 @@ EOD
    *
    * @param string $route_name
    *   The route name with which to construct a request.
-   * @param string $route
-   *   The route object with which to construct a request.
-   * @param array $requirements
-   *   The route requirements.
+   * @param \Drupal\jsonapi\ResourceType\ResourceType $resource_type
+   *   The resource type for the requested route.
    *
    * @return \Symfony\Component\HttpFoundation\Request
    *   The mock request object.
    */
-  protected function createRequest($route_name, $route, array $requirements = []) {
+  protected function createRequest($route_name, ResourceType $resource_type) {
     $request = new Request();
     $request->attributes->set(RouteObjectInterface::ROUTE_NAME, $route_name);
-    $request->attributes->set(RouteObjectInterface::ROUTE_OBJECT, (new Route($route))->setRequirements($requirements));
+    $request->attributes->set(Routes::RESOURCE_TYPE_KEY, $resource_type);
     return $request;
   }
 
