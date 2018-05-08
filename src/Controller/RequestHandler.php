@@ -166,7 +166,8 @@ class RequestHandler {
    *   is no request body.
    *
    * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
-   *   Thrown if the request body cannot be decoded.
+   *   Thrown if the request body cannot be decoded, or when no request body was
+   *   provided with a POST or PATCH request.
    * @throws \Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException
    *   Thrown if the request body cannot be denormalized.
    */
@@ -203,6 +204,10 @@ class RequestHandler {
         throw new UnprocessableEntityHttpException($e->getMessage());
       }
     }
+    elseif ($request->isMethod('POST') || $request->isMethod('PATCH')) {
+      throw new BadRequestHttpException('Empty request body.');
+    }
+
 
     return $unserialized;
   }
