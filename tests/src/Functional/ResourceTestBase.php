@@ -1240,7 +1240,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
     $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
 
-    // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2943170.
+    // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2934149.
     // @codingStandardsIgnoreStart
     /*
     // DX: 415 when no Content-Type request header. HTML response because
@@ -1255,14 +1255,14 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // DX: 415 when no Content-Type request header.
     $response = $this->request('POST', $url, $request_options);
     $this->assertResourceErrorResponse(415, '…', 'No "Content-Type" request header specified', $response);
+*/
+    // @codingStandardsIgnoreEnd
 
     $request_options[RequestOptions::HEADERS]['Content-Type'] = '';
 
     // DX: 400 when no request body.
     $response = $this->request('POST', $url, $request_options);
-    $this->assertResourceErrorResponse(400, 'No entity content received.', $response);
-*/
-    // @codingStandardsIgnoreEnd
+    $this->assertResourceErrorResponse(400, 'Empty request body.', $response);
 
     $request_options[RequestOptions::BODY] = $unparseable_request_body;
 
@@ -1509,7 +1509,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
     $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
 
-    // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2943170.
+    // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2934149.
     // @codingStandardsIgnoreStart
     /*
     // DX: 415 when no Content-Type request header.
@@ -1525,12 +1525,12 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $this->assertResourceErrorResponse(415, 'No "Content-Type" request header specified', $response);
 
     $request_options[RequestOptions::HEADERS]['Content-Type'] = static::$mimeType;
+*/
+    // @codingStandardsIgnoreEnd
 
     // DX: 400 when no request body.
     $response = $this->request('PATCH', $url, $request_options);
-    $this->assertResourceErrorResponse(400, 'No entity content received.', $response);
-*/
-    // @codingStandardsIgnoreEnd
+    $this->assertResourceErrorResponse(400, 'Empty request body.', $response);
 
     $request_options[RequestOptions::BODY] = $unparseable_request_body;
 
