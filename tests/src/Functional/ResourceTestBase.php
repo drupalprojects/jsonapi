@@ -1229,6 +1229,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $parseable_invalid_request_body = Json::encode($this->makeNormalizationInvalid($this->getPostDocument(), 'label'));
     $parseable_invalid_request_body_2 = Json::encode(NestedArray::mergeDeep(['data' => ['id' => $this->randomMachineName(129)]], $this->getPostDocument()));
     $parseable_invalid_request_body_3 = Json::encode(NestedArray::mergeDeep(['data' => ['attributes' => ['field_rest_test' => $this->randomString()]]], $this->getPostDocument()));
+    $parseable_invalid_request_body_4 = Json::encode(NestedArray::mergeDeep(['data' => ['attributes' => ['field_nonexistent' => $this->randomString()]]], $this->getPostDocument()));
 
     // The URL and Guzzle request options that will be used in this test. The
     // request options will be modified/expanded throughout this test:
@@ -1360,6 +1361,12 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // DX: 403 when entity contains field without 'edit' access.
     $response = $this->request('POST', $url, $request_options);
     $this->assertResourceErrorResponse(403, "The current user is not allowed to POST the selected field (field_rest_test).", $response, '/data/attributes/field_rest_test');
+
+    $request_options[RequestOptions::BODY] = $parseable_invalid_request_body_4;
+
+    // DX: 422 when request document contains non-existent field.
+    $response = $this->request('POST', $url, $request_options);
+    $this->assertResourceErrorResponse(422, sprintf("The attribute field_nonexistent does not exist on the %s resource type.", static::$resourceTypeName), $response);
 
     $request_options[RequestOptions::BODY] = $parseable_valid_request_body;
 
@@ -1496,6 +1503,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // up in the JSON API document. Even when we explicitly add it to the JSON
     // API document that we send in a PATCH request, it is considered invalid.
     $parseable_invalid_request_body_3 = Json::encode(NestedArray::mergeDeep(['data' => ['attributes' => ['field_rest_test' => $this->entity->get('field_rest_test')->getValue()]]], $this->getPatchDocument()));
+    $parseable_invalid_request_body_4 = Json::encode(NestedArray::mergeDeep(['data' => ['attributes' => ['field_nonexistent' => $this->randomString()]]], $this->getPatchDocument()));
 
     // The URL and Guzzle request options that will be used in this test. The
     // request options will be modified/expanded throughout this test:
@@ -1701,6 +1709,12 @@ abstract class ResourceTestBase extends BrowserTestBase {
       /* $this->assertResourceErrorResponse(403, "The current user is not allowed to PATCH the selected field (" . $patch_protected_field_name . ")." . ($reason !== NULL ? ' ' . $reason : ''), $response, '/data/attributes/' . $patch_protected_field_name); */
       $modified_entity->get($patch_protected_field_name)->setValue($original_values[$patch_protected_field_name]);
     }
+
+    $request_options[RequestOptions::BODY] = $parseable_invalid_request_body_4;
+
+    // DX: 422 when request document contains non-existent field.
+    $response = $this->request('PATCH', $url, $request_options);
+    $this->assertResourceErrorResponse(422, sprintf("The attribute field_nonexistent does not exist on the %s resource type.", static::$resourceTypeName), $response);
 
     // 200 for well-formed PATCH request that sends all fields (even including
     // read-only ones, but with unchanged values).
