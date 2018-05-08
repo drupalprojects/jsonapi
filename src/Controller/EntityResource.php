@@ -323,7 +323,21 @@ class EntityResource {
     $params = isset($route_params['_json_api_params']) ? $route_params['_json_api_params'] : [];
     $query = $this->getCollectionQuery($entity_type_id, $params);
 
-    $results = $query->execute();
+    try {
+      $results = $query->execute();
+    }
+    catch (\LogicException $e) {
+      // Ensure good DX when an entity query involves a config entity type.
+      // @todo Core should throw a better exception.
+      if (strpos($e->getMessage(), 'Getting the base fields is not supported for entity type') === 0) {
+        preg_match('/entity type (.*)\./', $e->getMessage(), $matches);
+        $config_entity_type_id = $matches[1];
+        throw new BadRequestHttpException(sprintf("Filtering on config entities is not supported by Drupal's entity API. You tried to filter on a %s config entity.", $config_entity_type_id));
+      }
+      else {
+        throw $e;
+      }
+    }
 
     $storage = $this->entityTypeManager->getStorage($entity_type_id);
     // We request N+1 items to find out if there is a next page for the pager.
