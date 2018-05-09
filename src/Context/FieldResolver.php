@@ -6,6 +6,7 @@ use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Entity\TypedData\EntityDataDefinitionInterface;
 use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
 use Drupal\Core\TypedData\ComplexDataDefinitionInterface;
 use Drupal\Core\TypedData\DataReferenceDefinitionInterface;
@@ -376,7 +377,9 @@ class FieldResolver {
       $property_definitions = $definition->getPropertyDefinitions();
       foreach ($property_definitions as $property_name => $property_definition) {
         if ($property_definition instanceof DataReferenceDefinitionInterface) {
-          $reference_property_names[] = $property_name;
+          $target_definition = $property_definition->getTargetDefinition();
+          assert($target_definition instanceof EntityDataDefinitionInterface, 'Entity reference fields should only be able to reference entities.');
+          $reference_property_names[] = $property_name . ':' . $target_definition->getEntityTypeId();
         }
       }
       return $reference_property_names;
