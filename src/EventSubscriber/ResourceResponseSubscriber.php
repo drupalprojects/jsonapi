@@ -137,7 +137,6 @@ class ResourceResponseSubscriber implements EventSubscriberInterface {
           'request' => $request,
           'cacheable_metadata' => $response->getCacheableMetadata(),
           'resource_type' => $request->get('resource_type'),
-          'on_relationship' => (bool) $request->get('_on_relationship'),
         ]);
       };
       $output = $this->renderer->executeInRenderContext($context, $render_function);
