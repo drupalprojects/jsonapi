@@ -771,6 +771,9 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     $this->setUpAuthorization('GET');
 
+    // Set body despite that being nonsensical: should be ignored.
+    $request_options[RequestOptions::BODY] = Json::encode($this->getExpectedDocument());
+
     // 200 for well-formed HEAD request.
     $response = $this->request('HEAD', $url, $request_options);
     $this->assertResourceResponse(200, NULL, $response, $this->getExpectedCacheTags(), $this->getExpectedCacheContexts(), FALSE, 'MISS');
