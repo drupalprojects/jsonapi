@@ -69,9 +69,6 @@ class JsonApiDocumentTopLevelNormalizerTest extends UnitTestCase {
     $entity_type->getKey('uuid')->willReturn('uuid');
     $entity_type_manager->getDefinition('node')->willReturn($entity_type->reveal());
 
-    $current_route = $this->prophesize(Route::class);
-    $current_route->getDefault('_on_relationship')->willReturn(FALSE);
-
     $this->normalizer = new JsonApiDocumentTopLevelNormalizer(
       $link_manager->reveal(),
       $entity_type_manager->reveal(),

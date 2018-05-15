@@ -173,6 +173,7 @@ class Routes implements ContainerInjectionInterface {
     // other resources.
     $relationship_route = new Route("/{$path}/{{$entity_type_id}}/relationships/{related}");
     $relationship_route->setMethods(['GET', 'POST', 'PATCH', 'DELETE']);
+    // @todo: remove the _on_relationship default in https://www.drupal.org/project/jsonapi/issues/2953346.
     $relationship_route->addDefaults(['_on_relationship' => TRUE]);
     $relationship_route->addDefaults(['serialization_class' => EntityReferenceFieldItemList::class]);
     $relationship_route->setRequirement('_csrf_request_header_token', 'TRUE');
