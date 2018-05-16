@@ -243,7 +243,9 @@ class EntityResource {
       [],
       'individual'
     );
-    $response->headers->set('Location', $entity_url);
+    if ($entity_url) {
+      $response->headers->set('Location', $entity_url);
+    }
 
     // Return response object with updated headers info.
     return $response;

@@ -126,7 +126,7 @@ class Routes implements ContainerInjectionInterface {
 
     // Collection route like `/jsonapi/node/article`.
     $collection_route = new Route('/' . $resource_type->getPath());
-    $collection_route->setMethods(['GET', 'POST']);
+    $collection_route->setMethods($resource_type->isLocatable() ? ['GET', 'POST'] : ['POST']);
     $collection_route->addDefaults(['serialization_class' => JsonApiDocumentTopLevel::class]);
     $collection_route->setRequirement('_csrf_request_header_token', 'TRUE');
     $routes->add(static::getRouteName($resource_type, 'collection'), $collection_route);
@@ -159,6 +159,10 @@ class Routes implements ContainerInjectionInterface {
    *   The route collection.
    */
   protected static function getIndividualRoutesForResourceType(ResourceType $resource_type) {
+    if (!$resource_type->isLocatable()) {
+      return new RouteCollection();
+    }
+
     $routes = new RouteCollection();
 
     $path = $resource_type->getPath();
