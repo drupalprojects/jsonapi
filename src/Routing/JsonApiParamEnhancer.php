@@ -51,7 +51,7 @@ class JsonApiParamEnhancer implements RouteEnhancerInterface {
    * {@inheritdoc}
    */
   public function applies(Route $route) {
-    return Routes::isJsonApiRoute($route->getDefaults());
+    return (bool) Routes::getResourceTypeNameFromParameters($route->getDefaults());
   }
 
   /**
@@ -60,7 +60,7 @@ class JsonApiParamEnhancer implements RouteEnhancerInterface {
   public function enhance(array $defaults, Request $request) {
     $options = [];
 
-    $resource_type = Routes::getResourceTypeFromRouteDefaults($defaults);
+    $resource_type = Routes::getResourceTypeNameFromParameters($defaults);
     $context = [
       'entity_type_id' => $resource_type->getEntityTypeId(),
       'bundle' => $resource_type->getBundle(),
