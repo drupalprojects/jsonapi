@@ -26,7 +26,7 @@ class JsonApiRegressionTest extends JsonApiFunctionalTestBase {
    *
    * @see https://www.drupal.org/project/jsonapi/issues/2953207
    */
-  public function testBundleSpecificTargetEntityType_2953207() {
+  public function testBundleSpecificTargetEntityTypeFromIssue2953207() {
     // Set up data model.
     $this->assertTrue($this->container->get('module_installer')->install(['comment'], TRUE), 'Installed modules.');
     $this->addDefaultCommentField('taxonomy_term', 'tags', 'comment', CommentItemInterface::OPEN, 'tcomment');

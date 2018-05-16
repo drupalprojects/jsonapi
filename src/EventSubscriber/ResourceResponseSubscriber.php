@@ -30,8 +30,8 @@ use Symfony\Component\Serializer\SerializerInterface;
  * 2. It has the @current_route_match service no longer injected
  * 3. It hardcodes the format to 'api_json'
  * 4. In the call to the serializer, it passes in the request and cacheable
- *    metadata as serialization context. https://www.drupal.org/project/jsonapi/issues/2948666
- *    will change this.
+ *    metadata as serialization context.
+ *    https://www.drupal.org/project/jsonapi/issues/2948666 will change this.
  * 5. It flattens only to a cacheable response if the HTTP method is cacheable.
  */
 class ResourceResponseSubscriber implements EventSubscriberInterface {
@@ -67,10 +67,11 @@ class ResourceResponseSubscriber implements EventSubscriberInterface {
    * {@inheritdoc}
    *
    * @see \Drupal\rest\EventSubscriber\ResourceResponseSubscriber::getSubscribedEvents()
+   * @see \Drupal\dynamic_page_cache\EventSubscriber\DynamicPageCacheSubscriber
    */
   public static function getSubscribedEvents() {
-    // Run before \Drupal\dynamic_page_cache\EventSubscriber\DynamicPageCacheSubscriber
-    // (priority 100), so that Dynamic Page Cache can cache flattened responses.
+    // Run before the dynamic page cache subscriber (priority 100), so that
+    // Dynamic Page Cache can cache flattened responses.
     $events[KernelEvents::RESPONSE][] = ['onResponse', 128];
     return $events;
   }
