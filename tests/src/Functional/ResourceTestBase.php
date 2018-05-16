@@ -1389,21 +1389,15 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // 201 for well-formed request.
     $response = $this->request('POST', $url, $request_options);
     $this->assertResourceResponse(201, FALSE, $response);
-    // @todo Remove this logic to extract a UUID from the response in https://www.drupal.org/project/jsonapi/issues/2944977
-    if (get_class($this->entityStorage) !== ContentEntityNullStorage::class) {
-      $uuid = $this->entityStorage->load(static::$firstCreatedEntityId)->uuid();
-    }
-    else {
-      $r = Json::decode((string) $response->getBody());
-      $uuid = NestedArray::getValue($r, ['data', 'id']);
-    }
-    // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
-    $location = Url::fromRoute(sprintf('jsonapi.%s.individual', static::$resourceTypeName), [static::$entityTypeId => $uuid])->setAbsolute(TRUE)->toString();
-    /* $location = $this->entityStorage->load(static::$firstCreatedEntityId)->toUrl('jsonapi')->setAbsolute(TRUE)->toString(); */
-    $this->assertSame([$location], $response->getHeader('Location'));
     $this->assertFalse($response->hasHeader('X-Drupal-Cache'));
     // If the entity is stored, perform extra checks.
     if (get_class($this->entityStorage) !== ContentEntityNullStorage::class) {
+      $uuid = $this->entityStorage->load(static::$firstCreatedEntityId)->uuid();
+      // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
+      $location = Url::fromRoute(sprintf('jsonapi.%s.individual', static::$resourceTypeName), [static::$entityTypeId => $uuid])->setAbsolute(TRUE)->toString();
+      /* $location = $this->entityStorage->load(static::$firstCreatedEntityId)->toUrl('jsonapi')->setAbsolute(TRUE)->toString(); */
+      $this->assertSame([$location], $response->getHeader('Location'));
+
       // Assert that the entity was indeed created, and that the response body
       // contains the serialized created entity.
       $created_entity = $this->entityStorage->loadUnchanged(static::$firstCreatedEntityId);
@@ -1433,6 +1427,9 @@ abstract class ResourceTestBase extends BrowserTestBase {
         }
       }
     }
+    else {
+      $this->assertFalse($response->hasHeader('Location'));
+    }
 
     // 201 for well-formed request that creates another entity.
     // If the entity is stored, delete the first created entity (in case there
@@ -1442,21 +1439,15 @@ abstract class ResourceTestBase extends BrowserTestBase {
     }
     $response = $this->request('POST', $url, $request_options);
     $this->assertResourceResponse(201, FALSE, $response);
-    // @todo Remove this logic to extract a UUID from the response in https://www.drupal.org/project/jsonapi/issues/2944977
-    if (get_class($this->entityStorage) !== ContentEntityNullStorage::class) {
-      $uuid = $this->entityStorage->load(static::$secondCreatedEntityId)->uuid();
-    }
-    else {
-      $r = Json::decode((string) $response->getBody());
-      $uuid = NestedArray::getValue($r, ['data', 'id']);
-    }
-    // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
-    $location = Url::fromRoute(sprintf('jsonapi.%s.individual', static::$resourceTypeName), [static::$entityTypeId => $uuid])->setAbsolute(TRUE)->toString();
-    /* $location = $this->entityStorage->load(static::$secondCreatedEntityId)->toUrl('jsonapi')->setAbsolute(TRUE)->toString(); */
-    $this->assertSame([$location], $response->getHeader('Location'));
     $this->assertFalse($response->hasHeader('X-Drupal-Cache'));
 
     if ($this->entity->getEntityType()->getStorageClass() !== ContentEntityNullStorage::class && $this->entity->getEntityType()->hasKey('uuid')) {
+      $uuid = $this->entityStorage->load(static::$secondCreatedEntityId)->uuid();
+      // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2878463.
+      $location = Url::fromRoute(sprintf('jsonapi.%s.individual', static::$resourceTypeName), [static::$entityTypeId => $uuid])->setAbsolute(TRUE)->toString();
+      /* $location = $this->entityStorage->load(static::$secondCreatedEntityId)->toUrl('jsonapi')->setAbsolute(TRUE)->toString(); */
+      $this->assertSame([$location], $response->getHeader('Location'));
+
       // 500 when creating an entity with a duplicate UUID.
       $doc = $this->getModifiedEntityForPostTesting();
       $doc['data']['id'] = $uuid;
@@ -1480,7 +1471,9 @@ abstract class ResourceTestBase extends BrowserTestBase {
       $this->assertNotNull($new_entity);
       $new_entity->delete();
     }
-
+    else {
+      $this->assertFalse($response->hasHeader('Location'));
+    }
   }
 
   /**
