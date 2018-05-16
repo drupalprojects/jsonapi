@@ -212,7 +212,6 @@ class RequestHandler {
       throw new BadRequestHttpException('Empty request body.');
     }
 
-
     return $unserialized;
   }
 
