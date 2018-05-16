@@ -68,7 +68,7 @@ class FilterNormalizerTest extends KernelTestBase {
       'extreme shorthand' => [
         ['uid' => 1],
         [['path' => 'uid', 'value' => 1, 'operator' => '=']],
-      ]
+      ],
     ];
   }
 

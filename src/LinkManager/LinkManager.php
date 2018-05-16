@@ -51,7 +51,7 @@ class LinkManager {
    * @param string $key
    *   A key to build the route identifier.
    *
-   * @return string|NULL
+   * @return string|null
    *   The URL string, or NULL if the given entity is not locatable.
    */
   public function getEntityLink($entity_id, ResourceType $resource_type, array $route_parameters, $key) {
