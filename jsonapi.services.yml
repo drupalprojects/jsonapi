@@ -74,7 +74,7 @@ services:
       - { name: jsonapi_normalizer_do_not_use_removal_imminent }
   serializer.normalizer.jsonapi_document_toplevel.jsonapi:
     class: Drupal\jsonapi\Normalizer\JsonApiDocumentTopLevelNormalizer
-    arguments: ['@jsonapi.link_manager', '@entity_type.manager', '@jsonapi.resource_type.repository', '@jsonapi.field_resolver']
+    arguments: ['@jsonapi.link_manager', '@entity_type.manager', '@jsonapi.resource_type.repository']
     tags:
       - { name: jsonapi_normalizer_do_not_use_removal_imminent }
   serializer.normalizer.entity_reference_field.jsonapi:
