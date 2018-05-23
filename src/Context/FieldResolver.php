@@ -115,6 +115,7 @@ class FieldResolver {
     // 'uid.entity.field_category.entity.name'. This may be too simple, but it
     // works for the time being.
     $parts = explode('.', $external_field_name);
+    $unresolved_path_parts = $parts;
     $reference_breadcrumbs = [];
     /* @var \Drupal\jsonapi\ResourceType\ResourceType[] $resource_types */
     $resource_types = [$resource_type];
@@ -177,7 +178,7 @@ class FieldResolver {
         //
         // For example, the path `uid.name` for a `node--article` resource type
         // will be resolved into `uid.entity.name`.
-        $reference_breadcrumbs[] = static::getDataReferencePropertyName($candidate_definitions, $parts);
+        $reference_breadcrumbs[] = static::getDataReferencePropertyName($candidate_definitions, $parts, $unresolved_path_parts);
       }
       else {
         // If the property is not a reference property, then all
@@ -368,11 +369,13 @@ class FieldResolver {
    *   A list of targeted field item definitions specified by the path.
    * @param string[] $remaining_parts
    *   The remaining path parts.
+   * @param string[] $unresolved_path_parts
+   *   The unresolved path parts.
    *
    * @return string
    *   The reference name.
    */
-  protected static function getDataReferencePropertyName(array $candidate_definitions, array $remaining_parts) {
+  protected static function getDataReferencePropertyName(array $candidate_definitions, array $remaining_parts, array $unresolved_path_parts) {
     $reference_property_names = array_reduce($candidate_definitions, function (array $reference_property_names, ComplexDataDefinitionInterface $definition) {
       $property_definitions = $definition->getPropertyDefinitions();
       foreach ($property_definitions as $property_name => $property_definition) {
@@ -386,10 +389,12 @@ class FieldResolver {
     }, []);
     $unique_reference_names = array_unique($reference_property_names);
     if (count($unique_reference_names) > 1) {
-      $choices = implode(', ', $unique_reference_names);
-      $given = implode('.', $remaining_parts);
+      $choices = array_map(function ($reference_name) use ($unresolved_path_parts, $remaining_parts) {
+        $prior_parts = array_slice($unresolved_path_parts, 0, count($unresolved_path_parts) - count($remaining_parts));
+        return implode('.', array_merge($prior_parts, [$reference_name], $remaining_parts));
+      }, $unique_reference_names);
       // @todo Add test coverage for this in https://www.drupal.org/project/jsonapi/issues/2971281
-      $message = sprintf('Ambiguous path. Try one of the following: %s, before the given path: %s', $choices, $given);
+      $message = sprintf('Ambiguous path. Try one of the following: %s, in place of the given path: %s', implode(', ', $choices), implode('.', $unresolved_path_parts));
       throw new BadRequestHttpException($message);
     }
     return $unique_reference_names[0];
@@ -422,6 +427,7 @@ class FieldResolver {
    *   otherwise.
    */
   protected static function isCandidateDefinitionProperty($part, array $candidate_definitions) {
+    $part = static::getPathPartPropertyName($part);
     foreach ($candidate_definitions as $definition) {
       if ($definition->getPropertyDefinition($part)) {
         return TRUE;
@@ -444,6 +450,7 @@ class FieldResolver {
    *   otherwise.
    */
   protected static function isCandidateDefinitionReferenceProperty($part, array $candidate_definitions) {
+    $part = static::getPathPartPropertyName($part);
     foreach ($candidate_definitions as $definition) {
       $property = $definition->getPropertyDefinition($part);
       if ($property && $property instanceof DataReferenceDefinitionInterface) {
@@ -451,6 +458,24 @@ class FieldResolver {
       }
     }
     return FALSE;
+  }
+
+  /**
+   * Gets the property name from an entity typed or untyped path part.
+   *
+   * A path part may contain an entity type specifier like `entity:node`. This
+   * extracts the actual property name. If an entity type is not specified, then
+   * the path part is simply returned. For example, both `foo` and `foo:bar`
+   * will return `foo`.
+   *
+   * @param string $part
+   *   A path part.
+   *
+   * @return string
+   *   The property name from a path part.
+   */
+  protected static function getPathPartPropertyName($part) {
+    return strpos($part, ':') !== FALSE ? explode(':', $part)[0] : $part;
   }
 
 }
