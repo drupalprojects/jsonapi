@@ -7,7 +7,6 @@ use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\file\Entity\File;
-use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\node\Entity\Node;
@@ -756,14 +755,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
    * @throws \Exception
    */
   protected function generateProphecies($entity_type_id, $bundle) {
-    /* @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager */
-    $entity_type_manager = $this->container->get('entity_type.manager');
-
-    $resource_type = new ResourceType(
-      $entity_type_id,
-      $bundle,
-      $entity_type_manager->getDefinition($entity_type_id)->getClass()
-    );
+    $resource_type = $this->container->get('jsonapi.resource_type.repository')->get($entity_type_id, $bundle);
 
     $this->container->get('jsonapi.serializer_do_not_use_removal_imminent');
 
