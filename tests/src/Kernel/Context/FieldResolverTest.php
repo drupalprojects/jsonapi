@@ -102,6 +102,9 @@ class FieldResolverTest extends JsonapiKernelTestBase {
       'entity reference then no reference property and a complex field with property specifier `format`' => ['field_test_ref1.entity:entity_test_with_bundle.field_test_text.format', 'field_test_ref1.field_test_text.format'],
       'entity reference then a reference property and a complex field with property specifier `format`' => ['field_test_ref1.entity.field_test_text.format', 'field_test_ref1.entity.field_test_text.format'],
 
+      'entity reference then property specifier `entity:entity_test_with_bundle` then a complex field' => ['field_test_ref1.entity:entity_test_with_bundle.field_test_text', 'field_test_ref1.entity:entity_test_with_bundle.field_test_text'],
+      'entity reference then property specifier `entity:entity_test_with_bundle` then a complex field with property specifier `value`' => ['field_test_ref1.entity:entity_test_with_bundle.field_test_text.value', 'field_test_ref1.entity:entity_test_with_bundle.field_test_text.value'],
+
       'entity reference with a delta and no reference property then a complex field and property specifier `value`' => ['field_test_ref1.0.entity:entity_test_with_bundle.field_test_text.value', 'field_test_ref1.0.field_test_text.value'],
       'entity reference with a delta and a reference property then a complex field and property specifier `value`' => ['field_test_ref1.0.entity.field_test_text.value', 'field_test_ref1.0.entity.field_test_text.value'],
 
@@ -109,6 +112,27 @@ class FieldResolverTest extends JsonapiKernelTestBase {
       'entity reference with a reference property then another entity reference with no reference property a complex field with property specifier `value`' => ['field_test_ref1.entity.field_test_ref3.entity:entity_test_with_bundle.field_test_text.value', 'field_test_ref1.entity.field_test_ref3.field_test_text.value'],
       'entity reference with no reference property then another entity reference with a reference property a complex field with property specifier `value`' => ['field_test_ref1.entity:entity_test_with_bundle.field_test_ref3.entity.field_test_text.value', 'field_test_ref1.field_test_ref3.entity.field_test_text.value'],
       'entity reference with a reference property then another entity reference with a reference property a complex field with property specifier `value`' => ['field_test_ref1.entity.field_test_ref3.entity.field_test_text.value', 'field_test_ref1.entity.field_test_ref3.entity.field_test_text.value'],
+
+      'entity reference with target bundles then property specifier `entity:entity_test_with_bundle` then a primitive field on multiple bundles' => [
+        'field_test_ref1.entity:entity_test_with_bundle.field_test3',
+        'field_test_ref1.entity:entity_test_with_bundle.field_test3',
+      ],
+      'entity reference without target bundles then property specifier `entity:entity_test_with_bundle` then a primitive field on a single bundle' => [
+        'field_test_ref2.entity:entity_test_with_bundle.field_test1',
+        'field_test_ref2.entity:entity_test_with_bundle.field_test1',
+      ],
+      'entity reference without target bundles then property specifier `entity:entity_test_with_bundle` then a primitive field on multiple bundles' => [
+        'field_test_ref3.entity:entity_test_with_bundle.field_test3',
+        'field_test_ref3.entity:entity_test_with_bundle.field_test3',
+        'entity_test_with_bundle', 'bundle2',
+      ],
+      'entity reference without target bundles then property specifier `entity:entity_test_with_bundle` then a primitive field on a single bundle starting from a different resource type' => [
+        'field_test_ref3.entity:entity_test_with_bundle.field_test2',
+        'field_test_ref3.entity:entity_test_with_bundle.field_test2',
+        'entity_test_with_bundle', 'bundle3',
+      ],
+
+      'entity reference then property specifier `entity:entity_test_with_bundle` then another entity reference before a primitive field' => ['field_test_ref1.entity:entity_test_with_bundle.field_test_ref3.entity:entity_test_with_bundle.field_test2', 'field_test_ref1.entity:entity_test_with_bundle.field_test_ref3.field_test2'],
     ];
   }
 
@@ -121,12 +145,14 @@ class FieldResolverTest extends JsonapiKernelTestBase {
    *   The entity bundle for which to test field resolution.
    * @param string $external_path
    *   The external field path to resolve.
+   * @param string $expected_message
+   *   (optional) An expected exception message.
    *
    * @covers ::resolveInternal
    * @dataProvider resolveInternalErrorProvider
    */
-  public function testResolveInternalError($entity_type, $bundle, $external_path) {
-    $this->setExpectedException(BadRequestHttpException::class);
+  public function testResolveInternalError($entity_type, $bundle, $external_path, $expected_message = '') {
+    $this->setExpectedException(BadRequestHttpException::class, $expected_message);
     $this->sut->resolveInternal($entity_type, $bundle, $external_path);
   }
 
@@ -145,6 +171,21 @@ class FieldResolverTest extends JsonapiKernelTestBase {
       ['entity_test_with_bundle', 'bundle1', 'field_test_ref1.field_test2'],
       ['entity_test_with_bundle', 'bundle1', 'field_test_ref1.field_test_ref1'],
       ['entity_test_with_bundle', 'bundle1', 'field_test_ref1.field_test_ref2'],
+      [
+        'entity_test_with_bundle', 'bundle1',
+        'field_test_ref1.entity:entity_test_with_bundle.field_test1',
+        'Invalid nested filtering. The field `field_test1`, given in the path `field_test_ref1.entity:entity_test_with_bundle.field_test1`, does not exist.',
+      ],
+      [
+        'entity_test_with_bundle', 'bundle1',
+        'field_test_ref1.entity:entity_test_with_bundle.field_test2',
+        'Invalid nested filtering. The field `field_test2`, given in the path `field_test_ref1.entity:entity_test_with_bundle.field_test2`, does not exist.',
+      ],
+      [
+        'entity_test_with_bundle', 'bundle2',
+        'field_test_ref1.entity:entity_test_with_bundle.field_test2',
+        'Invalid nested filtering. The field `field_test_ref1`, given in the path `field_test_ref1.entity:entity_test_with_bundle.field_test2`, does not exist.',
+      ],
     ];
   }
 
