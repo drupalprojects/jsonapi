@@ -336,15 +336,18 @@ trait ResourceResponseTestTrait {
    *   The list of relationship field names for which to get responses.
    * @param array $request_options
    *   Request options to apply.
+   * @param \Drupal\Core\Entity\EntityInterface|null $entity
+   *   (optional) The entity for which to get expected related responses.
    *
    * @return array
    *   The related responses, keyed by relationship field names.
    *
    * @see \GuzzleHttp\ClientInterface::request()
    */
-  protected function getRelatedResponses(array $relationship_field_names, array $request_options) {
-    $links = array_map(function ($relationship_field_name) {
-      return static::getRelatedLink(static::toResourceIdentifier($this->entity), $relationship_field_name);
+  protected function getRelatedResponses(array $relationship_field_names, array $request_options, EntityInterface $entity = NULL) {
+    $entity = $entity ?: $this->entity;
+    $links = array_map(function ($relationship_field_name) use ($entity) {
+      return static::getRelatedLink(static::toResourceIdentifier($entity), $relationship_field_name);
     }, array_combine($relationship_field_names, $relationship_field_names));
     return $this->getResponses($links, $request_options);
   }

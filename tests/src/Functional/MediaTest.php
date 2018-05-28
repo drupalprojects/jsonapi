@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\jsonapi\Functional;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
 use Drupal\file\Entity\File;
 use Drupal\media\Entity\Media;
@@ -317,7 +318,7 @@ class MediaTest extends ResourceTestBase {
    *
    * @todo Determine if this override should be removed in https://www.drupal.org/project/jsonapi/issues/2952522
    */
-  protected function getExpectedGetRelationshipDocumentData($relationship_field_name) {
+  protected function getExpectedGetRelationshipDocumentData($relationship_field_name, EntityInterface $entity = NULL) {
     $data = parent::getExpectedGetRelationshipDocumentData($relationship_field_name);
     switch ($relationship_field_name) {
       case 'thumbnail':
