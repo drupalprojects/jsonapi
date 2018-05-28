@@ -930,16 +930,11 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     // Not only assert the normalization, also assert deserialization of the
     // response results in the expected object.
-    // @todo Uncomment this in https://www.drupal.org/project/jsonapi/issues/2942561#comment-12472704.
-    // @codingStandardsIgnoreStart
-    /*
-    $unserialized = $this->serializer->deserialize((string) $response->getBody(), get_class($this->entity), 'api_json', [
+    $unserialized = $this->serializer->deserialize((string) $response->getBody(), JsonApiDocumentTopLevel::class, 'api_json', [
       'target_entity' => static::$entityTypeId,
       'resource_type' => $this->container->get('jsonapi.resource_type.repository')->getByTypeName(static::$resourceTypeName),
     ]);
     $this->assertSame($unserialized->uuid(), $this->entity->uuid());
-    */
-    // @codingStandardsIgnoreEnd
     $get_headers = $response->getHeaders();
 
     // Verify that the GET and HEAD responses are the same. The only difference
