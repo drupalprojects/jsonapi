@@ -1710,6 +1710,8 @@ abstract class ResourceTestBase extends BrowserTestBase {
       if (isset($this->getPostDocument()['data']['relationships'])) {
         foreach ($this->getPostDocument()['data']['relationships'] as $field_name => $relationship_field_normalization) {
           // POSTing relationships: 'data' is required, 'links' is optional.
+          static::recursiveKsort($relationship_field_normalization);
+          static::recursiveKsort($created_entity_document['data']['relationships'][$field_name]);
           $this->assertSame($relationship_field_normalization, array_diff_key($created_entity_document['data']['relationships'][$field_name], ['links' => TRUE]));
         }
       }
@@ -2037,7 +2039,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
       if ($updated_entity->hasField($field_name)) {
         // Subset, not same, because we can e.g. send just the target_id for the
         // bundle in a PATCH request; the response will include more properties.
-        $this->assertArraySubset(static::castToString($field_normalization), $updated_entity->get($field_name)->getValue(), TRUE);
+        $this->assertArraySubset($field_normalization, $updated_entity->get($field_name)->getValue(), TRUE);
       }
     }
 
@@ -2126,30 +2128,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // 204 for well-formed request.
     $response = $this->request('DELETE', $url, $request_options);
     $this->assertResourceResponse(204, NULL, $response);
-  }
-
-  /**
-   * Transforms a normalization: casts all non-string types to strings.
-   *
-   * @param array $normalization
-   *   A normalization to transform.
-   *
-   * @return array
-   *   The transformed normalization.
-   */
-  protected static function castToString(array $normalization) {
-    foreach ($normalization as $key => $value) {
-      if (is_bool($value)) {
-        $normalization[$key] = (string) (int) $value;
-      }
-      elseif (is_int($value) || is_float($value)) {
-        $normalization[$key] = (string) $value;
-      }
-      elseif (is_array($value)) {
-        $normalization[$key] = static::castToString($value);
-      }
-    }
-    return $normalization;
   }
 
   /**
