@@ -112,7 +112,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
         : TypedDataInternalPropertiesHelper::getNonInternalProperties($item);
       foreach ($properties as $property_key => $property) {
         if ($property_key !== $main_property) {
-          $metadata[$property_key] = $property->getValue();
+          $metadata[$property_key] = $this->serializer->normalize($property, $format, $context);
         }
       }
       $entity_list_metadata[] = $metadata;
