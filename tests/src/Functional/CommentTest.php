@@ -419,4 +419,14 @@ class CommentTest extends ResourceTestBase {
     $this->markTestSkipped('Remove this in https://www.drupal.org/project/jsonapi/issues/2940339');
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  protected static function getIncludePermissions() {
+    return [
+      'type' => ['administer comment types'],
+      'uid' => ['access user profiles'],
+    ];
+  }
+
 }
