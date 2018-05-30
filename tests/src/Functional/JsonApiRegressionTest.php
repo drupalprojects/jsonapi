@@ -124,4 +124,53 @@ class JsonApiRegressionTest extends JsonApiFunctionalTestBase {
     $this->assertSame(200, $response->getStatusCode());
   }
 
+  /**
+   * Ensure POST and PATCH works for bundle-less relationship routes.
+   *
+   * @see https://www.drupal.org/project/jsonapi/issues/2976371
+   */
+  public function testBundlelessRelationshipMutationFromIssue2973681() {
+    // Set up data model.
+    $this->drupalCreateContentType(['type' => 'page']);
+    $this->createEntityReferenceField(
+      'node',
+      'page',
+      'field_test',
+      NULL,
+      'user',
+      'default',
+      [
+        'target_bundles' => NULL,
+      ],
+      FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED
+    );
+    $this->rebuildAll();
+
+    // Create data.
+    $node = Node::create([
+      'title' => 'test article',
+      'type' => 'page',
+    ]);
+    $node->save();
+    $target = $this->createUser();
+
+    // Test.
+    $user = $this->drupalCreateUser(['bypass node access']);
+    $url = Url::fromRoute('jsonapi.node--page.relationship', ['node' => $node->uuid(), 'related' => 'field_test']);
+    $request_options = [
+      RequestOptions::HEADERS => [
+        'Content-Type' => 'application/vnd.api+json',
+        'Accept' => 'application/vnd.api+json',
+      ],
+      RequestOptions::AUTH => [$user->getUsername(), $user->pass_raw],
+      RequestOptions::JSON => [
+        'data' => [
+          ['type' => 'user--user', 'id' => $target->uuid()],
+        ],
+      ],
+    ];
+    $response = $this->request('POST', $url, $request_options);
+    $this->assertSame(201, $response->getStatusCode(), (string) $response->getBody());
+  }
+
 }
