@@ -1915,7 +1915,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
         [
           'title' => 'Forbidden',
           'status' => 403,
-          'detail' => "The current user is not allowed to PATCH the selected field ($id_field_name). The entity ID cannot be changed",
+          'detail' => "The current user is not allowed to PATCH the selected field ($id_field_name). The entity ID cannot be changed.",
           'links' => [
             'info' => HttpExceptionNormalizer::getInfoUrl(403),
           ],
@@ -1927,6 +1927,9 @@ abstract class ResourceTestBase extends BrowserTestBase {
         ],
       ],
     ];
+    if (floatval(\Drupal::VERSION) < 8.6) {
+      $expected_document['errors'][0]['detail'] = "The current user is not allowed to PATCH the selected field ($id_field_name). The entity ID cannot be changed";
+    }
     $this->assertResourceResponse(403, $expected_document, $response);
     /* $this->assertResourceErrorResponse(403, "The current user is not allowed to PATCH the selected field ($id_field_name). The entity ID cannot be changed", $response, "/data/attributes/$id_field_name"); */
 
