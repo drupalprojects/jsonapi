@@ -2518,13 +2518,8 @@ abstract class ResourceTestBase extends BrowserTestBase {
       'all' => $field_names,
     ];
     if ($this->entity instanceof EntityOwnerInterface) {
-      // @codingStandardsIgnoreStart
-      // @todo uncomment the following line in https://www.drupal.org/project/jsonapi/issues/2976108
-      //$field_sets['nested_empty_fieldset'] = $field_sets['empty'];
-      // @todo Remove next line in favor of the one after it in https://www.drupal.org/project/jsonapi/issues/2976108
-      $field_sets['nested_fieldset_with_owner_fieldset'] = ['uid'];
-      // $field_sets['nested_fieldset_with_owner_fieldset'] = ['name', 'preferred_langcode'];
-      // @codingStandardsIgnoreEnd
+      $field_sets['nested_empty_fieldset'] = $field_sets['empty'];
+      $field_sets['nested_fieldset_with_owner_fieldset'] = ['name', 'created'];
     }
     return $field_sets;
   }
