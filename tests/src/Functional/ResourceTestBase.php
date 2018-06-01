@@ -1202,10 +1202,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     $cacheability = static::getExpectedCollectionCacheability($collection, NULL, $this->account);
     $cacheability->setCacheMaxAge($merged_response->getCacheableMetadata()->getCacheMaxAge());
-    // @todo: remove this condition and uncomment following line in https://www.drupal.org/project/jsonapi/issues/2966384.
-    if (!$merged_document || empty($merged_document['data'])) {
-      $cacheability->setCacheContexts(array_filter(array_diff($cacheability->getCacheContexts(), ['url.site'])));
-    }
 
     $collection_response = ResourceResponse::create($merged_document);
     $collection_response->addCacheableDependency($cacheability);
