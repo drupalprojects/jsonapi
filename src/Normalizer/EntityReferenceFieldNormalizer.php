@@ -7,7 +7,6 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
-use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
 use Drupal\Core\TypedData\TypedDataInternalPropertiesHelper;
 use Drupal\jsonapi\Normalizer\Value\NullFieldNormalizerValue;
 use Drupal\jsonapi\ResourceType\ResourceType;
@@ -97,13 +96,28 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer implements Denormal
     $cardinality = $definition
       ->getFieldStorageDefinition()
       ->getCardinality();
-    /** @var \Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem[] $entity_reference_item_list */
-    $entity_reference_item_list = array_filter(iterator_to_array($field), function ($item) {
-      return (bool) $item->get('entity')->getValue();
-    });
     $entity_list_metadata = [];
     $entity_list = [];
-    foreach ($entity_reference_item_list as $item) {
+    foreach ($field as $item) {
+      // A non-empty entity reference field that refers to a non-existent entity
+      // is not a data integrity problem. For example, Term entities' "parent"
+      // entity reference field uses target_id zero to refer to the non-existent
+      // "<root>" term.
+      if (!$item->isEmpty() && $item->get('entity')->getValue() === NULL) {
+        $entity_list[] = NULL;
+        $entity_list_metadata[] = [
+          'links' => [
+            'help' => [
+              'href' => 'https://www.drupal.org/docs/8/modules/json-api/core-concepts#virtual',
+              'meta' => [
+                'about' => "Usage and meaning of the 'virtual' resource identifier.",
+              ],
+            ],
+          ],
+        ];
+        continue;
+      }
+
       // Prepare a list of additional properties stored by the field.
       $metadata = [];
       /** @var \Drupal\Core\TypedData\TypedDataInterface[] $properties */
