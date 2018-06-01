@@ -143,7 +143,7 @@ trait ResourceResponseTestTrait {
    * @see \GuzzleHttp\ClientInterface::request()
    */
   protected function getExpectedIncludedResourceResponse(array $include_paths, array $request_options) {
-    $resource_data = array_reduce($include_paths, function ($data, string $path) use ($request_options) {
+    $resource_data = array_reduce($include_paths, function ($data, $path) use ($request_options) {
       $field_names = explode('.', $path);
       $entity = $this->entity;
       foreach ($field_names as $field_name) {
