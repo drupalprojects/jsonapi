@@ -79,7 +79,7 @@ class RelationshipItemNormalizer extends FieldItemNormalizer {
     }
 
     $host_field_name = $relationship_item->getParent()->getPropertyName();
-    if (!empty($context['include']) && in_array($host_field_name, $context['include'])) {
+    if (!empty($context['include']) && in_array($host_field_name, $context['include']) && $target_entity !== NULL) {
       $context = $this->buildSubContext($context, $target_entity, $host_field_name);
       $entity_and_access = EntityResource::getEntityAndAccess($target_entity);
       $included_normalizer_value = $this
