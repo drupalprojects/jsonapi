@@ -2466,8 +2466,11 @@ abstract class ResourceTestBase extends BrowserTestBase {
         // If any of the related response documents had top-level errors, we
         // should later expect the document to have 'meta' errors too.
         foreach ($related_document['errors'] as $error) {
-          unset($error['source']['pointer']);
-          $expected_document['meta']['errors'][] = $error;
+          // @todo remove this when inaccessible relationships are able to raise errors in https://www.drupal.org/project/jsonapi/issues/2956084.
+          if ($error['detail'] !== 'The current user is not allowed to view this relationship.') {
+            unset($error['source']['pointer']);
+            $expected_document['meta']['errors'][] = $error;
+          }
         }
       }
       elseif (isset($related_document['data'])) {
