@@ -9,6 +9,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Url;
 use Drupal\node\Entity\Node;
 use Drupal\taxonomy\Entity\Term;
+use Drupal\taxonomy\Entity\Vocabulary;
 use GuzzleHttp\RequestOptions;
 
 /**
@@ -171,6 +172,42 @@ class JsonApiRegressionTest extends JsonApiFunctionalTestBase {
     ];
     $response = $this->request('POST', $url, $request_options);
     $this->assertSame(201, $response->getStatusCode(), (string) $response->getBody());
+  }
+
+  /**
+   * Ensures GETting terms works when multiple vocabularies exist.
+   *
+   * @see https://www.drupal.org/project/jsonapi/issues/2977879
+   */
+  public function testGetTermWhenMultipleVocabulariesExistFromIssue2977879() {
+    // Set up data model.
+    $this->assertTrue($this->container->get('module_installer')->install(['taxonomy'], TRUE), 'Installed modules.');
+    Vocabulary::create([
+      'name' => 'one',
+      'vid' => 'one',
+    ])->save();
+    Vocabulary::create([
+      'name' => 'two',
+      'vid' => 'two',
+    ])->save();
+    $this->rebuildAll();
+
+    // Create data.
+    Term::create(['vid' => 'one'])
+      ->setName('Test')
+      ->save();
+
+    // Test.
+    $user = $this->drupalCreateUser([
+      'access content',
+    ]);
+    $response = $this->request('GET', Url::fromUri('internal:/jsonapi/taxonomy_term/one'), [
+      RequestOptions::AUTH => [
+        $user->getUsername(),
+        $user->pass_raw,
+      ],
+    ]);
+    $this->assertSame(200, $response->getStatusCode());
   }
 
 }
