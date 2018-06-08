@@ -153,7 +153,7 @@ class MessageTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
-  public function testGetRelationships() {
+  public function testRelationships() {
     // Contact Message entities are not stored, so they cannot be retrieved.
     $this->setExpectedException(RouteNotFoundException::class, 'Route "jsonapi.contact_message--camelids.relationship" does not exist.');
 

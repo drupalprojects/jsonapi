@@ -247,7 +247,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
       ->setTranslatable(FALSE)
       ->setSetting('handler', 'default')
       ->setSetting('handler_settings', [
-        'target_bundles' => [$account_bundle => $account_bundle],
+        'target_bundles' => NULL,
       ])
       ->save();
 
@@ -729,10 +729,18 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $strip_error_identifiers($expected_document);
     $strip_error_identifiers($actual_document);
 
-    $this->assertSame(array_keys($expected_document), array_keys($actual_document), 'The documents must share the same top-level members');
+    $expected_keys = array_keys($expected_document);
+    $actual_keys = array_keys($actual_document);
+    $missing_member_names = array_diff($expected_keys, $actual_keys);
+    $extra_member_names = array_diff($actual_keys, $expected_keys);
+    if (!empty($missing_member_names) || !empty($extra_member_names)) {
+      $message_format = "The document members did not match the expected values. Missing: [ %s ]. Unexpected: [ %s ]";
+      $message = sprintf($message_format, implode(', ', $missing_member_names), implode(', ', $extra_member_names));
+      $this->assertSame($expected_document, $actual_document, $message);
+    }
     foreach ($expected_document as $member_name => $expected_member) {
       $actual_member = $actual_document[$member_name];
-      $this->assertSame($expected_member, $actual_member, "The $member_name member was not as expected.");
+      $this->assertSame($expected_member, $actual_member, "The '$member_name' member was not as expected.");
     }
   }
 
@@ -1228,7 +1236,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
   }
 
   /**
-   * Tests GETing relationships of an individual resource.
+   * Tests CRUD of individual resource relationship data.
    *
    * Unlike the "related" routes, relationship routes only return information
    * about the "relationship" itself, not the targeted resources. For JSON API
@@ -1237,13 +1245,32 @@ abstract class ResourceTestBase extends BrowserTestBase {
    * targeted resource and the target resource IDs. These type+ID combos are
    * referred to as "resource identifiers."
    */
-  public function testGetRelationships() {
+  public function testRelationships() {
+    if ($this->entity instanceof ConfigEntityInterface) {
+      $this->markTestSkipped('Configuration entities cannot have relationships.');
+    }
+
     $request_options = [];
     $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
     $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
-    $this->doTestGetRelationships($request_options);
+
+    // Test GET.
+    $this->doTestRelationshipGet($request_options);
     $this->setUpAuthorization('GET');
-    $this->doTestGetRelationships($request_options);
+    $this->doTestRelationshipGet($request_options);
+
+    // Test POST.
+    $this->doTestRelationshipPost($request_options);
+    // Grant entity-level edit access.
+    $this->setUpAuthorization('PATCH');
+    $this->doTestRelationshipPost($request_options);
+    // Field edit access is still forbidden, grant it.
+    $this->grantPermissionsToTestedRole([
+      'field_jsonapi_test_entity_ref view access',
+      'field_jsonapi_test_entity_ref edit access',
+      'field_jsonapi_test_entity_ref update access',
+    ]);
+    $this->doTestRelationshipPost($request_options);
   }
 
   /**
@@ -1302,14 +1329,16 @@ abstract class ResourceTestBase extends BrowserTestBase {
    *   Request options to apply.
    *
    * @see \GuzzleHttp\ClientInterface::request()
-   * @see ::doTestRelated
+   * @see ::testRelationships
    */
-  protected function doTestGetRelationships(array $request_options) {
+  protected function doTestRelationshipGet(array $request_options) {
     $relationship_field_names = $this->getRelationshipFieldNames($this->entity);
     // If there are no relationship fields, we can't test relationship routes.
     if (empty($relationship_field_names)) {
       return;
     }
+
+    // Test GET.
     $related_responses = $this->getRelationshipResponses($relationship_field_names, $request_options);
     foreach ($relationship_field_names as $relationship_field_name) {
       $expected_resource_response = $this->getExpectedGetRelationshipResponse($relationship_field_name);
@@ -1320,6 +1349,214 @@ abstract class ResourceTestBase extends BrowserTestBase {
       $this->assertSameDocument($expected_document, $actual_document);
       $this->assertSame($expected_resource_response->getStatusCode(), $actual_response->getStatusCode());
     }
+  }
+
+  /**
+   * Performs one round of relationship POST, PATCH and DELETE route testing.
+   *
+   * @param array $request_options
+   *   Request options to apply.
+   *
+   * @see \GuzzleHttp\ClientInterface::request()
+   * @see ::testRelationships
+   */
+  protected function doTestRelationshipPost(array $request_options) {
+    /* @var \Drupal\Core\Entity\FieldableEntityInterface $resource */
+    $resource = $this->createAnotherEntity('dupe');
+    $resource->set('field_jsonapi_test_entity_ref', NULL);
+    assert(($violations = $resource->validate())->count() === 0, (string) $violations);
+    $resource->save();
+    $target_resource = $this->createUser();
+    assert(($violations = $target_resource->validate())->count() === 0, (string) $violations);
+    $target_resource->save();
+    $target_identifier = static::toResourceIdentifier($target_resource);
+    $resource_identifier = static::toResourceIdentifier($resource);
+    $relationship_field_name = 'field_jsonapi_test_entity_ref';
+    /* @var \Drupal\Core\Access\AccessResultReasonInterface $update_access */
+    $update_access = static::entityAccess($resource, 'update', $this->account)
+      ->andIf(static::entityFieldAccess($resource, $relationship_field_name, 'update', $this->account));
+    $url = Url::fromRoute(sprintf("jsonapi.{$resource_identifier['type']}.relationship"), [
+      'related' => $relationship_field_name,
+      $resource->getEntityTypeId() => $resource->uuid(),
+    ]);
+    if ($update_access->isAllowed()) {
+      // Test POST: empty body.
+      $response = $this->request('POST', $url, $request_options);
+      $this->assertResourceErrorResponse(400, 'Empty request body.', $response);
+      // Test PATCH: empty body.
+      $response = $this->request('PATCH', $url, $request_options);
+      $this->assertResourceErrorResponse(400, 'Empty request body.', $response);
+
+      // Test POST: empty data.
+      $request_options[RequestOptions::BODY] = Json::encode(['data' => []]);
+      $response = $this->request('POST', $url, $request_options);
+      // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2977653.
+      $this->assertResourceResponse(201, FALSE, $response);
+      // $this->assertResourceResponse(204, NULL, $response);
+      // Test PATCH: empty data.
+      $request_options[RequestOptions::BODY] = Json::encode(['data' => []]);
+      $response = $this->request('PATCH', $url, $request_options);
+      // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2977653.
+      $expected_document = $this->getExpectedGetRelationshipDocument($relationship_field_name, $resource);
+      $this->assertResourceResponse(200, $expected_document, $response);
+      /* $this->assertResourceResponse(204, NULL, $response); */
+
+      // Test POST: data as resource identifier, not array of identifiers.
+      $request_options[RequestOptions::BODY] = Json::encode(['data' => $target_identifier]);
+      $response = $this->request('POST', $url, $request_options);
+      $this->assertResourceErrorResponse(400, 'Invalid body payload for the relationship.', $response);
+      // Test PATCH: data as resource identifier, not array of identifiers.
+      $request_options[RequestOptions::BODY] = Json::encode(['data' => $target_identifier]);
+      $response = $this->request('PATCH', $url, $request_options);
+      $this->assertResourceErrorResponse(400, 'Invalid body payload for the relationship.', $response);
+
+      // Test POST: missing the 'type' field.
+      $request_options[RequestOptions::BODY] = Json::encode(['data' => array_intersect_key($target_identifier, ['id' => 'id'])]);
+      $response = $this->request('POST', $url, $request_options);
+      $this->assertResourceErrorResponse(400, 'Invalid body payload for the relationship.', $response);
+      // Test PATCH: missing the 'type' field.
+      $request_options[RequestOptions::BODY] = Json::encode(['data' => array_intersect_key($target_identifier, ['id' => 'id'])]);
+      $response = $this->request('PATCH', $url, $request_options);
+      $this->assertResourceErrorResponse(400, 'Invalid body payload for the relationship.', $response);
+
+      // If the base resource type is the same as that of the target's (as it
+      // will be for `user--user`), then the validity error will not be
+      // triggered, needlessly failing this assertion.
+      if (static::$resourceTypeName !== $target_identifier['type']) {
+        // Test POST: invalid target.
+        $request_options[RequestOptions::BODY] = Json::encode(['data' => [$resource_identifier]]);
+        $response = $this->request('POST', $url, $request_options);
+        $this->assertResourceErrorResponse(400, sprintf('The provided type (%s) does not mach the destination resource types (%s).', $resource_identifier['type'], $target_identifier['type']), $response);
+        // Test PATCH: invalid target.
+        $request_options[RequestOptions::BODY] = Json::encode(['data' => [$resource_identifier]]);
+        $response = $this->request('POST', $url, $request_options);
+        $this->assertResourceErrorResponse(400, sprintf('The provided type (%s) does not mach the destination resource types (%s).', $resource_identifier['type'], $target_identifier['type']), $response);
+      }
+
+      // Test POST: success.
+      $request_options[RequestOptions::BODY] = Json::encode(['data' => [$target_identifier]]);
+      $response = $this->request('POST', $url, $request_options);
+      $resource->set($relationship_field_name, [$target_resource]);
+      $expected_document = $this->getExpectedGetRelationshipDocument($relationship_field_name, $resource);
+      // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2977653.
+      $this->assertResourceResponse(201, $expected_document, $response);
+      /* $this->assertResourceResponse(204, NULL, $response); */
+
+      // @todo: Uncomment the following two assertions in https://www.drupal.org/project/jsonapi/issues/2977659.
+      // Test POST: success, relationship already exists, no arity.
+      // @codingStandardsIgnoreStart
+      /*
+      $response = $this->request('POST', $url, $request_options);
+      $this->assertResourceResponse(204, NULL, $response);
+      */
+      // @codingStandardsIgnoreEnd
+
+      // Test PATCH: success, new value is the same as existing value.
+      $request_options[RequestOptions::BODY] = Json::encode(['data' => [$target_identifier]]);
+      $response = $this->request('PATCH', $url, $request_options);
+      $resource->set($relationship_field_name, [$target_resource]);
+      $expected_document = $this->getExpectedGetRelationshipDocument($relationship_field_name, $resource);
+      // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2977653.
+      $this->assertResourceResponse(200, $expected_document, $response);
+      /* $this->assertResourceResponse(204, NULL, $response); */
+
+      // Test POST: success, relationship already exists, with unique arity.
+      $request_options[RequestOptions::BODY] = Json::encode([
+        'data' => [
+          $target_identifier + ['meta' => ['arity' => 1]],
+        ],
+      ]);
+      $response = $this->request('POST', $url, $request_options);
+      $resource->set($relationship_field_name, [$target_resource, $target_resource]);
+      $expected_document = $this->getExpectedGetRelationshipDocument($relationship_field_name, $resource);
+      $expected_document['data'][0] += ['meta' => ['arity' => 0]];
+      $expected_document['data'][1] += ['meta' => ['arity' => 1]];
+      // 200 with response body because the request did not include the
+      // existing relationship resource identifier object.
+      // @todo Remove line below in favor of commented assertion in https://www.drupal.org/project/jsonapi/issues/2977653.
+      $this->assertResourceResponse(201, $expected_document, $response);
+      /* $this->assertResourceResponse(200, $expected_document, $response); */
+
+      // @todo: Uncomment the following block in https://www.drupal.org/project/jsonapi/issues/2977659.
+      // @codingStandardsIgnoreStart
+      //// Test DELETE: two existing relationships, one removed.
+      //$request_options[RequestOptions::BODY] = Json::encode(['data' => [
+      //  $target_identifier + ['meta' => ['arity' => 0]],
+      //]]);
+      //$response = $this->request('DELETE', $url, $request_options);
+      //// @todo Remove 3 lines below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2977653.
+      //$resource->set($relationship_field_name, [$target_resource]);
+      //$expected_document = $this->getExpectedGetRelationshipDocument($relationship_field_name, $resource);
+      //$this->assertResourceResponse(201, $expected_document, $response);
+      //// $this->assertResourceResponse(204, NULL, $response);
+      //$resource->set($relationship_field_name, [$target_resource]);
+      //$expected_document = $this->getExpectedGetRelationshipDocument($relationship_field_name, $resource);
+      //$response = $this->request('GET', $url, $request_options);
+      //$this->assertSameDocument($expected_document, Json::decode((string) $response->getBody()));
+      // @codingStandardsIgnoreEnd
+
+      // Test DELETE: one existing relationship, removed.
+      $request_options[RequestOptions::BODY] = Json::encode(['data' => [$target_identifier]]);
+      $response = $this->request('DELETE', $url, $request_options);
+      $resource->set($relationship_field_name, []);
+      $expected_document = $this->getExpectedGetRelationshipDocument($relationship_field_name, $resource);
+      // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2977653.
+      $this->assertResourceResponse(201, $expected_document, $response);
+      /*  $this->assertResourceResponse(204, NULL, $response); */
+      $expected_document = $this->getExpectedGetRelationshipDocument($relationship_field_name, $resource);
+      $response = $this->request('GET', $url, $request_options);
+      $this->assertSameDocument($expected_document, Json::decode((string) $response->getBody()));
+
+      // Test DELETE: no existing relationships, no op, success.
+      $request_options[RequestOptions::BODY] = Json::encode(['data' => [$target_identifier]]);
+      $response = $this->request('DELETE', $url, $request_options);
+      // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2977653.
+      $this->assertResourceResponse(201, $expected_document, $response);
+      /* $this->assertResourceResponse(204, NULL, $response); */
+      $expected_document = $this->getExpectedGetRelationshipDocument($relationship_field_name, $resource);
+      $response = $this->request('GET', $url, $request_options);
+      $this->assertSameDocument($expected_document, Json::decode((string) $response->getBody()));
+
+      // Test PATCH: success, new value is different than existing value.
+      $request_options[RequestOptions::BODY] = Json::encode(['data' => [$target_identifier, $target_identifier]]);
+      $response = $this->request('PATCH', $url, $request_options);
+      $resource->set($relationship_field_name, [$target_resource, $target_resource]);
+      $expected_document = $this->getExpectedGetRelationshipDocument($relationship_field_name, $resource);
+      $expected_document['data'][0] += ['meta' => ['arity' => 0]];
+      $expected_document['data'][1] += ['meta' => ['arity' => 1]];
+      // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2977653.
+      $this->assertResourceResponse(200, $expected_document, $response);
+      /* $this->assertResourceResponse(204, NULL, $response); */
+
+      // Test DELETE: two existing relationships, both removed because no arity
+      // was specified.
+      $request_options[RequestOptions::BODY] = Json::encode(['data' => [$target_identifier]]);
+      $response = $this->request('DELETE', $url, $request_options);
+      $resource->set($relationship_field_name, []);
+      $expected_document = $this->getExpectedGetRelationshipDocument($relationship_field_name, $resource);
+      // @todo Remove line below in favor of commented line in https://www.drupal.org/project/jsonapi/issues/2977653.
+      $this->assertResourceResponse(201, $expected_document, $response);
+      /* $this->assertResourceResponse(204, NULL, $response); */
+      $resource->set($relationship_field_name, []);
+      $expected_document = $this->getExpectedGetRelationshipDocument($relationship_field_name, $resource);
+      $response = $this->request('GET', $url, $request_options);
+      $this->assertSameDocument($expected_document, Json::decode((string) $response->getBody()));
+    }
+    else {
+      $request_options[RequestOptions::BODY] = Json::encode(['data' => [$target_identifier]]);
+      $response = $this->request('POST', $url, $request_options);
+      $message = 'The current user is not allowed to update this relationship.';
+      $message .= ($reason = $update_access->getReason()) ? ' ' . $reason : '';
+      $this->assertResourceErrorResponse(403, $message, $response, $relationship_field_name);
+      $response = $this->request('PATCH', $url, $request_options);
+      $this->assertResourceErrorResponse(403, $message, $response, $relationship_field_name);
+      $response = $this->request('DELETE', $url, $request_options);
+      $this->assertResourceErrorResponse(403, $message, $response, $relationship_field_name);
+    }
+
+    // Remove the test entities that were created.
+    $resource->delete();
+    $target_resource->delete();
   }
 
   /**
@@ -1543,8 +1780,8 @@ abstract class ResourceTestBase extends BrowserTestBase {
     }
     if (!empty($resource_document['meta']['errors'])) {
       foreach ($resource_document['meta']['errors'] as $error) {
-        // @todo remove this conditional when inaccessible relationships are able to raise errors.
-        if ($error['detail'] !== 'The current user is not allowed to view this relationship.') {
+        // @todo remove this when inaccessible relationships are able to raise errors in https://www.drupal.org/project/jsonapi/issues/2956084.
+        if (strpos($error['detail'], 'The current user is not allowed to view this relationship.') !== 0) {
           $expected_document['meta']['errors'][] = $error;
         }
       }
@@ -2467,7 +2704,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
         // should later expect the document to have 'meta' errors too.
         foreach ($related_document['errors'] as $error) {
           // @todo remove this when inaccessible relationships are able to raise errors in https://www.drupal.org/project/jsonapi/issues/2956084.
-          if ($error['detail'] !== 'The current user is not allowed to view this relationship.') {
+          if (strpos($error['detail'], 'The current user is not allowed to view this relationship.') !== 0) {
             unset($error['source']['pointer']);
             $expected_document['meta']['errors'][] = $error;
           }

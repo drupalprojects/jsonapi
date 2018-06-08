@@ -104,6 +104,7 @@ class UserTest extends ResourceTestBase {
     /** @var \Drupal\user\UserInterface $user */
     $user = $this->getEntityDuplicate($this->entity, $key);
     $user->setUsername($user->label() . '_' . $key);
+    $user->setEmail("$key@example.com");
     $user->save();
     return $user;
   }
