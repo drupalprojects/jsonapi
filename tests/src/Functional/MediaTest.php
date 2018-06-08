@@ -346,7 +346,7 @@ class MediaTest extends ResourceTestBase {
    * @todo Determine if this override should be removed in https://www.drupal.org/project/jsonapi/issues/2952522
    */
   protected function getExpectedGetRelationshipDocumentData($relationship_field_name, EntityInterface $entity = NULL) {
-    $data = parent::getExpectedGetRelationshipDocumentData($relationship_field_name);
+    $data = parent::getExpectedGetRelationshipDocumentData($relationship_field_name, $entity);
     switch ($relationship_field_name) {
       case 'thumbnail':
         $data['meta'] = [
@@ -367,6 +367,16 @@ class MediaTest extends ResourceTestBase {
       default:
         return $data;
     }
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * @todo Remove this in https://www.drupal.org/node/2824851.
+   */
+  protected function doTestRelationshipPost(array $request_options) {
+    $this->grantPermissionsToTestedRole(['access content']);
+    parent::doTestRelationshipPost($request_options);
   }
 
 }

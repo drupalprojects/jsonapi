@@ -147,7 +147,7 @@ class ItemTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
-  public function testGetRelationships() {
+  public function testRelationships() {
     $this->markTestSkipped('Remove this override in https://www.drupal.org/project/drupal/issues/2149851');
   }
 

@@ -56,7 +56,7 @@ class ShortcutTest extends ResourceTestBase {
       'title' => t('Comments'),
       'weight' => -20,
       'link' => [
-        'uri' => 'internal:/admin/content/comment',
+        'uri' => 'internal:/user/logout',
       ],
     ]);
     $shortcut->save();
@@ -92,7 +92,7 @@ class ShortcutTest extends ResourceTestBase {
           'id' => (int) $this->entity->id(),
           'title' => 'Comments',
           'link' => [
-            'uri' => 'internal:/admin/content/comment',
+            'uri' => 'internal:/user/logout',
             'title' => NULL,
             'options' => [],
           ],
