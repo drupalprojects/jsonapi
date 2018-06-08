@@ -1364,10 +1364,12 @@ abstract class ResourceTestBase extends BrowserTestBase {
     /* @var \Drupal\Core\Entity\FieldableEntityInterface $resource */
     $resource = $this->createAnotherEntity('dupe');
     $resource->set('field_jsonapi_test_entity_ref', NULL);
-    assert(($violations = $resource->validate())->count() === 0, (string) $violations);
+    $violations = $resource->validate();
+    assert($violations->count() === 0, (string) $violations);
     $resource->save();
     $target_resource = $this->createUser();
-    assert(($violations = $target_resource->validate())->count() === 0, (string) $violations);
+    $violations = $target_resource->validate();
+    assert($violations->count() === 0, (string) $violations);
     $target_resource->save();
     $target_identifier = static::toResourceIdentifier($target_resource);
     $resource_identifier = static::toResourceIdentifier($resource);
