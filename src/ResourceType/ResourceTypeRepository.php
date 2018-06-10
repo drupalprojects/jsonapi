@@ -84,8 +84,8 @@ class ResourceTypeRepository implements ResourceTypeRepositoryInterface {
   /**
    * {@inheritdoc}
    */
-  public function getPathPrefix() {
-    return 'jsonapi';
+  public function getBasePath() {
+    return '/jsonapi';
   }
 
   // @codingStandardsIgnoreStart

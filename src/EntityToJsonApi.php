@@ -109,13 +109,13 @@ class EntityToJsonApi {
    */
   protected function calculateContext(EntityInterface $entity) {
     // TODO: Supporting includes requires adding the 'include' query string.
-    $path_prefix = $this->resourceTypeRepository->getPathPrefix();
+    $path_prefix = $this->resourceTypeRepository->getBasePath();
     $resource_type = $this->resourceTypeRepository->get(
       $entity->getEntityTypeId(),
       $entity->bundle()
     );
     $resource_path = $resource_type->getPath();
-    $path = sprintf('/%s/%s/%s', $path_prefix, $resource_path, $entity->uuid());
+    $path = sprintf('%s%s/%s', $path_prefix, $resource_path, $entity->uuid());
     $master_request = $this->requestStack->getMasterRequest();
     $request = Request::create($master_request->getSchemeAndHttpHost() . $master_request->getBaseUrl() . $path, 'GET');
     return [

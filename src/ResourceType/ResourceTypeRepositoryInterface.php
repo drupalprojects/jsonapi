@@ -42,11 +42,11 @@ interface ResourceTypeRepositoryInterface {
   public function getByTypeName($type_name);
 
   /**
-   * Gets the path prefix for routes managed by JSON API.
+   * Gets the base path for routes managed by JSON API.
    *
    * @return string
-   *   The route prefix in the JSON API route paths.
+   *   The base path in the JSON API routes' paths.
    */
-  public function getPathPrefix();
+  public function getBasePath();
 
 }
