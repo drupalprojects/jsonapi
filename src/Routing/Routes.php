@@ -88,7 +88,7 @@ class Routes implements ContainerInjectionInterface {
     $routes = new RouteCollection();
 
     // Every JSON API route is prefixed.
-    $path_prefix = $this->resourceTypeRepository->getPathPrefix();
+    $path_prefix = $this->resourceTypeRepository->getBasePath();
 
     // JSON API's routes: entry point + routes for every resource type.
     foreach ($this->resourceTypeRepository->all() as $resource_type) {
