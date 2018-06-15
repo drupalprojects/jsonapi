@@ -210,4 +210,73 @@ class JsonApiRegressionTest extends JsonApiFunctionalTestBase {
     $this->assertSame(200, $response->getStatusCode());
   }
 
+  /**
+   * Cannot PATCH an entity with dangling references in an ER field.
+   *
+   * @see https://www.drupal.org/project/jsonapi/issues/2968972
+   */
+  public function testDanglingReferencesInAnEntityReferenceFieldFromIssue2968972() {
+    // Set up data model.
+    $this->drupalCreateContentType(['type' => 'journal_issue']);
+    $this->drupalCreateContentType(['type' => 'journal_article']);
+    $this->createEntityReferenceField(
+      'node',
+      'journal_article',
+      'field_issue',
+      NULL,
+      'node',
+      'default',
+      [
+        'target_bundles' => [
+          'journal_issue' => 'journal_issue'
+        ],
+      ],
+      FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED
+    );
+    $this->rebuildAll();
+
+    // Create data.
+    $issue_node = Node::create([
+      'title' => 'Test Journal Issue',
+      'type' => 'journal_issue',
+    ]);
+    $issue_node->save();
+
+    $user = $this->drupalCreateUser([
+      'access content',
+      'edit own journal_article content',
+    ]);
+    $article_node = Node::create([
+      'title' => 'Test Journal Article',
+      'type' => 'journal_article',
+      'field_issue' => [
+        'target_id' => $issue_node->id()
+      ]
+    ]);
+    $article_node->setOwner($user);
+    $article_node->save();
+
+    // Test.
+    $url = Url::fromUri(sprintf('internal:/jsonapi/node/journal_article/%s', $article_node->uuid()));
+    $request_options = [
+      RequestOptions::HEADERS => [
+        'Content-Type' => 'application/vnd.api+json',
+        'Accept' => 'application/vnd.api+json',
+      ],
+      RequestOptions::AUTH => [$user->getUsername(), $user->pass_raw],
+      RequestOptions::JSON => [
+        'data' => [
+          'type' => 'node--journal_article',
+          'id' => $article_node->uuid(),
+          'attributes' => [
+            'title' => 'My New Article Title'
+          ],
+        ],
+      ],
+    ];
+    $issue_node->delete();
+    $response = $this->request('PATCH', $url, $request_options);
+    $this->assertSame(200, $response->getStatusCode(), (string) $response->getBody());
+  }
+
 }
