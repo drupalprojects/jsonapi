@@ -137,13 +137,17 @@ class EntityResource {
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity object.
+   * @param string[] $field_names
+   *    (optional) An array of field names. If specified, filters the violations
+   *    list to include only this set of fields. Defaults to NULL,
+   *    which means that all violations will be reported.
    *
    * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
    *   If validation errors are found.
    *
    * @see \Drupal\rest\Plugin\rest\resource\EntityResourceValidationTrait::validate()
    */
-  protected function validate(EntityInterface $entity) {
+  protected function validate(EntityInterface $entity, array $field_names = NULL) {
     if (!$entity instanceof FieldableEntityInterface) {
       return;
     }
@@ -153,6 +157,13 @@ class EntityResource {
     // Remove violations of inaccessible fields as they cannot stem from our
     // changes.
     $violations->filterByFieldAccess();
+
+    // Filter violations based on the given fields.
+    if ($field_names !== NULL) {
+      $violations->filterByFields(
+        array_diff(array_keys($entity->getFieldDefinitions()), $field_names)
+      );
+    }
 
     if (count($violations) > 0) {
       // Instead of returning a generic 400 response we use the more specific
@@ -283,12 +294,13 @@ class EntityResource {
     }
     $data += ['attributes' => [], 'relationships' => []];
     $field_names = array_merge(array_keys($data['attributes']), array_keys($data['relationships']));
+
     array_reduce($field_names, function (EntityInterface $destination, $field_name) use ($parsed_entity) {
       $this->updateEntityField($parsed_entity, $destination, $field_name);
       return $destination;
     }, $entity);
 
-    $this->validate($entity);
+    $this->validate($entity, $field_names);
     $entity->save();
     return $this->buildWrappedResponse($entity);
   }

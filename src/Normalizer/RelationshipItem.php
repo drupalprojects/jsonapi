@@ -72,7 +72,7 @@ class RelationshipItem {
       if (count($relatable_resource_types) !== 1) {
         throw new \RuntimeException('Relationships to virtual resources are possible only if a single resource type is relatable.');
       }
-      $this->targetResourceType = $relatable_resource_types[0];
+      $this->targetResourceType = reset($relatable_resource_types);
     }
     else {
       $this->targetResourceType = $resource_type_repository->get(
