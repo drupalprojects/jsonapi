@@ -269,7 +269,7 @@ class ResourceType {
    * Get the resource path.
    *
    * @return string
-   *   The path to access this resource type. Defaults to /entity_type_id/bundle.
+   *   The path to access this resource type. Default: /entity_type_id/bundle.
    *
    * @see \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface::getBasePath()
    */

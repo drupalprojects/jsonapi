@@ -138,9 +138,9 @@ class EntityResource {
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity object.
    * @param string[] $field_names
-   *    (optional) An array of field names. If specified, filters the violations
-   *    list to include only this set of fields. Defaults to NULL,
-   *    which means that all violations will be reported.
+   *   (optional) An array of field names. If specified, filters the violations
+   *   list to include only this set of fields. Defaults to NULL,
+   *   which means that all violations will be reported.
    *
    * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
    *   If validation errors are found.
