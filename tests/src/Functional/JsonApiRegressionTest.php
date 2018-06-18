@@ -228,7 +228,7 @@ class JsonApiRegressionTest extends JsonApiFunctionalTestBase {
       'default',
       [
         'target_bundles' => [
-          'journal_issue' => 'journal_issue'
+          'journal_issue' => 'journal_issue',
         ],
       ],
       FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED
@@ -250,8 +250,8 @@ class JsonApiRegressionTest extends JsonApiFunctionalTestBase {
       'title' => 'Test Journal Article',
       'type' => 'journal_article',
       'field_issue' => [
-        'target_id' => $issue_node->id()
-      ]
+        'target_id' => $issue_node->id(),
+      ],
     ]);
     $article_node->setOwner($user);
     $article_node->save();
@@ -269,7 +269,7 @@ class JsonApiRegressionTest extends JsonApiFunctionalTestBase {
           'type' => 'node--journal_article',
           'id' => $article_node->uuid(),
           'attributes' => [
-            'title' => 'My New Article Title'
+            'title' => 'My New Article Title',
           ],
         ],
       ],
