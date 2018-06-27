@@ -1,3 +1,6 @@
+parameters:
+  jsonapi.base_path: /jsonapi
+
 services:
   jsonapi.serializer_do_not_use_removal_imminent:
     class: Drupal\jsonapi\Serializer\Serializer
@@ -127,6 +130,7 @@ services:
     arguments: ['@jsonapi.serializer_do_not_use_removal_imminent', '%serializer.formats%']
   jsonapi.http_middleware.format_setter:
     class: Drupal\jsonapi\StackMiddleware\FormatSetter
+    arguments: ['%jsonapi.base_path%']
     tags:
       # Set priority to 201 so it happens right before the page cache
       # middleware (priority 200)has the opportunity to respond.
@@ -134,7 +138,7 @@ services:
 
   jsonapi.entity.to_jsonapi:
     class: Drupal\jsonapi\EntityToJsonApi
-    arguments: ['@jsonapi.serializer_do_not_use_removal_imminent', '@jsonapi.resource_type.repository', '@current_user', '@request_stack']
+    arguments: ['@jsonapi.serializer_do_not_use_removal_imminent', '@jsonapi.resource_type.repository', '@current_user', '@request_stack', '%jsonapi.base_path%']
 
   logger.channel.jsonapi:
     parent: logger.channel_base
