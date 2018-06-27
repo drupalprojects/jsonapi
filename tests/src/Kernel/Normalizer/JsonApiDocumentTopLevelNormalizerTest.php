@@ -11,7 +11,6 @@ use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
-use Drupal\jsonapi\ResourceResponse;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\Tests\image\Kernel\ImageFieldCreationTrait;
@@ -215,8 +214,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       'include' => $include,
     ]);
 
-    $response = new ResourceResponse();
-    $normalized = $this
+    $jsonapi_doc_object = $this
       ->getNormalizer()
       ->normalize(
         new JsonApiDocumentTopLevel($this->node),
@@ -224,9 +222,9 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         [
           'request' => $request,
           'resource_type' => $resource_type,
-          'cacheable_metadata' => $response->getCacheableMetadata(),
         ]
       );
+    $normalized = $jsonapi_doc_object->rasterizeValue();
 
     // @see http://jsonapi.org/format/#document-jsonapi-object
     $this->assertEquals($normalized['jsonapi']['version'], '1.0');
@@ -275,11 +273,11 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     // are bubbling as expected.
     $this->assertArraySubset(
       ['file:1', 'node:1', 'taxonomy_term:1', 'taxonomy_term:2'],
-      $response->getCacheableMetadata()->getCacheTags()
+      $jsonapi_doc_object->getCacheTags()
     );
     $this->assertSame(
       Cache::PERMANENT,
-      $response->getCacheableMetadata()->getCacheMaxAge()
+      $jsonapi_doc_object->getCacheMaxAge()
     );
   }
 
@@ -313,8 +311,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $author = $this->node->get('uid')->entity;
     $document_wrapper->getData()->willReturn($author);
 
-    $response = new ResourceResponse();
-    $normalized = $this
+    $jsonapi_doc_object = $this
       ->getNormalizer()
       ->normalize(
         $document_wrapper->reveal(),
@@ -322,18 +319,16 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         [
           'request' => $request,
           'resource_type' => $resource_type,
-          'cacheable_metadata' => $response->getCacheableMetadata(),
         ]
       );
+    $normalized = $jsonapi_doc_object->rasterizeValue();
     $this->assertSame($normalized['data']['attributes']['name'], 'user1');
     $this->assertEquals($normalized['data']['id'], User::load(1)->uuid());
     $this->assertEquals($normalized['data']['type'], 'user--user');
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
-    $this->assertSame(['user:1'], $response->getCacheableMetadata()
-      ->getCacheTags());
-    $this->assertSame(Cache::PERMANENT, $response->getCacheableMetadata()
-      ->getCacheMaxAge());
+    $this->assertSame(['user:1'], $jsonapi_doc_object->getCacheTags());
+    $this->assertSame(Cache::PERMANENT, $jsonapi_doc_object->getCacheMaxAge());
   }
 
   /**
@@ -351,8 +346,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       'include' => 'uid,field_tags',
     ]);
 
-    $response = new ResourceResponse();
-    $normalized = $this
+    $jsonapi_doc_object = $this
       ->getNormalizer()
       ->normalize(
         $document_wrapper->reveal(),
@@ -360,9 +354,9 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         [
           'request' => $request,
           'resource_type' => $resource_type,
-          'cacheable_metadata' => $response->getCacheableMetadata(),
         ]
       );
+    $normalized = $jsonapi_doc_object->rasterizeValue();
     $this->assertStringMatchesFormat($this->node->uuid(), $normalized['data']['id']);
     $this->assertEquals($this->node->type->entity->uuid(), $normalized['data']['relationships']['type']['data']['id']);
     $this->assertEquals($this->user->uuid(), $normalized['data']['relationships']['uid']['data']['id']);
@@ -373,7 +367,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     // are bubbling as expected.
     $this->assertArraySubset(
       ['node:1', 'taxonomy_term:1', 'taxonomy_term:2'],
-      $response->getCacheableMetadata()->getCacheTags()
+      $jsonapi_doc_object->getCacheTags()
     );
   }
 
@@ -392,7 +386,6 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       'include' => 'uid',
     ]);
 
-    $response = new ResourceResponse();
     $normalized = $this
       ->container
       ->get('jsonapi.serializer_do_not_use_removal_imminent')
@@ -402,7 +395,6 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         [
           'request' => $request,
           'resource_type' => $resource_type,
-          'cacheable_metadata' => $response->getCacheableMetadata(),
           'data_wrapper' => 'errors',
         ]
       );
@@ -428,14 +420,13 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       'include' => NULL,
     ]);
 
-    $response = new ResourceResponse();
-    $normalized = $this
+    $jsonapi_doc_object = $this
       ->getNormalizer()
       ->normalize($document_wrapper->reveal(), 'api_json', [
         'request' => $request,
         'resource_type' => $resource_type,
-        'cacheable_metadata' => $response->getCacheableMetadata(),
       ]);
+    $normalized = $jsonapi_doc_object->rasterizeValue();
     $this->assertTrue(empty($normalized['data']['attributes']['type']));
     $this->assertTrue(!empty($normalized['data']['attributes']['uuid']));
     $this->assertSame($normalized['data']['attributes']['display_submitted'], TRUE);
@@ -443,8 +434,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $this->assertSame($normalized['data']['type'], 'node_type--node_type');
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
-    $this->assertSame(['config:node.type.article'], $response->getCacheableMetadata()
-      ->getCacheTags());
+    $this->assertSame(['config:node.type.article'], $jsonapi_doc_object->getCacheTags());
   }
 
   /**
@@ -693,16 +683,14 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
    */
   public function testCacheableMetadata(CacheableMetadata $expected_metadata, $fields = NULL, $includes = NULL) {
     list($request, $resource_type) = $this->generateProphecies('node', 'article');
-    $actual_metadata = new CacheableMetadata();
     $context = [
       'request' => $this->decorateRequest($request, $fields, $includes),
       'resource_type' => $resource_type,
-      'cacheable_metadata' => $actual_metadata,
     ];
-    $this->getNormalizer()->normalize(new JsonApiDocumentTopLevel($this->node), 'api_json', $context);
-    $this->assertArraySubset($expected_metadata->getCacheTags(), $actual_metadata->getCacheTags());
-    $this->assertArraySubset($expected_metadata->getCacheContexts(), $actual_metadata->getCacheContexts());
-    $this->assertSame($expected_metadata->getCacheMaxAge(), $actual_metadata->getCacheMaxAge());
+    $jsonapi_doc_object = $this->getNormalizer()->normalize(new JsonApiDocumentTopLevel($this->node), 'api_json', $context);
+    $this->assertArraySubset($expected_metadata->getCacheTags(), $jsonapi_doc_object->getCacheTags());
+    $this->assertArraySubset($expected_metadata->getCacheContexts(), $jsonapi_doc_object->getCacheContexts());
+    $this->assertSame($expected_metadata->getCacheMaxAge(), $jsonapi_doc_object->getCacheMaxAge());
   }
 
   /**

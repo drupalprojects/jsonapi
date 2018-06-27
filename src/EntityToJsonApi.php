@@ -4,7 +4,6 @@ namespace Drupal\jsonapi;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
 use Drupal\jsonapi\Serializer\Serializer;
@@ -95,7 +94,7 @@ class EntityToJsonApi {
     return $this->serializer->normalize(new JsonApiDocumentTopLevel($entity),
       'api_json',
       $this->calculateContext($entity)
-    );
+    )->rasterizeValue();
   }
 
   /**
@@ -120,7 +119,6 @@ class EntityToJsonApi {
     $request = Request::create($master_request->getSchemeAndHttpHost() . $master_request->getBaseUrl() . $path, 'GET');
     return [
       'account' => $this->currentUser,
-      'cacheable_metadata' => new CacheableMetadata(),
       'resource_type' => $resource_type,
       'request' => $request,
     ];
