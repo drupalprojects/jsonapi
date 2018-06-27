@@ -145,7 +145,6 @@ services:
     class: \Drupal\jsonapi\Controller\RequestHandler
     arguments:
       - '@jsonapi.serializer_do_not_use_removal_imminent'
-      - '@renderer'
       - '@jsonapi.resource_type.repository'
       - '@entity_type.manager'
       - '@entity_field.manager'
@@ -155,7 +154,7 @@ services:
   # Event subscribers.
   jsonapi.resource_response.subscriber:
     class: Drupal\jsonapi\EventSubscriber\ResourceResponseSubscriber
-    arguments: ['@jsonapi.serializer_do_not_use_removal_imminent', '@renderer']
+    arguments: ['@jsonapi.serializer_do_not_use_removal_imminent']
     tags:
       - { name: event_subscriber }
   jsonapi.resource_response_validator.subscriber:

@@ -140,4 +140,25 @@ class ShortcutTest extends ResourceTestBase {
     return "The shortcut set must be the currently displayed set for the user and the user must have 'access shortcuts' AND 'customize shortcut links' permissions.";
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function testPostIndividual() {
+    $this->markTestSkipped('Disabled until https://www.drupal.org/project/drupal/issues/2982060 is fixed.');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function testRelationships() {
+    $this->markTestSkipped('Disabled until https://www.drupal.org/project/drupal/issues/2982060 is fixed.');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function testPatchIndividual() {
+    $this->markTestSkipped('Disabled until https://www.drupal.org/project/drupal/issues/2982060 is fixed.');
+  }
+
 }

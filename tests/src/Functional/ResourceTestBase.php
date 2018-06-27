@@ -326,7 +326,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
       // Pass a Request object to the normalizer; this will be considered the
       // "current request" for generating the "self" link.
       'request' => Request::create($url->toString(TRUE)->getGeneratedUrl()),
-    ]);
+    ])->rasterizeValue();
   }
 
   /**
@@ -1605,17 +1605,14 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $data = $this->getExpectedGetRelationshipDocumentData($relationship_field_name, $entity);
     return [
       'data' => $data,
-      // @todo Uncomment this in https://www.drupal.org/project/jsonapi/issues/2949807
-      // @codingStandardsIgnoreStart
-      //'jsonapi' => [
-      //  'meta' => [
-      //    'links' => [
-      //      'self' => 'http://jsonapi.org/format/1.0/',
-      //    ],
-      //  ],
-      //  'version' => '1.0',
-      //],
-      // @codingStandardsIgnoreEnd
+      'jsonapi' => [
+        'meta' => [
+          'links' => [
+            'self' => 'http://jsonapi.org/format/1.0/',
+          ],
+        ],
+        'version' => '1.0',
+      ],
       'links' => [
         'self' => $self_link,
         'related' => $related_link,

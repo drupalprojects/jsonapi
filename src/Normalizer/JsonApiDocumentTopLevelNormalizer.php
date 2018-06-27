@@ -3,7 +3,6 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
-use Drupal\Component\Utility\NestedArray;
 use Drupal\Component\Uuid\Uuid;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -169,44 +168,17 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
    * {@inheritdoc}
    */
   public function normalize($object, $format = NULL, array $context = []) {
-    $value_extractor = $this->buildNormalizerValue($object->getData(), $format, $context);
-    if (isset($context['is_include_normalization']) && $context['is_include_normalization'] === TRUE) {
-      return $value_extractor;
-    }
-
-    if (!empty($context['cacheable_metadata'])) {
-      $context['cacheable_metadata']->addCacheableDependency($value_extractor);
-    }
-    $normalized = $value_extractor->rasterizeValue();
-    $included = array_filter($value_extractor->rasterizeIncludes());
-    if (!empty($included)) {
-      foreach ($included as $included_item) {
-        if ($included_item['data'] === FALSE) {
-          unset($included_item['data']);
-          $normalized = NestedArray::mergeDeep($normalized, $included_item);
-        }
-        else {
-          $normalized['included'][] = $included_item['data'];
-        }
-      }
-    }
-
-    return $normalized;
-  }
-
-  /**
-   * Build the normalizer value.
-   *
-   * @return \Drupal\jsonapi\Normalizer\Value\JsonApiDocumentTopLevelNormalizerValue
-   *   The normalizer value.
-   */
-  public function buildNormalizerValue($data, $format = NULL, array $context = []) {
+    $data = $object->getData();
     if (empty($context['expanded'])) {
       $context += $this->expandContext($context['request'], $context['resource_type']);
     }
 
     if ($data instanceof EntityReferenceFieldItemListInterface) {
-      return $this->serializer->normalize($data, $format, $context);
+      $normalizer_values = [
+        $this->serializer->normalize($data, $format, $context),
+      ];
+      $link_context = ['link_manager' => $this->linkManager];
+      return new JsonApiDocumentTopLevelNormalizerValue($normalizer_values, $context, $link_context, FALSE);
     }
     $is_collection = $data instanceof EntityCollection;
     $include_count = $context['resource_type']->includeCount();
