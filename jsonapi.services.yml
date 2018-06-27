@@ -46,7 +46,7 @@ services:
       - { name: jsonapi_normalizer_do_not_use_removal_imminent, priority: 1 }
   serializer.normalizer.entity_reference_item.jsonapi:
     class: Drupal\jsonapi\Normalizer\RelationshipItemNormalizer
-    arguments: ['@jsonapi.resource_type.repository', '@serializer.normalizer.jsonapi_document_toplevel.jsonapi',]
+    arguments: ['@jsonapi.resource_type.repository']
     tags:
       - { name: jsonapi_normalizer_do_not_use_removal_imminent }
   serializer.normalizer.field_item.jsonapi:

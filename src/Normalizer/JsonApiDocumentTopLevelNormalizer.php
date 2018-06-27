@@ -170,6 +170,10 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
    */
   public function normalize($object, $format = NULL, array $context = []) {
     $value_extractor = $this->buildNormalizerValue($object->getData(), $format, $context);
+    if (isset($context['is_include_normalization']) && $context['is_include_normalization'] === TRUE) {
+      return $value_extractor;
+    }
+
     if (!empty($context['cacheable_metadata'])) {
       $context['cacheable_metadata']->addCacheableDependency($value_extractor);
     }
