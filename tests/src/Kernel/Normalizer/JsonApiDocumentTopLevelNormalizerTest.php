@@ -738,7 +738,11 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
    * Helper to load the normalizer.
    */
   protected function getNormalizer() {
-    return $this->container->get('jsonapi_test_normalizers_kernel.jsonapi_document_toplevel');
+    $normalizer_service = $this->container->get('jsonapi_test_normalizers_kernel.jsonapi_document_toplevel');
+    // Simulate what happens when this normalizer service is used via the
+    // serializer service, as it is meant to be used.
+    $normalizer_service->setSerializer($this->container->get('jsonapi.serializer_do_not_use_removal_imminent'));
+    return $normalizer_service;
   }
 
   /**
@@ -756,8 +760,6 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
    */
   protected function generateProphecies($entity_type_id, $bundle) {
     $resource_type = $this->container->get('jsonapi.resource_type.repository')->get($entity_type_id, $bundle);
-
-    $this->container->get('jsonapi.serializer_do_not_use_removal_imminent');
 
     return [new Request(), $resource_type];
   }
