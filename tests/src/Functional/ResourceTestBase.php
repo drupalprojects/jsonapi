@@ -1381,6 +1381,14 @@ abstract class ResourceTestBase extends BrowserTestBase {
       'related' => $relationship_field_name,
       $resource->getEntityTypeId() => $resource->uuid(),
     ]);
+
+    // Test POST: missing content-type.
+    $response = $this->request('POST', $url, $request_options);
+    $this->assertResourceErrorResponse(415, 'No "Content-Type" request header specified', $response);
+
+    // Set the JSON API media type header for all subsequent requests.
+    $request_options[RequestOptions::HEADERS]['Content-Type'] = 'application/vnd.api+json';
+
     if ($update_access->isAllowed()) {
       // Test POST: empty body.
       $response = $this->request('POST', $url, $request_options);
