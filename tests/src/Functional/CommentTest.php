@@ -324,6 +324,7 @@ class CommentTest extends ResourceTestBase {
     $url = Url::fromRoute(sprintf('jsonapi.%s.collection', static::$resourceTypeName));
     $request_options = [];
     $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options[RequestOptions::HEADERS]['Content-Type'] = 'application/vnd.api+json';
     $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
 
     $remove_field = function(array $normalization, $type, $attribute_name) {
@@ -372,6 +373,7 @@ class CommentTest extends ResourceTestBase {
     // Create request.
     $request_options = [];
     $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options[RequestOptions::HEADERS]['Content-Type'] = 'application/vnd.api+json';
     $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
     $request_options[RequestOptions::BODY] = Json::encode($this->getPostDocument());
 

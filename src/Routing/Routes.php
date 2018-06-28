@@ -113,6 +113,9 @@ class Routes implements ContainerInjectionInterface {
     // Flag every route as belonging to the JSON API module.
     $routes->addDefaults([static::JSON_API_ROUTE_FLAG_KEY => TRUE]);
 
+    // Require the JSON API media type header on every route.
+    $routes->addRequirements(['_content_type_format' => 'api_json']);
+
     return $routes;
   }
 

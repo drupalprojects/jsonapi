@@ -553,23 +553,19 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $this->assertNotEmpty($created_response['errors']);
     $this->assertEquals('Forbidden', $created_response['errors'][0]['title']);
 
-    // @todo Uncomment when https://www.drupal.org/project/jsonapi/issues/2934149 lands, and make more strict.
-    /*
-     * // 3. Missing Content-Type error.
-     *
-     * $response = $this->request('POST', $collection_url, [
-     *   'body' => Json::encode($body),
-     *   'auth' => [$this->user->getUsername(), $this->user->pass_raw],
-     *   'headers' => ['Accept' => 'application/vnd.api+json'],
-     * ]);
-     * $created_response = Json::decode($response->getBody()->__toString());
-     * $this->assertEquals(422, $response->getStatusCode());
-     * $this->assertNotEmpty($created_response['errors']);
-     * $this->assertEquals(
-     *   'Unprocessable Entity',
-     *   $created_response['errors'][0]['title']
-     * );
-     */
+    // 3. Missing Content-Type error.
+    $response = $this->request('POST', $collection_url, [
+      'body' => Json::encode($body),
+      'auth' => [$this->user->getUsername(), $this->user->pass_raw],
+      'headers' => ['Accept' => 'application/vnd.api+json'],
+    ]);
+    $created_response = Json::decode($response->getBody()->__toString());
+    $this->assertEquals(415, $response->getStatusCode());
+    $this->assertNotEmpty($created_response['errors']);
+    $this->assertEquals(
+      'Unsupported Media Type',
+      $created_response['errors'][0]['title']
+    );
 
     // 4. Article with a duplicate ID.
     $invalid_body = $body;

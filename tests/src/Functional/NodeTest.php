@@ -258,6 +258,7 @@ class NodeTest extends ResourceTestBase {
 
     // Create node PATCH request.
     $request_options = $this->getAuthenticationRequestOptions();
+    $request_options[RequestOptions::HEADERS]['Content-Type'] = 'application/vnd.api+json';
     $request_options[RequestOptions::BODY] = Json::encode($normalization);
 
     // PATCH request: 403 when creating URL aliases unauthorized.
