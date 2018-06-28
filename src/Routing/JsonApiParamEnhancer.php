@@ -2,12 +2,11 @@
 
 namespace Drupal\jsonapi\Routing;
 
-use Drupal\Core\Routing\Enhancer\RouteEnhancerInterface;
+use Drupal\Core\Routing\EnhancerInterface;
 use Drupal\jsonapi\Query\OffsetPage;
 use Drupal\jsonapi\Query\Filter;
 use Drupal\jsonapi\Query\Sort;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Route;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
@@ -15,7 +14,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
  *
  * @internal
  */
-class JsonApiParamEnhancer implements RouteEnhancerInterface {
+class JsonApiParamEnhancer implements EnhancerInterface {
 
   /**
    * The filter normalizer.
@@ -50,14 +49,11 @@ class JsonApiParamEnhancer implements RouteEnhancerInterface {
   /**
    * {@inheritdoc}
    */
-  public function applies(Route $route) {
-    return (bool) Routes::getResourceTypeNameFromParameters($route->getDefaults());
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function enhance(array $defaults, Request $request) {
+    if (!Routes::isJsonApiRequest($defaults)) {
+      return $defaults;
+    }
+
     $options = [];
 
     $resource_type = Routes::getResourceTypeNameFromParameters($defaults);

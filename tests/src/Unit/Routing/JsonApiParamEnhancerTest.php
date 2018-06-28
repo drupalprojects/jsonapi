@@ -12,7 +12,6 @@ use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Route;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
@@ -24,22 +23,6 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
  * @internal
  */
 class JsonApiParamEnhancerTest extends UnitTestCase {
-
-  /**
-   * @covers ::applies
-   */
-  public function testApplies() {
-    list($filter_normalizer, $sort_normalizer, $page_normalizer) = $this->getMockNormalizers();
-    $object = new JsonApiParamEnhancer($filter_normalizer, $sort_normalizer, $page_normalizer);
-    $this->assertTrue($object->applies(new Route('/jsonapi/foo/bar', [
-      RouteObjectInterface::CONTROLLER_NAME => Routes::FRONT_CONTROLLER,
-      Routes::JSON_API_ROUTE_FLAG_KEY => TRUE,
-      Routes::RESOURCE_TYPE_KEY => 'foo--bar',
-    ])));
-    $this->assertFalse($object->applies(new Route('/llama/foo/bar', [
-      RouteObjectInterface::CONTROLLER_NAME => 'failing',
-    ])));
-  }
 
   /**
    * @covers ::enhance

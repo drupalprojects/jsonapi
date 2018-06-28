@@ -164,7 +164,21 @@ class Routes implements ContainerInjectionInterface {
   }
 
   /**
-   * A collection route for the given resource type.
+   * Determines if the given request is for a JSON API generated route.
+   *
+   * @param array $defaults
+   *   The request's route defaults.
+   *
+   * @return bool
+   *   Whether the request targets a generated route.
+   */
+  public static function isJsonApiRequest(array $defaults) {
+    return isset($defaults[RouteObjectInterface::CONTROLLER_NAME])
+      && $defaults[RouteObjectInterface::CONTROLLER_NAME] === static::FRONT_CONTROLLER;
+  }
+
+  /**
+   * Gets a route collection for the given resource type.
    *
    * @param \Drupal\jsonapi\ResourceType\ResourceType $resource_type
    *   The resource type for which the route collection should be created.
