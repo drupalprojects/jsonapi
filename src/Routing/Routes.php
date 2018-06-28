@@ -157,7 +157,6 @@ class Routes implements ContainerInjectionInterface {
 
     // Resource routes all have the same controller.
     $routes->addDefaults([RouteObjectInterface::CONTROLLER_NAME => static::FRONT_CONTROLLER]);
-    $routes->addRequirements(['_jsonapi_custom_query_parameter_names' => 'TRUE']);
     $routes->addPrefix($path_prefix);
 
     return $routes;
@@ -206,6 +205,8 @@ class Routes implements ContainerInjectionInterface {
     // Get an individual resource's related resources.
     $related_route = new Route("/{$path}/{{$entity_type_id}}/{related}");
     $related_route->setMethods(['GET']);
+    // @todo: remove this when each related route is defined per relationship field and access is no longer checked by the controller in https://www.drupal.org/project/jsonapi/issues/2953346.
+    $related_route->setRequirement('_access', 'TRUE');
     $routes->add(static::getRouteName($resource_type, 'related'), $related_route);
 
     // Read, update, add, or remove an individual resources relationships to

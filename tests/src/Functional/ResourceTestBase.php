@@ -920,6 +920,25 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // Set body despite that being nonsensical: should be ignored.
     $request_options[RequestOptions::BODY] = Json::encode($this->getExpectedDocument());
 
+    // 400 for GET request with reserved custom query parameter.
+    $url_reserved_custom_query_parameter = clone $url;
+    $url_reserved_custom_query_parameter = $url_reserved_custom_query_parameter->setOption('query', ['foo' => 'bar']);
+    $response = $this->request('GET', $url_reserved_custom_query_parameter, $request_options);
+    $expected_document = [
+      'errors' => [
+        [
+          'title' => 'Bad Request',
+          'status' => 400,
+          'detail' => "The following query parameters violate the JSON API spec: 'foo'.",
+          'links' => [
+            'info' => 'http://jsonapi.org/format/#query-parameters',
+          ],
+          'code' => 0,
+        ],
+      ],
+    ];
+    $this->assertResourceResponse(400, $expected_document, $response, ['4xx-response', 'http_response'], [''], FALSE, 'UNCACHEABLE');
+
     // 200 for well-formed HEAD request.
     $response = $this->request('HEAD', $url, $request_options);
     $this->assertResourceResponse(200, NULL, $response, $this->getExpectedCacheTags(), $this->getExpectedCacheContexts(), FALSE, 'MISS');

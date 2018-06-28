@@ -108,10 +108,6 @@ services:
   jsonapi.field_resolver:
     class: Drupal\jsonapi\Context\FieldResolver
     arguments: ['@entity_type.manager', '@entity_field.manager', '@entity_type.bundle.info', '@jsonapi.resource_type.repository']
-  access_check.jsonapi.custom_query_parameter_names:
-    class: Drupal\jsonapi\Access\CustomQueryParameterNamesAccessCheck
-    tags:
-      - { name: access_check, applies_to: _jsonapi_custom_query_parameter_names, needs_incoming_request: TRUE }
   paramconverter.jsonapi.entity_uuid:
     class: Drupal\jsonapi\ParamConverter\EntityUuidConverter
     tags:
@@ -156,6 +152,10 @@ services:
       - '@jsonapi.link_manager'
 
   # Event subscribers.
+  jsonapi.custom_query_parameter_names_validator.subscriber:
+    class: Drupal\jsonapi\EventSubscriber\JsonApiRequestValidator
+    tags:
+      - { name: event_subscriber }
   jsonapi.resource_response.subscriber:
     class: Drupal\jsonapi\EventSubscriber\ResourceResponseSubscriber
     arguments: ['@jsonapi.serializer_do_not_use_removal_imminent']
