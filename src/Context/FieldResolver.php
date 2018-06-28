@@ -7,7 +7,7 @@ use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Entity\TypedData\EntityDataDefinitionInterface;
-use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
+use Drupal\Core\Field\TypedData\FieldItemDataDefinitionInterface;
 use Drupal\Core\TypedData\ComplexDataDefinitionInterface;
 use Drupal\Core\TypedData\DataReferenceDefinitionInterface;
 use Drupal\Core\TypedData\DataReferenceTargetDefinition;
@@ -421,16 +421,13 @@ class FieldResolver {
   /**
    * Build a list of resource types depending on which bundles are referenced.
    *
-   * @param \Drupal\Core\Field\TypedData\FieldItemDataDefinition $item_definition
+   * @param \Drupal\Core\Field\TypedData\FieldItemDataDefinitionInterface $item_definition
    *   The reference definition.
    *
    * @return \Drupal\jsonapi\ResourceType\ResourceType[]
    *   The list of resource types.
-   *
-   * @todo Add PHP type hint, see
-   *   https://www.drupal.org/project/jsonapi/issues/2933895
    */
-  protected function collectResourceTypesForReference(FieldItemDataDefinition $item_definition) {
+  protected function collectResourceTypesForReference(FieldItemDataDefinitionInterface $item_definition) {
     $main_property_definition = $item_definition->getPropertyDefinition(
       $item_definition->getMainPropertyName()
     );
