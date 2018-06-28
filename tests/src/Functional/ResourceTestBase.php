@@ -182,8 +182,8 @@ abstract class ResourceTestBase extends BrowserTestBase {
     assert([] === $user_role->getPermissions(), 'The authenticated user role has no permissions at all.');
 
     // Create an account, which tests will use. Also ensure the @current_user
-    // service uses this account, to ensure the @jsonapi.entity.to_jsonapi
-    // service that we use to generate expectations matching that of this user.
+    // service this account, to ensure certain access check logic in tests works
+    // as expected.
     $this->account = $this->createUser();
     $this->container->get('current_user')->setAccount($this->account);
 
