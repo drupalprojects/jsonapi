@@ -11,7 +11,7 @@ use Drupal\Core\TypedData\TypedDataInternalPropertiesHelper;
 use Drupal\jsonapi\Normalizer\Value\NullFieldNormalizerValue;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
-use Drupal\jsonapi\Resource\EntityCollection;
+use Drupal\jsonapi\JsonApiResource\EntityCollection;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;

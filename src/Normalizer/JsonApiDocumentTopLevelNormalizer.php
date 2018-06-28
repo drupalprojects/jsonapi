@@ -10,9 +10,9 @@ use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\jsonapi\Context\FieldResolver;
 use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
 use Drupal\jsonapi\Normalizer\Value\JsonApiDocumentTopLevelNormalizerValue;
-use Drupal\jsonapi\Resource\EntityCollection;
+use Drupal\jsonapi\JsonApiResource\EntityCollection;
 use Drupal\jsonapi\LinkManager\LinkManager;
-use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
+use Drupal\jsonapi\JsonApiResource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -23,7 +23,7 @@ use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
 /**
  * Normalizes the top-level document according to the JSON API specification.
  *
- * @see \Drupal\jsonapi\Resource\JsonApiDocumentTopLevel
+ * @see \Drupal\jsonapi\JsonApiResource\JsonApiDocumentTopLevel
  *
  * @internal
  */

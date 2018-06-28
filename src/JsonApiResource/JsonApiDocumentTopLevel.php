@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\jsonapi\Resource;
+namespace Drupal\jsonapi\JsonApiResource;
 
 /**
  * Represents a JSON API document's "top level".

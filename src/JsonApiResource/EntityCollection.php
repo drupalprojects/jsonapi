@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\jsonapi\Resource;
+namespace Drupal\jsonapi\JsonApiResource;
 
 use Drupal\Component\Assertion\Inspector;
 use Drupal\Core\Entity\EntityInterface;

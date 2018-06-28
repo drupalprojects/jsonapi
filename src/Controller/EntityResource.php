@@ -21,8 +21,8 @@ use Drupal\jsonapi\Query\Filter;
 use Drupal\jsonapi\Query\Sort;
 use Drupal\jsonapi\Query\OffsetPage;
 use Drupal\jsonapi\LinkManager\LinkManager;
-use Drupal\jsonapi\Resource\EntityCollection;
-use Drupal\jsonapi\Resource\JsonApiDocumentTopLevel;
+use Drupal\jsonapi\JsonApiResource\EntityCollection;
+use Drupal\jsonapi\JsonApiResource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\ResourceResponse;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
@@ -839,7 +839,7 @@ class EntityResource {
   /**
    * Respond with an entity collection.
    *
-   * @param \Drupal\jsonapi\Resource\EntityCollection $entity_collection
+   * @param \Drupal\jsonapi\JsonApiResource\EntityCollection $entity_collection
    *   The collection of entites.
    * @param string $entity_type_id
    *   The entity type.

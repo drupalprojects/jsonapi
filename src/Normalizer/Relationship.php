@@ -9,7 +9,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
-use Drupal\jsonapi\Resource\EntityCollection;
+use Drupal\jsonapi\JsonApiResource\EntityCollection;
 
 /**
  * Represents a relationship between resources.
@@ -66,7 +66,7 @@ class Relationship implements AccessibleInterface, CacheableDependencyInterface 
    *   The JSON API resource type repository.
    * @param string $field_name
    *   The name of the relationship.
-   * @param \Drupal\jsonapi\Resource\EntityCollection $entities
+   * @param \Drupal\jsonapi\JsonApiResource\EntityCollection $entities
    *   A collection of entities.
    * @param \Drupal\Core\Entity\EntityInterface $host_entity
    *   The host entity.
