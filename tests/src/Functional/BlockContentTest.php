@@ -6,7 +6,6 @@ use Drupal\block_content\Entity\BlockContent;
 use Drupal\block_content\Entity\BlockContentType;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Url;
-use Drupal\Tests\rest\Functional\BcTimestampNormalizerUnixTestTrait;
 
 /**
  * JSON API integration test for the "BlockContent" content entity type.
@@ -14,8 +13,6 @@ use Drupal\Tests\rest\Functional\BcTimestampNormalizerUnixTestTrait;
  * @group jsonapi
  */
 class BlockContentTest extends ResourceTestBase {
-
-  use BcTimestampNormalizerUnixTestTrait;
 
   /**
    * {@inheritdoc}
@@ -35,7 +32,7 @@ class BlockContentTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    *
-   * @var \Drupal\config_test\ConfigTestInterface
+   * @var \Drupal\block_content\BlockContentInterface
    */
   protected $entity;
 
@@ -123,16 +120,11 @@ class BlockContentTest extends ResourceTestBase {
             'summary' => NULL,
             'processed' => "<p>The name &quot;llama&quot; was adopted by European settlers from native Peruvians.</p>\n",
           ],
-          'changed' => $this->entity->getChangedTime(),
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'changed' => $this->formatExpectedTimestampItemValues($this->entity->getChangedTime()), */
+          'changed' => (new \DateTime())->setTimestamp($this->entity->getChangedTime())->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
           'info' => 'Llama',
           'revision_id' => 1,
           'revision_log' => NULL,
-          'revision_created' => (int) $this->entity->getRevisionCreationTime(),
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'revision_created' => $this->formatExpectedTimestampItemValues($this->entity->getRevisionCreationTime()), */
-          // @todo Attempt to remove this in https://www.drupal.org/project/drupal/issues/2933518.
+          'revision_created' => (new \DateTime())->setTimestamp($this->entity->getRevisionCreationTime())->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
           'revision_translation_affected' => TRUE,
           'status' => FALSE,
           'langcode' => 'en',

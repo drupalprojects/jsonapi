@@ -2544,7 +2544,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
         $owner = $this->entity->getOwner();
         $owner_resource = static::toResourceIdentifier($owner);
         foreach ($field_set as $field_name) {
-          $owner_resource['attributes'][$field_name] = $owner->get($field_name)[0]->get('value')->getCastedValue();
+          $owner_resource['attributes'][$field_name] = $this->serializer->normalize($owner->get($field_name)[0]->get('value'), 'api_json');
         }
         $owner_resource['links']['self'] = static::getResourceLink($owner_resource);
         $expected_document['included'] = [$owner_resource];

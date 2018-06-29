@@ -12,7 +12,6 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\entity_test\Entity\EntityTest;
-use Drupal\Tests\rest\Functional\BcTimestampNormalizerUnixTestTrait;
 use Drupal\user\Entity\User;
 use GuzzleHttp\RequestOptions;
 
@@ -23,7 +22,6 @@ use GuzzleHttp\RequestOptions;
  */
 class CommentTest extends ResourceTestBase {
 
-  use BcTimestampNormalizerUnixTestTrait;
   use CommentTestTrait;
 
   /**
@@ -153,12 +151,8 @@ class CommentTest extends ResourceTestBase {
         ],
         'attributes' => [
           'cid' => 1,
-          'created' => 123456789,
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'created' => $this->formatExpectedTimestampItemValues(123456789), */
-          'changed' => $this->entity->getChangedTime(),
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'changed' => $this->formatExpectedTimestampItemValues($this->entity->getChangedTime()), */
+          'created' => '1973-11-29T21:33:09+00:00',
+          'changed' => (new \DateTime())->setTimestamp($this->entity->getChangedTime())->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
           'comment_body' => [
             'value' => 'The name "llama" was adopted by European settlers from native Peruvians.',
             'format' => 'plain_text',

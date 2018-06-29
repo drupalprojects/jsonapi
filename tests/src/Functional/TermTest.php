@@ -10,7 +10,6 @@ use Drupal\Core\Url;
 use Drupal\jsonapi\ResourceResponse;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
-use Drupal\Tests\rest\Functional\BcTimestampNormalizerUnixTestTrait;
 use GuzzleHttp\RequestOptions;
 
 /**
@@ -19,8 +18,6 @@ use GuzzleHttp\RequestOptions;
  * @group jsonapi
  */
 class TermTest extends ResourceTestBase {
-
-  use BcTimestampNormalizerUnixTestTrait;
 
   /**
    * {@inheritdoc}
@@ -244,9 +241,7 @@ class TermTest extends ResourceTestBase {
           'self' => $self_url,
         ],
         'attributes' => [
-          'changed' => $this->entity->getChangedTime(),
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'changed' => $this->formatExpectedTimestampItemValues($this->entity->getChangedTime()), */
+          'changed' => (new \DateTime())->setTimestamp($this->entity->getChangedTime())->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
           'default_langcode' => TRUE,
           'description' => [
             'value' => 'It is a little known fact that llamas cannot count higher than seven.',

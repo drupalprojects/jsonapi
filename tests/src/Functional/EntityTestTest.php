@@ -114,9 +114,7 @@ class EntityTestTest extends ResourceTestBase {
         ],
         'attributes' => [
           'id' => 1,
-          'created' => (int) $this->entity->get('created')->value,
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'created' => $this->formatExpectedTimestampItemValues((int) $this->entity->get('created')->value), */
+          'created' => (new \DateTime())->setTimestamp($this->entity->get('created')->value)->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
           'field_test_text' => NULL,
           'langcode' => 'en',
           'name' => 'Llama',

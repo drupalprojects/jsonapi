@@ -4,7 +4,6 @@ namespace Drupal\Tests\jsonapi\Functional;
 
 use Drupal\Core\Url;
 use Drupal\menu_link_content\Entity\MenuLinkContent;
-use Drupal\Tests\rest\Functional\BcTimestampNormalizerUnixTestTrait;
 
 /**
  * JSON API integration test for the "MenuLinkContent" content entity type.
@@ -12,8 +11,6 @@ use Drupal\Tests\rest\Functional\BcTimestampNormalizerUnixTestTrait;
  * @group jsonapi
  */
 class MenuLinkContentTest extends ResourceTestBase {
-
-  use BcTimestampNormalizerUnixTestTrait;
 
   /**
    * {@inheritdoc}
@@ -99,9 +96,7 @@ class MenuLinkContentTest extends ResourceTestBase {
             'title' => NULL,
             'options' => [],
           ],
-          'changed' => $this->entity->getChangedTime(),
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'changed' => $this->formatExpectedTimestampItemValues($this->entity->getChangedTime()), */
+          'changed' => (new \DateTime())->setTimestamp($this->entity->getChangedTime())->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
           'default_langcode' => TRUE,
           'description' => 'Llama Gabilondo',
           'enabled' => TRUE,

@@ -140,12 +140,8 @@ class FileTest extends ResourceTestBase {
           'self' => $self_url,
         ],
         'attributes' => [
-          'changed' => $this->entity->getChangedTime(),
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'changed' => $this->formatExpectedTimestampItemValues($this->entity->getChangedTime()), */
-          'created' => (int) $this->entity->getCreatedTime(),
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'created' => $this->formatExpectedTimestampItemValues((int) $this->entity->getCreatedTime()), */
+          'created' => (new \DateTime())->setTimestamp($this->entity->getCreatedTime())->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
+          'changed' => (new \DateTime())->setTimestamp($this->entity->getChangedTime())->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
           'fid' => 1,
           'filemime' => 'text/plain',
           'filename' => 'drupal.txt',

@@ -8,7 +8,6 @@ use Drupal\Core\Url;
 use Drupal\jsonapi\Normalizer\HttpExceptionNormalizer;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
-use Drupal\Tests\rest\Functional\BcTimestampNormalizerUnixTestTrait;
 use Drupal\user\Entity\User;
 use GuzzleHttp\RequestOptions;
 
@@ -18,8 +17,6 @@ use GuzzleHttp\RequestOptions;
  * @group jsonapi
  */
 class NodeTest extends ResourceTestBase {
-
-  use BcTimestampNormalizerUnixTestTrait;
 
   /**
    * {@inheritdoc}
@@ -135,12 +132,8 @@ class NodeTest extends ResourceTestBase {
           'self' => $self_url,
         ],
         'attributes' => [
-          'created' => 123456789,
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'created' => $this->formatExpectedTimestampItemValues(123456789), */
-          'changed' => $this->entity->getChangedTime(),
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'changed' => $this->formatExpectedTimestampItemValues($this->entity->getChangedTime()), */
+          'created' => '1973-11-29T21:33:09+00:00',
+          'changed' => (new \DateTime())->setTimestamp($this->entity->getChangedTime())->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
           'default_langcode' => TRUE,
           'langcode' => 'en',
           'nid' => 1,
@@ -151,9 +144,7 @@ class NodeTest extends ResourceTestBase {
           ],
           'promote' => TRUE,
           'revision_log' => NULL,
-          'revision_timestamp' => 123456789,
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'revision_timestamp' => $this->formatExpectedTimestampItemValues(123456789), */
+          'revision_timestamp' => '1973-11-29T21:33:09+00:00',
           // @todo Attempt to remove this in https://www.drupal.org/project/drupal/issues/2933518.
           'revision_translation_affected' => TRUE,
           'status' => TRUE,

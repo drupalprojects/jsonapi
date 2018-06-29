@@ -7,7 +7,6 @@ use Drupal\Core\Url;
 use Drupal\file\Entity\File;
 use Drupal\media\Entity\Media;
 use Drupal\media\Entity\MediaType;
-use Drupal\Tests\rest\Functional\BcTimestampNormalizerUnixTestTrait;
 use Drupal\user\Entity\User;
 
 /**
@@ -16,8 +15,6 @@ use Drupal\user\Entity\User;
  * @group jsonapi
  */
 class MediaTest extends ResourceTestBase {
-
-  use BcTimestampNormalizerUnixTestTrait;
 
   /**
    * {@inheritdoc}
@@ -175,15 +172,9 @@ class MediaTest extends ResourceTestBase {
           'langcode' => 'en',
           'name' => 'Llama',
           'status' => TRUE,
-          'created' => 123456789,
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'created' => $this->formatExpectedTimestampItemValues(123456789), */
-          'changed' => $this->entity->getChangedTime(),
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'changed' => $this->formatExpectedTimestampItemValues($this->entity->getChangedTime()), */
-          'revision_created' => (int) $this->entity->getRevisionCreationTime(),
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'revision_created' => $this->formatExpectedTimestampItemValues((int) $this->entity->getRevisionCreationTime()), */
+          'created' => '1973-11-29T21:33:09+00:00',
+          'changed' => (new \DateTime())->setTimestamp($this->entity->getChangedTime())->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
+          'revision_created' => (new \DateTime())->setTimestamp($this->entity->getRevisionCreationTime())->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
           'default_langcode' => TRUE,
           'revision_log_message' => NULL,
           // @todo Attempt to remove this in https://www.drupal.org/project/drupal/issues/2933518.

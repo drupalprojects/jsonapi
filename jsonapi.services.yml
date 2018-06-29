@@ -170,3 +170,16 @@ services:
   serializer.normalizer.htt_exception.jsonapi:
     alias: serializer.normalizer.http_exception.jsonapi
     deprecated: The "%service_id%" service is deprecated. You should use the 'serializer.normalizer.http_exception.jsonapi' service instead.
+
+  # Forward compatibility.
+  # @todo Remove in Drupal 8.6 (assuming it contains https://www.drupal.org/project/drupal/issues/2926508).
+  serializer.normalizer.timestamp.jsonapi:
+    class: \Drupal\jsonapi\ForwardCompatibility\Normalizer\TimestampNormalizer
+    tags:
+      # Priority must be higher than serializer.normalizer.primitive_data.
+      - { name: normalizer, priority: 20, bc: bc_timestamp_normalizer_unix, bc_config_name: 'serialization.settings' }
+  serializer.normalizer.datetimeiso8601.jsonapi:
+    class: \Drupal\jsonapi\ForwardCompatibility\Normalizer\DateTimeIso8601Normalizer
+    tags:
+      # Priority must be higher than serializer.normalizer.primitive_data.
+      - { name: normalizer, priority: 20 }
