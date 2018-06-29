@@ -3,6 +3,7 @@
 namespace Drupal\Tests\jsonapi\Unit\Routing;
 
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\jsonapi\Normalizer\Relationship;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
 use Drupal\jsonapi\Routing\Routes;
@@ -142,7 +143,7 @@ class RoutesTest extends UnitTestCase {
       'entity_type_1' => ['type' => 'entity:entity_type_1'],
       'resource_type' => ['type' => 'jsonapi_resource_type'],
     ], $route->getOption('parameters'));
-    $this->assertSame('Drupal\Core\Field\EntityReferenceFieldItemList', $route->getDefault('serialization_class'));
+    $this->assertSame(Relationship::class, $route->getDefault('serialization_class'));
   }
 
   /**

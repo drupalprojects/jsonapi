@@ -4,16 +4,17 @@ namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Field\FieldItemInterface;
+use Drupal\Core\Field\TypedData\FieldItemDataDefinitionInterface;
 use Drupal\Core\TypedData\TypedDataInternalPropertiesHelper;
 use Drupal\jsonapi\Normalizer\Value\FieldItemNormalizerValue;
-use Symfony\Component\Serializer\Exception\UnexpectedValueException;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
  * Converts the Drupal field item object to a JSON API array structure.
  *
  * @internal
  */
-class FieldItemNormalizer extends NormalizerBase {
+class FieldItemNormalizer extends NormalizerBase implements DenormalizerInterface {
 
   /**
    * The interface or class that this Normalizer supports.
@@ -67,7 +68,31 @@ class FieldItemNormalizer extends NormalizerBase {
    * {@inheritdoc}
    */
   public function denormalize($data, $class, $format = NULL, array $context = []) {
-    throw new UnexpectedValueException('Denormalization not implemented for JSON API');
+    $item_definition = $context['field_definition']->getItemDefinition();
+    assert($item_definition instanceof FieldItemDataDefinitionInterface);
+
+    $property_definitions = $item_definition->getPropertyDefinitions();
+
+    // Because e.g. the 'bundle' entity key field requires field values to not
+    // be expanded to an array of all properties, we special-case single-value
+    // properties.
+    if (!is_array($data)) {
+      $property_value = $data;
+      $property_value_class = $property_definitions[$item_definition->getMainPropertyName()]->getClass();
+      return $this->serializer->supportsDenormalization($property_value, $property_value_class, $format, $context)
+        ? $this->serializer->denormalize($property_value, $property_value_class, $format, $context)
+        : $property_value;
+    }
+
+    $data_internal = [];
+    foreach ($data as $property_name => $property_value) {
+      $property_value_class = $property_definitions[$property_name]->getClass();
+      $data_internal[$property_name] = $this->serializer->supportsDenormalization($property_value, $property_value_class, $format, $context)
+        ? $this->serializer->denormalize($property_value, $property_value_class, $format, $context)
+        : $property_value;
+    }
+
+    return $data_internal;
   }
 
 }

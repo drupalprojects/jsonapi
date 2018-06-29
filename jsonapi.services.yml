@@ -62,17 +62,17 @@ services:
       - { name: jsonapi_normalizer_do_not_use_removal_imminent }
   serializer.normalizer.relationship.jsonapi:
     class: Drupal\jsonapi\Normalizer\RelationshipNormalizer
-    arguments: ['@jsonapi.resource_type.repository', '@jsonapi.link_manager']
+    arguments: ['@jsonapi.resource_type.repository', '@jsonapi.link_manager', '@entity_field.manager', '@plugin.manager.field.field_type', '@entity.repository']
     tags:
       - { name: jsonapi_normalizer_do_not_use_removal_imminent }
   serializer.normalizer.entity.jsonapi:
     class: Drupal\jsonapi\Normalizer\ContentEntityNormalizer
-    arguments: ['@jsonapi.link_manager', '@jsonapi.resource_type.repository', '@entity_type.manager']
+    arguments: ['@jsonapi.link_manager', '@jsonapi.resource_type.repository', '@entity_type.manager', '@entity_field.manager', '@plugin.manager.field.field_type']
     tags:
       - { name: jsonapi_normalizer_do_not_use_removal_imminent }
   serializer.normalizer.config_entity.jsonapi:
     class: Drupal\jsonapi\Normalizer\ConfigEntityNormalizer
-    arguments: ['@jsonapi.link_manager', '@jsonapi.resource_type.repository', '@entity_type.manager']
+    arguments: ['@jsonapi.link_manager', '@jsonapi.resource_type.repository', '@entity_type.manager', '@entity_field.manager', '@plugin.manager.field.field_type']
     tags:
       - { name: jsonapi_normalizer_do_not_use_removal_imminent }
   serializer.normalizer.jsonapi_document_toplevel.jsonapi:
@@ -82,7 +82,7 @@ services:
       - { name: jsonapi_normalizer_do_not_use_removal_imminent }
   serializer.normalizer.entity_reference_field.jsonapi:
     class: Drupal\jsonapi\Normalizer\EntityReferenceFieldNormalizer
-    arguments: ['@jsonapi.link_manager', '@entity_field.manager', '@plugin.manager.field.field_type', '@jsonapi.resource_type.repository', '@entity.repository']
+    arguments: ['@jsonapi.resource_type.repository', '@entity.repository']
     tags:
       # This must have a higher priority than the 'serializer.normalizer.field.jsonapi' to take effect.
       - { name: jsonapi_normalizer_do_not_use_removal_imminent, priority: 1 }

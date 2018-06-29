@@ -79,4 +79,12 @@ class ConfigEntityNormalizer extends EntityNormalizer {
     return array_diff_key($data, ['_core' => TRUE]);
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  protected function prepareInput(array $data, ResourceType $resource_type, $format, array $context) {
+    // Config entities' data don't have properties needing denormalization.
+    return $data;
+  }
+
 }

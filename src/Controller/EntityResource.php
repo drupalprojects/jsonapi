@@ -32,7 +32,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 /**
  * Process all entity requests.
@@ -207,18 +206,9 @@ class EntityResource {
       $received_attributes = array_keys($document['data']['attributes']);
       foreach ($received_attributes as $field_name) {
         $internal_field_name = $this->resourceType->getInternalName($field_name);
-        try {
-          $field_access = $entity->get($internal_field_name)->access('edit', NULL, TRUE);
-          if (!$field_access->isAllowed()) {
-            throw new EntityAccessDeniedHttpException(NULL, $field_access, '/data/attributes/' . $field_name, sprintf('The current user is not allowed to POST the selected field (%s).', $field_name));
-          }
-        }
-        catch (\InvalidArgumentException $e) {
-          throw new UnprocessableEntityHttpException(sprintf(
-            'The attribute %s does not exist on the %s resource type.',
-            $internal_field_name,
-            $this->resourceType->getTypeName()
-          ));
+        $field_access = $entity->get($internal_field_name)->access('edit', NULL, TRUE);
+        if (!$field_access->isAllowed()) {
+          throw new EntityAccessDeniedHttpException(NULL, $field_access, '/data/attributes/' . $field_name, sprintf('The current user is not allowed to POST the selected field (%s).', $field_name));
         }
       }
     }
@@ -898,18 +888,8 @@ class EntityResource {
     // The update is different for configuration entities and content entities.
     if ($origin instanceof ContentEntityInterface && $destination instanceof ContentEntityInterface) {
       // First scenario: both are content entities.
-      try {
-        $field_name = $this->resourceType->getInternalName($field_name);
-        $destination_field_list = $destination->get($field_name);
-      }
-      catch (\InvalidArgumentException $e) {
-        $resource_type = $this->resourceTypeRepository->get($destination->getEntityTypeId(), $destination->bundle());
-        throw new UnprocessableEntityHttpException(sprintf(
-          'The attribute %s does not exist on the %s resource type.',
-          $field_name,
-          $resource_type->getTypeName()
-        ));
-      }
+      $field_name = $this->resourceType->getInternalName($field_name);
+      $destination_field_list = $destination->get($field_name);
 
       $origin_field_list = $origin->get($field_name);
       if ($this->checkPatchFieldAccess($destination_field_list, $origin_field_list)) {

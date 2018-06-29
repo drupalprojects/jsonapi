@@ -3,8 +3,8 @@
 namespace Drupal\jsonapi\Routing;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
-use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\jsonapi\Controller\EntryPoint;
+use Drupal\jsonapi\Normalizer\Relationship;
 use Drupal\jsonapi\ParamConverter\ResourceTypeConverter;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
@@ -219,7 +219,7 @@ class Routes implements ContainerInjectionInterface {
     $relationship_route->setMethods($resource_type->isMutable() ? ['GET', 'POST', 'PATCH', 'DELETE'] : ['GET']);
     // @todo: remove the _on_relationship default in https://www.drupal.org/project/jsonapi/issues/2953346.
     $relationship_route->addDefaults(['_on_relationship' => TRUE]);
-    $relationship_route->addDefaults(['serialization_class' => EntityReferenceFieldItemList::class]);
+    $relationship_route->addDefaults(['serialization_class' => Relationship::class]);
     $relationship_route->setRequirement('_csrf_request_header_token', 'TRUE');
     $routes->add(static::getRouteName($resource_type, 'relationship'), $relationship_route);
 

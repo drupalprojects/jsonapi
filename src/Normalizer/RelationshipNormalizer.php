@@ -3,11 +3,16 @@
 namespace Drupal\jsonapi\Normalizer;
 
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityRepositoryInterface;
+use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\jsonapi\Normalizer\Value\RelationshipNormalizerValue;
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
 use Drupal\jsonapi\LinkManager\LinkManager;
-use Symfony\Component\Serializer\Exception\UnexpectedValueException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
  * Normalizes a Relationship according to the JSON API specification.
@@ -17,7 +22,7 @@ use Symfony\Component\Serializer\Exception\UnexpectedValueException;
  *
  * @internal
  */
-class RelationshipNormalizer extends NormalizerBase {
+class RelationshipNormalizer extends NormalizerBase implements DenormalizerInterface {
 
   /**
    * The interface or class that this Normalizer supports.
@@ -41,23 +46,141 @@ class RelationshipNormalizer extends NormalizerBase {
   protected $linkManager;
 
   /**
+   * The entity field manager.
+   *
+   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
+   */
+  protected $fieldManager;
+
+  /**
+   * The field plugin manager.
+   *
+   * @var \Drupal\Core\Field\FieldTypePluginManagerInterface
+   */
+  protected $pluginManager;
+
+  /**
+   * The entity repository.
+   *
+   * @var \Drupal\Core\Entity\EntityRepositoryInterface
+   */
+  protected $entityRepository;
+
+  /**
    * RelationshipNormalizer constructor.
    *
    * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface $resource_type_repository
    *   The JSON API resource type repository.
    * @param \Drupal\jsonapi\LinkManager\LinkManager $link_manager
    *   The link manager.
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager
+   *   The entity field manager.
+   * @param \Drupal\Core\Field\FieldTypePluginManagerInterface $plugin_manager
+   *   The plugin manager for field types.
+   * @param \Drupal\Core\Entity\EntityRepositoryInterface $entity_repository
+   *   The entity repository.
    */
-  public function __construct(ResourceTypeRepositoryInterface $resource_type_repository, LinkManager $link_manager) {
+  public function __construct(ResourceTypeRepositoryInterface $resource_type_repository, LinkManager $link_manager, EntityFieldManagerInterface $field_manager, FieldTypePluginManagerInterface $plugin_manager, EntityRepositoryInterface $entity_repository) {
     $this->resourceTypeRepository = $resource_type_repository;
     $this->linkManager = $link_manager;
+    $this->fieldManager = $field_manager;
+    $this->resourceTypeRepository = $resource_type_repository;
+    $this->pluginManager = $plugin_manager;
+    $this->entityRepository = $entity_repository;
   }
 
   /**
    * {@inheritdoc}
    */
   public function denormalize($data, $class, $format = NULL, array $context = []) {
-    throw new UnexpectedValueException('Denormalization not implemented for JSON API');
+    // If we get here, it's via a relationship POST/PATCH.
+    /** @var \Drupal\jsonapi\ResourceType\ResourceType $resource_type */
+    $resource_type = $context['resource_type'];
+    $entity_type_id = $resource_type->getEntityTypeId();
+    $field_definitions = $this->fieldManager->getFieldDefinitions(
+      $entity_type_id,
+      $resource_type->getBundle()
+    );
+    if (empty($context['related']) || empty($field_definitions[$context['related']])) {
+      throw new BadRequestHttpException('Invalid or missing related field.');
+    }
+    /* @var \Drupal\field\Entity\FieldConfig $field_definition */
+    $field_definition = $field_definitions[$context['related']];
+    // This is typically 'target_id'.
+    $item_definition = $field_definition->getItemDefinition();
+    $property_key = $item_definition->getMainPropertyName();
+    $target_resource_types = $resource_type->getRelatableResourceTypesByField($context['related']);
+    $target_resource_type_names = array_map(function (ResourceType $resource_type) {
+      return $resource_type->getTypeName();
+    }, $target_resource_types);
+
+    $is_multiple = $field_definition->getFieldStorageDefinition()->isMultiple();
+    $data = $this->massageRelationshipInput($data, $is_multiple);
+    $values = array_map(function ($value) use ($property_key, $target_resource_type_names) {
+      // Make sure that the provided type is compatible with the targeted
+      // resource.
+      if (!in_array($value['type'], $target_resource_type_names)) {
+        throw new BadRequestHttpException(sprintf(
+          'The provided type (%s) does not mach the destination resource types (%s).',
+          $value['type'],
+          implode(', ', $target_resource_type_names)
+        ));
+      }
+
+      // Load the entity by UUID.
+      list($entity_type_id,) = explode('--', $value['type']);
+      $entity = $this->entityRepository->loadEntityByUuid($entity_type_id, $value['id']);
+      $value['id'] = $entity ? $entity->id() : NULL;
+
+      $properties = [$property_key => $value['id']];
+      // Also take into account additional properties provided by the field
+      // type.
+      if (!empty($value['meta'])) {
+        foreach ($value['meta'] as $meta_key => $meta_value) {
+          $properties[$meta_key] = $meta_value;
+        }
+      }
+      return $properties;
+    }, $data['data']);
+    return $this->pluginManager
+      ->createFieldItemList($context['target_entity'], $context['related'], $values);
+  }
+
+  /**
+   * Validates and massages the relationship input depending on the cardinality.
+   *
+   * @param array $data
+   *   The input data from the body.
+   * @param bool $is_multiple
+   *   Indicates if the relationship is to-many.
+   *
+   * @return array
+   *   The massaged data array.
+   */
+  protected function massageRelationshipInput(array $data, $is_multiple) {
+    if ($is_multiple) {
+      if (!is_array($data['data'])) {
+        throw new BadRequestHttpException('Invalid body payload for the relationship.');
+      }
+      // Leave the invalid elements.
+      $invalid_elements = array_filter($data['data'], function ($element) {
+        return empty($element['type']) || empty($element['id']);
+      });
+      if ($invalid_elements) {
+        throw new BadRequestHttpException('Invalid body payload for the relationship.');
+      }
+    }
+    else {
+      // For to-one relationships you can have a NULL value.
+      if (is_null($data['data'])) {
+        return ['data' => []];
+      }
+      if (empty($data['data']['type']) || empty($data['data']['id'])) {
+        throw new BadRequestHttpException('Invalid body payload for the relationship.');
+      }
+      $data['data'] = [$data['data']];
+    }
+    return $data;
   }
 
   /**

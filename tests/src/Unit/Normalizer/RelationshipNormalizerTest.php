@@ -10,21 +10,21 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Field\TypedData\FieldItemDataDefinition;
 use Drupal\field\Entity\FieldConfig;
+use Drupal\jsonapi\Normalizer\RelationshipNormalizer;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepository;
-use Drupal\jsonapi\Normalizer\EntityReferenceFieldNormalizer;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
- * @coversDefaultClass \Drupal\jsonapi\Normalizer\EntityReferenceFieldNormalizer
+ * @coversDefaultClass \Drupal\jsonapi\Normalizer\RelationshipNormalizer
  * @group jsonapi
  *
  * @internal
  */
-class EntityReferenceFieldNormalizerTest extends UnitTestCase {
+class RelationshipNormalizerTest extends UnitTestCase {
 
   /**
    * The normalizer under test.
@@ -94,11 +94,11 @@ class EntityReferenceFieldNormalizerTest extends UnitTestCase {
     $entity_repository->loadEntityByUuid('lorem', '4e6cb61d-4f04-437f-99fe-42c002393658')
       ->willReturn($entity->reveal());
 
-    $this->normalizer = new EntityReferenceFieldNormalizer(
+    $this->normalizer = new RelationshipNormalizer(
+      $resource_type_repository->reveal(),
       $link_manager->reveal(),
       $field_manager->reveal(),
       $plugin_manager->reveal(),
-      $resource_type_repository->reveal(),
       $entity_repository->reveal()
     );
   }

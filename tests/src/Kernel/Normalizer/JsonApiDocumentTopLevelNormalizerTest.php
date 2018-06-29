@@ -633,7 +633,6 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
           'type' => 'node--article',
           'attributes' => [
             'title' => 'Testing article',
-            'id' => '33095485-70D2-4E51-A309-535CC5BC0115',
           ],
           'relationships' => [
             'uid' => [
