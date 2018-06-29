@@ -57,6 +57,13 @@ class ResourceType {
   protected $isLocatable;
 
   /**
+   * Whether this resource type's resources are mutable.
+   *
+   * @var bool
+   */
+  protected $isMutable;
+
+  /**
    * Gets the entity type ID.
    *
    * @return string
@@ -196,6 +203,19 @@ class ResourceType {
   }
 
   /**
+   * Whether resources of this resource type are mutable.
+   *
+   * Indicates that resources of this type may not be created, updated or
+   * deleted (POST, PATCH or DELETE, respectively).
+   *
+   * @return bool
+   *   TRUE if the resource type's resources are mutable. FALSE otherwise.
+   */
+  public function isMutable() {
+    return $this->isMutable;
+  }
+
+  /**
    * Instantiates a ResourceType object.
    *
    * @param string $entity_type_id
@@ -208,13 +228,16 @@ class ResourceType {
    *   (optional) Whether the resource type should be internal.
    * @param bool $is_locatable
    *   (optional) Whether the resource type is locatable.
+   * @param bool $is_mutable
+   *   (optional) Whether the resource type is mutable.
    */
-  public function __construct($entity_type_id, $bundle, $deserialization_target_class, $internal = FALSE, $is_locatable = TRUE) {
+  public function __construct($entity_type_id, $bundle, $deserialization_target_class, $internal = FALSE, $is_locatable = TRUE, $is_mutable = TRUE) {
     $this->entityTypeId = $entity_type_id;
     $this->bundle = $bundle;
     $this->deserializationTargetClass = $deserialization_target_class;
     $this->internal = $internal;
     $this->isLocatable = $is_locatable;
+    $this->isMutable = $is_mutable;
 
     $this->typeName = sprintf('%s--%s', $this->entityTypeId, $this->bundle);
   }

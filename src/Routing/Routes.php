@@ -140,7 +140,11 @@ class Routes implements ContainerInjectionInterface {
 
     // Collection route like `/jsonapi/node/article`.
     $collection_route = new Route('/' . $resource_type->getPath());
-    $collection_route->setMethods($resource_type->isLocatable() ? ['GET', 'POST'] : ['POST']);
+    $methods = array_merge(
+      $resource_type->isLocatable() ? ['GET'] : [],
+      $resource_type->isMutable() ? ['POST'] : []
+    );
+    $collection_route->setMethods($methods);
     $collection_route->addDefaults(['serialization_class' => JsonApiDocumentTopLevel::class]);
     $collection_route->setRequirement('_csrf_request_header_token', 'TRUE');
     $routes->add(static::getRouteName($resource_type, 'collection'), $collection_route);
@@ -197,7 +201,7 @@ class Routes implements ContainerInjectionInterface {
 
     // Individual read, update and remove.
     $individual_route = new Route("/{$path}/{{$entity_type_id}}");
-    $individual_route->setMethods(['GET', 'PATCH', 'DELETE']);
+    $individual_route->setMethods($resource_type->isMutable() ? ['GET', 'PATCH', 'DELETE'] : ['GET']);
     $individual_route->addDefaults(['serialization_class' => JsonApiDocumentTopLevel::class]);
     $individual_route->setRequirement('_csrf_request_header_token', 'TRUE');
     $routes->add(static::getRouteName($resource_type, 'individual'), $individual_route);
@@ -212,7 +216,7 @@ class Routes implements ContainerInjectionInterface {
     // Read, update, add, or remove an individual resources relationships to
     // other resources.
     $relationship_route = new Route("/{$path}/{{$entity_type_id}}/relationships/{related}");
-    $relationship_route->setMethods(['GET', 'POST', 'PATCH', 'DELETE']);
+    $relationship_route->setMethods($resource_type->isMutable() ? ['GET', 'POST', 'PATCH', 'DELETE'] : ['GET']);
     // @todo: remove the _on_relationship default in https://www.drupal.org/project/jsonapi/issues/2953346.
     $relationship_route->addDefaults(['_on_relationship' => TRUE]);
     $relationship_route->addDefaults(['serialization_class' => EntityReferenceFieldItemList::class]);
