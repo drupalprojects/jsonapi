@@ -2,9 +2,7 @@
 
 namespace Drupal\jsonapi\EventSubscriber;
 
-use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\jsonapi\JsonApiSpec;
-use Drupal\jsonapi\ResourceResponse;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
