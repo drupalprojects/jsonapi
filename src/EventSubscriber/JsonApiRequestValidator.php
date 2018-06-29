@@ -8,6 +8,7 @@ use Drupal\jsonapi\ResourceResponse;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -29,9 +30,7 @@ class JsonApiRequestValidator implements EventSubscriberInterface {
       return;
     }
 
-    if ($response = $this->validateQueryParams($request)) {
-      $event->setResponse($response);
-    }
+    $this->validateQueryParams($request);
   }
 
   /**
@@ -66,23 +65,10 @@ class JsonApiRequestValidator implements EventSubscriberInterface {
       return NULL;
     }
 
-    $response = new ResourceResponse([
-      'errors' => [
-        [
-          'status' => 400,
-          'title' => 'Bad Request',
-          'detail' => sprintf('The following query parameters violate the JSON API spec: \'%s\'.', implode("', '", $invalid_query_params)),
-          'links' => [
-            'info' => 'http://jsonapi.org/format/#query-parameters',
-          ],
-          'code' => 0,
-        ],
-      ],
-    ], 400);
-    // Make uncacheable to prevent polluting Dynamic Page Cache.
-    $cacheability = (new CacheableMetadata())->setCacheMaxAge(0);
-    $response->addCacheableDependency($cacheability);
-    return $response;
+    $message = sprintf('The following query parameters violate the JSON API spec: \'%s\'.', implode("', '", $invalid_query_params));
+    $exception = new BadRequestHttpException($message);
+    $exception->setHeaders(['Link' => 'http://jsonapi.org/format/#query-parameters']);
+    throw $exception;
   }
 
   /**
