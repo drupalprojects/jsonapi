@@ -2278,17 +2278,11 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $this->assertResourceResponse(200, FALSE, $response);
 
     $request_options[RequestOptions::BODY] = $parseable_valid_request_body;
-
-    // @todo Uncomment when https://www.drupal.org/project/jsonapi/issues/2934149 lands.
-    // @codingStandardsIgnoreStart
-    /*
     $request_options[RequestOptions::HEADERS]['Content-Type'] = 'text/xml';
 
     // DX: 415 when request body in existing but not allowed format.
     $response = $this->request('PATCH', $url, $request_options);
     $this->assertResourceErrorResponse(415, 'No route found that matches "Content-Type: text/xml"', $response);
-    */
-    // @codingStandardsIgnoreEnd
 
     $request_options[RequestOptions::HEADERS]['Content-Type'] = 'application/vnd.api+json';
 
