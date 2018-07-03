@@ -131,7 +131,7 @@ class MediaTest extends ResourceTestBase {
     ]);
     $media
       ->setName('Llama')
-      ->setPublished(TRUE)
+      ->setPublished()
       ->setCreatedTime(123456789)
       ->setOwnerId($this->account->id())
       ->setRevisionUserId($this->account->id())

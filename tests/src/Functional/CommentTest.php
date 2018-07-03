@@ -117,7 +117,7 @@ class CommentTest extends ResourceTestBase {
     ]);
     $comment->setSubject('Llama')
       ->setOwnerId($this->account->id())
-      ->setPublished(TRUE)
+      ->setPublished()
       ->setCreatedTime(123456789)
       ->setChangedTime(123456789);
     $comment->save();

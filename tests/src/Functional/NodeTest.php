@@ -97,7 +97,7 @@ class NodeTest extends ResourceTestBase {
     $node = Node::create(['type' => 'camelids']);
     $node->setTitle('Llama')
       ->setOwnerId($this->account->id())
-      ->setPublished(TRUE)
+      ->setPublished()
       ->setCreatedTime(123456789)
       ->setChangedTime(123456789)
       ->setRevisionCreationTime(123456789)

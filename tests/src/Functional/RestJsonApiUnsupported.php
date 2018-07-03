@@ -74,7 +74,7 @@ class RestJsonApiUnsupported extends ResourceTestBase {
     $node = Node::create(['type' => 'camelids']);
     $node->setTitle('Llama')
       ->setOwnerId(0)
-      ->setPublished(TRUE)
+      ->setPublished()
       ->save();
   }
 
