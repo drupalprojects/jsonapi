@@ -120,6 +120,9 @@ class EntityResource {
    *
    * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
+   *
+   * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
+   *   Thrown when access to the entity is not allowed.
    */
   public function getIndividual(EntityInterface $entity, Request $request, $response_code = 200) {
     $entity_access = $entity->access('view', NULL, TRUE);
@@ -141,8 +144,8 @@ class EntityResource {
    *   list to include only this set of fields. Defaults to NULL,
    *   which means that all violations will be reported.
    *
-   * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
-   *   If validation errors are found.
+   * @throws \Drupal\jsonapi\Exception\UnprocessableHttpEntityException
+   *   Thrown when violations remain after filtering.
    *
    * @see \Drupal\rest\Plugin\rest\resource\EntityResourceValidationTrait::validate()
    */
@@ -187,9 +190,10 @@ class EntityResource {
    * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    *
-   * @throws \Drupal\Core\Entity\EntityStorageException
    * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   *   Thrown when entity, field or relationship access fails.
+   * @throws \Symfony\Component\HttpKernel\Exception\ConflictHttpException
+   *   Thrown when the entity already exists.
    */
   public function createIndividual(EntityInterface $entity, Request $request) {
     $entity_access = $entity->access('create', NULL, TRUE);
@@ -265,8 +269,11 @@ class EntityResource {
    * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    *
-   * @throws \Drupal\Core\Entity\EntityStorageException
    * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
+   *   Thrown when the current user is not allowed to PATCH the selected
+   *   resource.
+   * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+   *   Thrown when the selected entity does not match the id in th payload.
    */
   public function patchIndividual(EntityInterface $entity, EntityInterface $parsed_entity, Request $request) {
     $entity_access = $entity->access('update', NULL, TRUE);
@@ -306,8 +313,8 @@ class EntityResource {
    * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    *
-   * @throws \Drupal\Core\Entity\EntityStorageException
    * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
+   *   Thrown when the current user cannot DELETE the selected resource.
    */
   public function deleteIndividual(EntityInterface $entity, Request $request) {
     $entity_access = $entity->access('delete', NULL, TRUE);
@@ -327,7 +334,8 @@ class EntityResource {
    * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    *
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+   *   Thrown when filtering on a config entity which does not support it.
    */
   public function getCollection(Request $request) {
     // Instantiate the query for the filtering.
@@ -399,8 +407,6 @@ class EntityResource {
    *
    * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
-   *
-   * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
    */
   public function getRelated(EntityInterface $entity, $related_field, Request $request) {
     $related_field = $this->resourceType->getInternalName($related_field);
@@ -518,7 +524,11 @@ class EntityResource {
    * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    *
-   * @throws \Drupal\Core\Entity\EntityStorageException
+   * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
+   *   Thrown when the current user is not allowed to PATCH the selected
+   *   field(s).
+   * @throws \Symfony\Component\HttpKernel\Exception\ConflictHttpException
+   *   Thrown when POSTing to a "to-one" relationship.
    */
   public function createRelationship(EntityInterface $entity, $related_field, $parsed_field_list, Request $request) {
     $related_field = $this->resourceType->getInternalName($related_field);
@@ -647,6 +657,9 @@ class EntityResource {
    * @param \Drupal\Core\Field\EntityReferenceFieldItemListInterface $parsed_field_list
    *   The entity reference field list of items to add, or a response object in
    *   case of error.
+   *
+   * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+   *   Thrown when a "to-one" relationship is not provided.
    */
   protected function doPatchIndividualRelationship(EntityInterface $entity, EntityReferenceFieldItemListInterface $parsed_field_list) {
     if ($parsed_field_list->count() > 1) {
@@ -663,6 +676,9 @@ class EntityResource {
    * @param \Drupal\Core\Field\EntityReferenceFieldItemListInterface $parsed_field_list
    *   The entity reference field list of items to add, or a response object in
    *   case of error.
+   *
+   * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
+   *   Thrown when the current user is not allow to PATCH the selected field.
    */
   protected function doPatchMultipleRelationship(EntityInterface $entity, EntityReferenceFieldItemListInterface $parsed_field_list) {
     $field_name = $parsed_field_list->getName();
@@ -688,6 +704,13 @@ class EntityResource {
    *
    * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
+   *
+   * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
+   *   Thrown when the current user is nto allowed to PATCH the selected field.
+   * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+   *   Thrown when not body was provided for the DELETE operation.
+   * @throws \Symfony\Component\HttpKernel\Exception\ConflictHttpException
+   *   Thrown when deleting a "to-one" relationship.
    */
   public function deleteRelationship(EntityInterface $entity, $related_field, $parsed_field_list, Request $request = NULL) {
     if ($parsed_field_list instanceof Response) {
@@ -742,8 +765,6 @@ class EntityResource {
    *
    * @return \Drupal\Core\Entity\Query\QueryInterface
    *   A new query.
-   *
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
   protected function getCollectionQuery($entity_type_id, array $params) {
     $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
@@ -801,8 +822,6 @@ class EntityResource {
    *
    * @return \Drupal\Core\Entity\Query\QueryInterface
    *   A new query.
-   *
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
   protected function getCollectionCountQuery($entity_type_id, array $params) {
     // Reset the range to get all the available results.
@@ -858,6 +877,12 @@ class EntityResource {
    * @param string $related_field
    *   The name of the field to check.
    *
+   * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
+   *   Thrown when the current user is not allowed the operation on the
+   *   relationship.
+   * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+   *   Thrown when the relationship is not present in the resource.
+   *
    * @see \Drupal\Core\Access\AccessibleInterface
    */
   protected function relationshipAccess(EntityInterface $entity, $operation, $related_field) {
@@ -883,6 +908,10 @@ class EntityResource {
    *   The entity that needs to be updated.
    * @param string $field_name
    *   The name of the field to extract and update.
+   *
+   * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+   *   Thrown when the serialized and destination entities are of different
+   *   types.
    */
   protected function updateEntityField(EntityInterface $origin, EntityInterface $destination, $field_name) {
     // The update is different for configuration entities and content entities.
@@ -1001,6 +1030,9 @@ class EntityResource {
    *   An array containing the keys:
    *     - entity: the loaded entity or an access exception.
    *     - access: the access object.
+   *
+   * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
+   *   Thrown when the current user is not allowed to GET the selected resource.
    */
   public static function getEntityAndAccess(EntityInterface $entity) {
     /** @var \Drupal\Core\Entity\EntityRepositoryInterface $entity_repository */
@@ -1028,8 +1060,6 @@ class EntityResource {
    *
    * @return bool
    *   Whether the entity already has been created.
-   *
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
   protected function entityExists(EntityInterface $entity) {
     $entity_storage = $this->entityTypeManager->getStorage($entity->getEntityTypeId());
