@@ -57,7 +57,6 @@ class InternalEntitiesTest extends BrowserTestBase {
   public function setUp() {
     parent::setUp();
     $this->testUser = $this->drupalCreateUser([
-      'access jsonapi resource list',
       'view test entity',
       'administer entity_test_with_bundle content',
     ], $this->randomString(), TRUE);

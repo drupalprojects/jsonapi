@@ -3,12 +3,15 @@
 namespace Drupal\jsonapi\Controller;
 
 use Drupal\Core\Cache\CacheableJsonResponse;
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Render\RendererInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
+use Drupal\user\Entity\User;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -33,16 +36,26 @@ class EntryPoint extends ControllerBase {
   protected $renderer;
 
   /**
+   * The account object.
+   *
+   * @var \Drupal\Core\Session\AccountInterface
+   */
+  protected $user;
+
+  /**
    * EntryPoint constructor.
    *
    * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface $resource_type_repository
    *   The resource type repository.
    * @param \Drupal\Core\Render\RendererInterface $renderer
    *   The renderer.
+   * @param \Drupal\Core\Session\AccountInterface $user
+   *   The current user.
    */
-  public function __construct(ResourceTypeRepositoryInterface $resource_type_repository, RendererInterface $renderer) {
+  public function __construct(ResourceTypeRepositoryInterface $resource_type_repository, RendererInterface $renderer, AccountInterface $user) {
     $this->resourceTypeRepository = $resource_type_repository;
     $this->renderer = $renderer;
+    $this->user = $user;
   }
 
   /**
@@ -51,7 +64,8 @@ class EntryPoint extends ControllerBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('jsonapi.resource_type.repository'),
-      $container->get('renderer')
+      $container->get('renderer'),
+      $container->get('current_user')
     );
   }
 
@@ -88,11 +102,22 @@ class EntryPoint extends ControllerBase {
     };
     $urls = $this->renderer->executeInRenderContext($context, $do_build_urls);
 
-    $json_response = new CacheableJsonResponse([
+    $json_response = new CacheableJsonResponse();
+    $doc = [
       'data' => [],
       'links' => $urls,
-    ]
-    );
+    ];
+    $json_response->addCacheableDependency((new CacheableMetadata())->addCacheContexts(['user.roles:authenticated']));
+    if ($this->user->isAuthenticated()) {
+      $me_url = Url::fromRoute('jsonapi.user--user.individual', ['user' => User::load($this->user->id())->uuid()])
+        ->setAbsolute()
+        ->toString(TRUE);
+      $doc['meta']['links']['me'] = $me_url->getGeneratedUrl();
+      // The cacheability of the `me` URL is the cacheability of that URL itself
+      // and the currently authenticated user.
+      $json_response->addCacheableDependency(CacheableMetadata::createFromObject($me_url)->addCacheContexts(['user']));
+    }
+    $json_response->setData($doc);
 
     if (!$context->isEmpty()) {
       $json_response->addCacheableDependency($context->pop());

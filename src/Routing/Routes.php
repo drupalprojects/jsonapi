@@ -247,7 +247,7 @@ class Routes implements ContainerInjectionInterface {
   protected function getEntryPointRoute($path_prefix) {
     $entry_point = new Route("/{$path_prefix}");
     $entry_point->addDefaults([RouteObjectInterface::CONTROLLER_NAME => EntryPoint::class . '::index']);
-    $entry_point->setRequirement('_permission', 'access jsonapi resource list');
+    $entry_point->setRequirement('_access', 'TRUE');
     $entry_point->setMethods(['GET']);
     return $entry_point;
   }
