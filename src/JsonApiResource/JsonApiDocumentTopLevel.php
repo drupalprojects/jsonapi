@@ -24,7 +24,7 @@ class JsonApiDocumentTopLevel {
   /**
    * Instantiates a JsonApiDocumentTopLevel object.
    *
-   * @param \Drupal\Core\Entity\EntityInterface|\Drupal\jsonapi\EntityCollection $data
+   * @param \Drupal\Core\Entity\EntityInterface|\Drupal\jsonapi\EntityCollection|\Drupal\jsonapi\LabelOnlyEntity $data
    *   The data to normalize. It can be either a straight up entity or a
    *   collection of entities.
    */
@@ -35,7 +35,7 @@ class JsonApiDocumentTopLevel {
   /**
    * Gets the data.
    *
-   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\jsonapi\EntityCollection
+   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\jsonapi\EntityCollection|\Drupal\jsonapi\LabelOnlyEntity
    *   The data.
    */
   public function getData() {

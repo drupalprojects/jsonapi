@@ -3,7 +3,6 @@
 namespace Drupal\jsonapi\Controller;
 
 use Drupal\Component\Serialization\Json;
-use Drupal\Core\Access\AccessibleInterface;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
@@ -17,6 +16,7 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
 use Drupal\jsonapi\Exception\UnprocessableHttpEntityException;
+use Drupal\jsonapi\LabelOnlyEntity;
 use Drupal\jsonapi\Query\Filter;
 use Drupal\jsonapi\Query\Sort;
 use Drupal\jsonapi\Query\OffsetPage;
@@ -127,10 +127,17 @@ class EntityResource {
   public function getIndividual(EntityInterface $entity, Request $request, $response_code = 200) {
     $entity_access = $entity->access('view', NULL, TRUE);
     if (!$entity_access->isAllowed()) {
-      throw new EntityAccessDeniedHttpException($entity, $entity_access, '/data', 'The current user is not allowed to GET the selected resource.');
+      $entity_label_access = $entity->access('view label', NULL, TRUE);
+      if (!$entity_label_access->isAllowed()) {
+        throw new EntityAccessDeniedHttpException($entity, $entity_access, '/data', 'The current user is not allowed to GET the selected resource.');
+      }
+      $entity = new LabelOnlyEntity($entity);
     }
     $response = $this->buildWrappedResponse($entity, $response_code);
     $response->addCacheableDependency($entity_access);
+    if (isset($entity_label_access)) {
+      $response->addCacheableDependency($entity_label_access);
+    }
     return $response;
   }
 
@@ -1044,9 +1051,16 @@ class EntityResource {
       'access' => $access,
       'entity' => $entity,
     ];
-    if ($entity instanceof AccessibleInterface && !$access->isAllowed()) {
-      // Pass an exception to the list of things to normalize.
-      $output['entity'] = new EntityAccessDeniedHttpException($entity, $access, '/data', 'The current user is not allowed to GET the selected resource.');
+    if (!$access->isAllowed()) {
+      $label_access = $entity->access('view label', NULL, TRUE);
+      $output['access'] = $label_access->addCacheableDependency($output['access']);
+      if ($label_access->isAllowed()) {
+        $output['entity'] = new LabelOnlyEntity($entity);
+      }
+      else {
+        // Pass an exception to the list of things to normalize.
+        $output['entity'] = new EntityAccessDeniedHttpException($entity, $access, '/data', 'The current user is not allowed to GET the selected resource.');
+      }
     }
 
     return $output;

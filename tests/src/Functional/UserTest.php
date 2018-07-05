@@ -40,6 +40,11 @@ class UserTest extends ResourceTestBase {
 
   /**
    * {@inheritdoc}
+   */
+  protected static $anonymousUsersCanViewLabels = TRUE;
+
+  /**
+   * {@inheritdoc}
    *
    * @var \Drupal\taxonomy\TermInterface
    */
@@ -425,7 +430,9 @@ class UserTest extends ResourceTestBase {
     // Also when looking at the collection.
     $response = $this->request('GET', $collection_url, $request_options);
     $doc = Json::decode((string) $response->getBody());
-    $this->assertArrayHasKey('mail', $doc['data'][1]['attributes']);
+    $this->assertSame($user_a->uuid(), $doc['data']['2']['id']);
+    $this->assertArrayHasKey('mail', $doc['data'][2]['attributes'], "Own user--user resource's 'mail' field is visible.");
+    $this->assertSame($user_b->uuid(), $doc['data'][count($doc['data']) - 1]['id']);
     $this->assertArrayNotHasKey('mail', $doc['data'][count($doc['data']) - 1]['attributes']);
 
     // Now request the same URLs, but as user B (same roles/permissions).
@@ -438,7 +445,9 @@ class UserTest extends ResourceTestBase {
     // Also when looking at the collection.
     $response = $this->request('GET', $collection_url, $request_options);
     $doc = Json::decode((string) $response->getBody());
-    $this->assertArrayNotHasKey('mail', $doc['data'][1]['attributes']);
+    $this->assertSame($user_a->uuid(), $doc['data']['2']['id']);
+    $this->assertArrayNotHasKey('mail', $doc['data'][2]['attributes']);
+    $this->assertSame($user_b->uuid(), $doc['data'][count($doc['data']) - 1]['id']);
     $this->assertArrayHasKey('mail', $doc['data'][count($doc['data']) - 1]['attributes']);
   }
 
@@ -455,6 +464,23 @@ class UserTest extends ResourceTestBase {
 
     $response = $this->request('GET', $collection_url, $request_options);
     $this->assertResourceErrorResponse(400, "Filtering on config entities is not supported by Drupal's entity API. You tried to filter on a Role config entity.", $response);
+  }
+
+  /**
+   * Tests that the collection contains the anonymous user.
+   */
+  public function testCollectionContainsAnonymousUser() {
+    $url = Url::fromRoute('jsonapi.user--user.collection');
+    $request_options = [];
+    $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
+    $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
+
+    $response = $this->request('GET', $url, $request_options);
+    $doc = Json::decode((string) $response->getBody());
+
+    $this->assertCount(4, $doc['data']);
+    $this->assertSame(User::load(0)->uuid(), $doc['data'][0]['id']);
+    $this->assertSame('Anonymous', $doc['data'][0]['attributes']['name']);
   }
 
 }

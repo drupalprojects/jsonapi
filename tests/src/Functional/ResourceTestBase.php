@@ -123,6 +123,13 @@ abstract class ResourceTestBase extends BrowserTestBase {
   protected static $labelFieldName = NULL;
 
   /**
+   * Whether anonymous users can view labels of this resource type.
+   *
+   * @var bool
+   */
+  protected static $anonymousUsersCanViewLabels = FALSE;
+
+  /**
    * The entity being tested.
    *
    * @var \Drupal\Core\Entity\EntityInterface
@@ -482,6 +489,9 @@ abstract class ResourceTestBase extends BrowserTestBase {
   protected static function getExpectedCollectionCacheability(array $collection, array $sparse_fieldset = NULL, AccountInterface $account) {
     $cacheability = array_reduce($collection, function (CacheableMetadata $cacheability, EntityInterface $entity) use ($sparse_fieldset, $account) {
       $access_result = static::entityAccess($entity, 'view', $account);
+      if (!$access_result->isAllowed()) {
+        $access_result = static::entityAccess($entity, 'view label', $account)->addCacheableDependency($access_result);
+      }
       $cacheability->addCacheableDependency($access_result);
       if ($access_result->isAllowed()) {
         $cacheability->addCacheableDependency($entity);
@@ -887,33 +897,43 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
     $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
 
-    // DX: 403 when unauthorized.
+    // DX: 403 when unauthorized, or 200 if the 'view label' operation is
+    // supported by the entity type.
     $response = $this->request('GET', $url, $request_options);
-    $expected_403_cacheability = $this->getExpectedUnauthorizedAccessCacheability();
-    $reason = $this->getExpectedUnauthorizedAccessMessage('GET');
-    // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected_document = [
-      'errors' => [
-        [
-          'title' => 'Forbidden',
-          'status' => 403,
-          'detail' => "The current user is not allowed to GET the selected resource." . (strlen($reason) ? ' ' . $reason : ''),
-          'links' => [
-            'info' => HttpExceptionNormalizer::getInfoUrl(403),
-          ],
-          'code' => 0,
-          'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
-          'source' => [
-            'pointer' => '/data',
+    if (!static::$anonymousUsersCanViewLabels) {
+      $expected_403_cacheability = $this->getExpectedUnauthorizedAccessCacheability();
+      $reason = $this->getExpectedUnauthorizedAccessMessage('GET');
+      // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
+      $expected_document = [
+        'errors' => [
+          [
+            'title' => 'Forbidden',
+            'status' => 403,
+            'detail' => "The current user is not allowed to GET the selected resource." . (strlen($reason) ? ' ' . $reason : ''),
+            'links' => [
+              'info' => HttpExceptionNormalizer::getInfoUrl(403),
+            ],
+            'code' => 0,
+            'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
+            'source' => [
+              'pointer' => '/data',
+            ],
           ],
         ],
-      ],
-    ];
-    $this->assertResourceResponse(403, $expected_document, $response);
-    /* $this->assertResourceErrorResponse(403, "The current user is not allowed to GET the selected resource." . (strlen($reason) ? ' ' . $reason : ''), $response, '/data'); */
-    // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2929428.
-    /* $this->assertResourceResponse(403, $expected_document, $response, $expected_403_cacheability->getCacheTags(), $expected_403_cacheability->getCacheContexts(), FALSE, 'MISS'); */
-    $this->assertArrayNotHasKey('Link', $response->getHeaders());
+      ];
+      $this->assertResourceResponse(403, $expected_document, $response);
+      /* $this->assertResourceErrorResponse(403, "The current user is not allowed to GET the selected resource." . (strlen($reason) ? ' ' . $reason : ''), $response, '/data'); */
+      // @todo Uncomment in https://www.drupal.org/project/jsonapi/issues/2929428.
+      /* $this->assertResourceResponse(403, $expected_document, $response, $expected_403_cacheability->getCacheTags(), $expected_403_cacheability->getCacheContexts(), FALSE, 'MISS'); */
+      $this->assertArrayNotHasKey('Link', $response->getHeaders());
+    }
+    else {
+      $expected_document = $this->getExpectedDocument();
+      $label_field_name = $this->entity->getEntityType()->hasKey('label') ? $this->entity->getEntityType()->getKey('label') : static::$labelFieldName;
+      $expected_document['data']['attributes'] = array_intersect_key($expected_document['data']['attributes'], [$label_field_name => TRUE]);
+      unset($expected_document['data']['relationships']);
+      $this->assertResourceResponse(200, $expected_document, $response, $this->getExpectedCacheTags(), $this->getExpectedCacheContexts(), FALSE, 'MISS');
+    }
 
     $this->setUpAuthorization('GET');
 

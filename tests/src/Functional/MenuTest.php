@@ -29,6 +29,11 @@ class MenuTest extends ResourceTestBase {
 
   /**
    * {@inheritdoc}
+   */
+  protected static $anonymousUsersCanViewLabels = TRUE;
+
+  /**
+   * {@inheritdoc}
    *
    * @var \Drupal\system\MenuInterface
    */

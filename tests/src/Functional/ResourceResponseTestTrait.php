@@ -27,7 +27,7 @@ trait ResourceResponseTestTrait {
    * objects. Not necessarily to a response to a collection route. In both
    * cases, the document should indistinguishable.
    *
-   * @param array $responses
+   * @param \Drupal\jsonapi\ResourceResponse[] $responses
    *   An array or ResourceResponses to be merged.
    * @param string|null $self_link
    *   The self link for the merged document if one should be set.
@@ -155,6 +155,9 @@ trait ResourceResponseTestTrait {
         }
         if ($target_entity = $entity->{$field_name}->entity) {
           $target_access = static::entityAccess($target_entity, 'view', $this->account);
+          if (!$target_access->isAllowed()) {
+            $target_access = static::entityAccess($target_entity, 'view label', $this->account)->addCacheableDependency($target_access);
+          }
           if (!$target_access->isAllowed()) {
             $resource_identifier = static::toResourceIdentifier($target_entity);
             if (!static::collectionHasResourceIdentifier($resource_identifier, $data['already_checked'])) {

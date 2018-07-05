@@ -260,19 +260,20 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         'related' => 'dummy_entity_link',
       ],
     ], $normalized['data']['relationships']['uid']);
-    $this->assertEquals(
-      "The current user is not allowed to GET the selected resource. The 'access user profiles' permission is required and the user must be active.",
-      $normalized['meta']['errors'][0]['detail']
-    );
-    $this->assertEquals(403, $normalized['meta']['errors'][0]['status']);
-    $this->assertEquals($this->term1->uuid(), $normalized['included'][0]['id']);
-    $this->assertEquals('taxonomy_term--tags', $normalized['included'][0]['type']);
-    $this->assertEquals($this->term1->label(), $normalized['included'][0]['attributes']['name']);
-    $this->assertTrue(!isset($normalized['included'][0]['attributes']['created']));
+    $this->assertTrue(empty($normalized['meta']['errors']));
+    $this->assertSame($this->user->uuid(), $normalized['included'][0]['id']);
+    $this->assertSame('user--user', $normalized['included'][0]['type']);
+    $this->assertSame('user1', $normalized['included'][0]['attributes']['name']);
+    $this->assertCount(1, $normalized['included'][0]['attributes']);
+    $this->assertSame($this->term1->uuid(), $normalized['included'][1]['id']);
+    $this->assertSame('taxonomy_term--tags', $normalized['included'][1]['type']);
+    $this->assertSame($this->term1->label(), $normalized['included'][1]['attributes']['name']);
+    $this->assertCount(8, $normalized['included'][1]['attributes']);
+    $this->assertTrue(!isset($normalized['included'][1]['attributes']['created']));
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
     $this->assertArraySubset(
-      ['file:1', 'node:1', 'taxonomy_term:1', 'taxonomy_term:2'],
+      ['file:1', 'node:1', 'taxonomy_term:1', 'taxonomy_term:2', 'user:1'],
       $jsonapi_doc_object->getCacheTags()
     );
     $this->assertSame(
@@ -361,12 +362,14 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $this->assertEquals($this->node->type->entity->uuid(), $normalized['data']['relationships']['type']['data']['id']);
     $this->assertEquals($this->user->uuid(), $normalized['data']['relationships']['uid']['data']['id']);
     $this->assertFalse(empty($normalized['included'][0]['id']));
-    $this->assertFalse(empty($normalized['meta']['errors']));
-    $this->assertEquals($this->term1->uuid(), $normalized['included'][0]['id']);
+    $this->assertTrue(empty($normalized['meta']['errors']));
+    $this->assertEquals($this->user->uuid(), $normalized['included'][0]['id']);
+    $this->assertCount(1, $normalized['included'][0]['attributes']);
+    $this->assertCount(8, $normalized['included'][1]['attributes']);
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
     $this->assertArraySubset(
-      ['node:1', 'taxonomy_term:1', 'taxonomy_term:2'],
+      ['node:1', 'taxonomy_term:1', 'taxonomy_term:2', 'user:1'],
       $jsonapi_doc_object->getCacheTags()
     );
   }

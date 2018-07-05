@@ -29,6 +29,11 @@ class DateFormatTest extends ResourceTestBase {
 
   /**
    * {@inheritdoc}
+   */
+  protected static $anonymousUsersCanViewLabels = TRUE;
+
+  /**
+   * {@inheritdoc}
    *
    * @var \Drupal\Core\Datetime\DateFormatInterface
    */

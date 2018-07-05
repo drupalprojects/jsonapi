@@ -210,6 +210,19 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
       array_keys($fields),
       [$resource_type, 'isFieldEnabled']
     );
+
+    // The "label" field needs special treatment: some entity types have a label
+    // field that is actually backed by a label callback.
+    $entity_type = $entity->getEntityType();
+    if ($entity_type->hasLabelCallback()) {
+      $label_field_name = $entity_type->getKey('label');
+      // @todo Remove this work-around after https://www.drupal.org/project/drupal/issues/2450793 lands.
+      if ($entity->getEntityTypeId() === 'user') {
+        $label_field_name = 'name';
+      }
+      $fields[$label_field_name]->value = $entity->label();
+    }
+
     // Return a sub-array of $output containing the keys in $enabled_fields.
     $input = array_intersect_key($fields, array_flip($enabled_field_names));
     /* @var \Drupal\Core\Entity\ContentEntityInterface $entity */

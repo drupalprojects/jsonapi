@@ -5,6 +5,7 @@ namespace Drupal\jsonapi\JsonApiResource;
 use Drupal\Component\Assertion\Inspector;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
+use Drupal\jsonapi\LabelOnlyEntity;
 
 /**
  * Wrapper to normalize collections with multiple entities.
@@ -44,6 +45,7 @@ class EntityCollection implements \IteratorAggregate, \Countable {
     assert(Inspector::assertAll(function ($entity) {
       return $entity === NULL
         || $entity instanceof EntityInterface
+        || $entity instanceof LabelOnlyEntity
         || $entity instanceof EntityAccessDeniedHttpException;
     }, $entities));
     $this->entities = $entities;

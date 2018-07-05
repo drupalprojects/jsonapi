@@ -70,6 +70,11 @@ services:
     arguments: ['@jsonapi.link_manager', '@jsonapi.resource_type.repository', '@entity_type.manager', '@entity_field.manager', '@plugin.manager.field.field_type']
     tags:
       - { name: jsonapi_normalizer_do_not_use_removal_imminent }
+  serializer.normalizer.entity.label_only.jsonapi:
+    class: Drupal\jsonapi\Normalizer\LabelOnlyEntityNormalizer
+    arguments: ['@jsonapi.link_manager', '@jsonapi.resource_type.repository']
+    tags:
+      - { name: jsonapi_normalizer_do_not_use_removal_imminent }
   serializer.normalizer.config_entity.jsonapi:
     class: Drupal\jsonapi\Normalizer\ConfigEntityNormalizer
     arguments: ['@jsonapi.link_manager', '@jsonapi.resource_type.repository', '@entity_type.manager', '@entity_field.manager', '@plugin.manager.field.field_type']
