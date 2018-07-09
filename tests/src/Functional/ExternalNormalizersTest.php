@@ -160,7 +160,7 @@ class ExternalNormalizersTest extends BrowserTestBase {
       ],
     ]);
     $request_options[RequestOptions::HEADERS]['Content-Type'] = 'application/vnd.api+json';
-    $response = $client->request('POST', Url::fromRoute('jsonapi.entity_test--entity_test.collection')->setAbsolute(TRUE)->toString(), $request_options);
+    $response = $client->request('POST', Url::fromRoute('jsonapi.entity_test--entity_test.collection.post')->setAbsolute(TRUE)->toString(), $request_options);
     $document = Json::decode((string) $response->getBody());
     $this->assertSame(static::VALUE_OVERRIDDEN, $document['data']['attributes']['field_test']);
     $created_entity = EntityTest::load($document['data']['attributes']['id']);

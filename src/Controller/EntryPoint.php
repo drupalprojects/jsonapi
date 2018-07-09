@@ -93,10 +93,11 @@ class EntryPoint extends ControllerBase {
         // TODO: Learn how to invalidate the cache for this page when a new
         // entity type or bundle gets added, removed or updated.
         // $this->response->addCacheableDependency($definition);
-        $url = Url::fromRoute(sprintf('jsonapi.%s.collection', $resource_type->getTypeName()))
-          ->setAbsolute();
-        $carry[$resource_type->getTypeName()] = $url->toString();
-
+        if ($resource_type->isLocatable() || $resource_type->isMutable()) {
+          $route_suffix = $resource_type->isLocatable() ? 'collection' : 'collection.post';
+          $url = Url::fromRoute(sprintf('jsonapi.%s.%s', $resource_type->getTypeName(), $route_suffix))->setAbsolute();
+          $carry[$resource_type->getTypeName()] = $url->toString();
+        }
         return $carry;
       }, ['self' => $self->toString()]);
     };

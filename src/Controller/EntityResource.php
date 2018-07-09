@@ -197,18 +197,10 @@ class EntityResource {
    * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    *
-   * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
-   *   Thrown when entity, field or relationship access fails.
    * @throws \Symfony\Component\HttpKernel\Exception\ConflictHttpException
    *   Thrown when the entity already exists.
    */
   public function createIndividual(EntityInterface $entity, Request $request) {
-    $entity_access = $entity->access('create', NULL, TRUE);
-
-    if (!$entity_access->isAllowed()) {
-      throw new EntityAccessDeniedHttpException(NULL, $entity_access, '/data', 'The current user is not allowed to POST the selected resource.');
-    }
-
     // Only check 'edit' permissions for fields that were actually submitted by
     // the user. Field access makes no difference between 'create' and 'update',
     // so the 'edit' operation is used here.
@@ -276,17 +268,10 @@ class EntityResource {
    * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
    *
-   * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
-   *   Thrown when the current user is not allowed to PATCH the selected
-   *   resource.
    * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
    *   Thrown when the selected entity does not match the id in th payload.
    */
   public function patchIndividual(EntityInterface $entity, EntityInterface $parsed_entity, Request $request) {
-    $entity_access = $entity->access('update', NULL, TRUE);
-    if (!$entity_access->isAllowed()) {
-      throw new EntityAccessDeniedHttpException($entity, $entity_access, '/data', 'The current user is not allowed to PATCH the selected resource.');
-    }
     $body = Json::decode($request->getContent());
     $data = $body['data'];
     if ($data['id'] != $entity->uuid()) {
@@ -319,15 +304,8 @@ class EntityResource {
    *
    * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
-   *
-   * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
-   *   Thrown when the current user cannot DELETE the selected resource.
    */
   public function deleteIndividual(EntityInterface $entity, Request $request) {
-    $entity_access = $entity->access('delete', NULL, TRUE);
-    if (!$entity_access->isAllowed()) {
-      throw new EntityAccessDeniedHttpException($entity, $entity_access, '/data', 'The current user is not allowed to DELETE the selected resource.');
-    }
     $entity->delete();
     return new ResourceResponse(NULL, 204);
   }

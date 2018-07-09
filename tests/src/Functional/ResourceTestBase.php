@@ -1839,7 +1839,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // - to first test all mistakes a developer might make, and assert that the
     //   error responses provide a good DX
     // - to eventually result in a well-formed request that succeeds.
-    $url = Url::fromRoute(sprintf('jsonapi.%s.collection', static::$resourceTypeName));
+    $url = Url::fromRoute(sprintf('jsonapi.%s.collection.post', static::$resourceTypeName));
     $request_options = [];
     $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
     $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
@@ -1850,6 +1850,13 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     $request_options[RequestOptions::HEADERS]['Content-Type'] = 'application/vnd.api+json';
 
+    // DX: 403 when unauthorized.
+    $response = $this->request('POST', $url, $request_options);
+    $reason = $this->getExpectedUnauthorizedAccessMessage('POST');
+    $this->assertResourceErrorResponse(403, (string) $reason, $response);
+
+    $this->setUpAuthorization('POST');
+
     // DX: 400 when no request body.
     $response = $this->request('POST', $url, $request_options);
     $this->assertResourceErrorResponse(400, 'Empty request body.', $response);
@@ -1859,34 +1866,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // DX: 400 when unparseable request body.
     $response = $this->request('POST', $url, $request_options);
     $this->assertResourceErrorResponse(400, 'Syntax error', $response);
-
-    $request_options[RequestOptions::BODY] = $parseable_invalid_request_body;
-
-    // DX: 403 when unauthorized.
-    $response = $this->request('POST', $url, $request_options);
-    $reason = $this->getExpectedUnauthorizedAccessMessage('POST');
-    // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected_document = [
-      'errors' => [
-        [
-          'title' => 'Forbidden',
-          'status' => 403,
-          // @todo Why is the reason missing here?
-          'detail' => "The current user is not allowed to POST the selected resource." . (strlen($reason) ? ' ' . $reason : ''),
-          'links' => [
-            'info' => HttpExceptionNormalizer::getInfoUrl(403),
-          ],
-          'code' => 0,
-          'source' => [
-            'pointer' => '/data',
-          ],
-        ],
-      ],
-    ];
-    $this->assertResourceResponse(403, $expected_document, $response);
-    /* $this->assertResourceErrorResponse(403, "The current user is not allowed to POST the selected resource." . (strlen($reason) ? ' ' . $reason : ''), $response, '/data'); */
-
-    $this->setUpAuthorization('POST');
 
     $request_options[RequestOptions::BODY] = $parseable_invalid_request_body_missing_type;
 
@@ -2107,6 +2086,13 @@ abstract class ResourceTestBase extends BrowserTestBase {
 
     $request_options[RequestOptions::HEADERS]['Content-Type'] = 'application/vnd.api+json';
 
+    // DX: 403 when unauthorized.
+    $response = $this->request('PATCH', $url, $request_options);
+    $reason = $this->getExpectedUnauthorizedAccessMessage('PATCH');
+    $this->assertResourceErrorResponse(403, (string) $reason, $response);
+
+    $this->setUpAuthorization('PATCH');
+
     // DX: 400 when no request body.
     $response = $this->request('PATCH', $url, $request_options);
     $this->assertResourceErrorResponse(400, 'Empty request body.', $response);
@@ -2118,32 +2104,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $this->assertResourceErrorResponse(400, 'Syntax error', $response);
 
     $request_options[RequestOptions::BODY] = $parseable_invalid_request_body;
-
-    // DX: 403 when unauthorized.
-    $response = $this->request('PATCH', $url, $request_options);
-    $reason = $this->getExpectedUnauthorizedAccessMessage('PATCH');
-    // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected_document = [
-      'errors' => [
-        [
-          'title' => 'Forbidden',
-          'status' => 403,
-          'detail' => "The current user is not allowed to PATCH the selected resource." . (strlen($reason) ? ' ' . $reason : ''),
-          'links' => [
-            'info' => HttpExceptionNormalizer::getInfoUrl(403),
-          ],
-          'code' => 0,
-          'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
-          'source' => [
-            'pointer' => '/data',
-          ],
-        ],
-      ],
-    ];
-    $this->assertResourceResponse(403, $expected_document, $response);
-    /* $this->assertResourceErrorResponse(403, "The current user is not allowed to PATCH the selected resource." . (strlen($reason) ? ' ' . $reason : ''), $response, '/data'); */
-
-    $this->setUpAuthorization('PATCH');
 
     // DX: 422 when invalid entity: multiple values sent for single-value field.
     $response = $this->request('PATCH', $url, $request_options);
@@ -2385,26 +2345,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // DX: 403 when unauthorized.
     $response = $this->request('DELETE', $url, $request_options);
     $reason = $this->getExpectedUnauthorizedAccessMessage('DELETE');
-    // @todo Remove $expected + assertResourceResponse() in favor of the commented line below once https://www.drupal.org/project/jsonapi/issues/2943176 lands.
-    $expected_document = [
-      'errors' => [
-        [
-          'title' => 'Forbidden',
-          'status' => 403,
-          'detail' => "The current user is not allowed to DELETE the selected resource." . (strlen($reason) ? ' ' . $reason : ''),
-          'links' => [
-            'info' => HttpExceptionNormalizer::getInfoUrl(403),
-          ],
-          'code' => 0,
-          'id' => '/' . static::$resourceTypeName . '/' . $this->entity->uuid(),
-          'source' => [
-            'pointer' => '/data',
-          ],
-        ],
-      ],
-    ];
-    $this->assertResourceResponse(403, $expected_document, $response);
-    /* $this->assertResourceErrorResponse(403, "The current user is not allowed to DELETE the selected resource." . (strlen($reason) ? ' ' . $reason : ''), $response, '/data'); */
+    $this->assertResourceErrorResponse(403, (string) $reason, $response);
 
     $this->setUpAuthorization('DELETE');
 

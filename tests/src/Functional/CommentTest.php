@@ -315,7 +315,7 @@ class CommentTest extends ResourceTestBase {
     // @codingStandardsIgnoreStart
     $this->setUpAuthorization('POST');
 
-    $url = Url::fromRoute(sprintf('jsonapi.%s.collection', static::$resourceTypeName));
+    $url = Url::fromRoute(sprintf('jsonapi.%s.collection.post', static::$resourceTypeName));
     $request_options = [];
     $request_options[RequestOptions::HEADERS]['Accept'] = 'application/vnd.api+json';
     $request_options[RequestOptions::HEADERS]['Content-Type'] = 'application/vnd.api+json';
@@ -371,7 +371,7 @@ class CommentTest extends ResourceTestBase {
     $request_options = NestedArray::mergeDeep($request_options, $this->getAuthenticationRequestOptions());
     $request_options[RequestOptions::BODY] = Json::encode($this->getPostDocument());
 
-    $url = Url::fromRoute('jsonapi.comment--comment.collection');
+    $url = Url::fromRoute('jsonapi.comment--comment.collection.post');
 
     // Status should be FALSE when posting as anonymous.
     $response = $this->request('POST', $url, $request_options);

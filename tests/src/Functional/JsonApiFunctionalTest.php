@@ -484,7 +484,7 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
   public function testWrite() {
     $this->createDefaultContent(0, 3, FALSE, FALSE, static::IS_NOT_MULTILINGUAL, FALSE);
     // 1. Successful post.
-    $collection_url = Url::fromRoute('jsonapi.node--article.collection');
+    $collection_url = Url::fromRoute('jsonapi.node--article.collection.post');
     $body = [
       'data' => [
         'type' => 'node--article',
@@ -538,9 +538,9 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
       'headers' => ['Content-Type' => 'application/vnd.api+json'],
     ]);
     $created_response = Json::decode($response->getBody()->__toString());
-    $this->assertEquals(403, $response->getStatusCode());
+    $this->assertEquals(401, $response->getStatusCode());
     $this->assertNotEmpty($created_response['errors']);
-    $this->assertEquals('Forbidden', $created_response['errors'][0]['title']);
+    $this->assertEquals('Unauthorized', $created_response['errors'][0]['title']);
 
     // 2.1 Authorization error with a user without create permissions.
     $response = $this->request('POST', $collection_url, [

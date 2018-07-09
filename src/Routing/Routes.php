@@ -139,15 +139,25 @@ class Routes implements ContainerInjectionInterface {
     $routes = new RouteCollection();
 
     // Collection route like `/jsonapi/node/article`.
-    $collection_route = new Route('/' . $resource_type->getPath());
-    $methods = array_merge(
-      $resource_type->isLocatable() ? ['GET'] : [],
-      $resource_type->isMutable() ? ['POST'] : []
-    );
-    $collection_route->setMethods($methods);
-    $collection_route->addDefaults(['serialization_class' => JsonApiDocumentTopLevel::class]);
-    $collection_route->setRequirement('_csrf_request_header_token', 'TRUE');
-    $routes->add(static::getRouteName($resource_type, 'collection'), $collection_route);
+    if ($resource_type->isLocatable()) {
+      $collection_route = new Route("/{$resource_type->getPath()}");
+      $collection_route->setMethods(['GET']);
+      // Allow anybody access because "view" and "view label" access are checked
+      // in the controller.
+      $collection_route->setRequirement('_access', 'TRUE');
+      $routes->add(static::getRouteName($resource_type, 'collection'), $collection_route);
+    }
+
+    // Creation route.
+    if ($resource_type->isMutable()) {
+      $collection_create_route = new Route("/{$resource_type->getPath()}");
+      $collection_create_route->setMethods(['POST']);
+      $collection_create_route->addDefaults(['serialization_class' => JsonApiDocumentTopLevel::class]);
+      $create_requirement = sprintf("%s:%s", $resource_type->getEntityTypeId(), $resource_type->getBundle());
+      $collection_create_route->setRequirement('_entity_create_access', $create_requirement);
+      $collection_create_route->setRequirement('_csrf_request_header_token', 'TRUE');
+      $routes->add(static::getRouteName($resource_type, 'collection.post'), $collection_create_route);
+    }
 
     // Individual routes like `/jsonapi/node/article/{uuid}` or
     // `/jsonapi/node/article/{uuid}/relationships/uid`.
@@ -201,13 +211,24 @@ class Routes implements ContainerInjectionInterface {
 
     // Individual read, update and remove.
     $individual_route = new Route("/{$path}/{{$entity_type_id}}");
-    $individual_route->setMethods($resource_type->isMutable()
-      ? ['GET', 'PATCH', 'DELETE']
-      : ['GET']
-    );
-    $individual_route->addDefaults(['serialization_class' => JsonApiDocumentTopLevel::class]);
-    $individual_route->setRequirement('_csrf_request_header_token', 'TRUE');
+    $individual_route->setMethods(['GET']);
+    // No _entity_access requirement because "view" and "view label" access are
+    // checked in the controller. So it's safe to allow anybody access.
+    $individual_route->setRequirement('_access', 'TRUE');
     $routes->add(static::getRouteName($resource_type, 'individual'), $individual_route);
+    if ($resource_type->isMutable()) {
+      $individual_update_route = new Route($individual_route->getPath());
+      $individual_update_route->setMethods(['PATCH']);
+      $individual_update_route->addDefaults(['serialization_class' => JsonApiDocumentTopLevel::class]);
+      $individual_update_route->setRequirement('_entity_access', "{$entity_type_id}.update");
+      $individual_update_route->setRequirement('_csrf_request_header_token', 'TRUE');
+      $routes->add(static::getRouteName($resource_type, 'individual.patch'), $individual_update_route);
+      $individual_remove_route = new Route($individual_route->getPath());
+      $individual_remove_route->setMethods(['DELETE']);
+      $individual_remove_route->setRequirement('_entity_access', "{$entity_type_id}.delete");
+      $individual_remove_route->setRequirement('_csrf_request_header_token', 'TRUE');
+      $routes->add(static::getRouteName($resource_type, 'individual.delete'), $individual_remove_route);
+    }
 
     // Get an individual resource's related resources.
     $related_route = new Route("/{$path}/{{$entity_type_id}}/{related}");
