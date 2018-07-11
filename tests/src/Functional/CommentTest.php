@@ -131,7 +131,7 @@ class CommentTest extends ResourceTestBase {
   protected function getExpectedDocument() {
     $self_url = Url::fromUri('base:/jsonapi/comment/comment/' . $this->entity->uuid())->setAbsolute()->toString(TRUE)->getGeneratedUrl();
     $author = User::load($this->entity->getOwnerId());
-    $document = [
+    return [
       'jsonapi' => [
         'meta' => [
           'links' => [
@@ -210,11 +210,6 @@ class CommentTest extends ResourceTestBase {
         ],
       ],
     ];
-    // @todo Remove this when JSON API requires Drupal 8.5 or newer.
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      unset($document['data']['attributes']['comment_body']['processed']);
-    }
-    return $document;
   }
 
   /**
@@ -249,11 +244,6 @@ class CommentTest extends ResourceTestBase {
    * {@inheritdoc}
    */
   protected function getExpectedCacheTags(array $sparse_fieldset = NULL) {
-    // @todo Remove this when JSON API requires Drupal 8.5 or newer.
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      return parent::getExpectedCacheTags($sparse_fieldset);
-    }
-
     $tags = parent::getExpectedCacheTags($sparse_fieldset);
     if ($sparse_fieldset === NULL || in_array('comment_body', $sparse_fieldset)) {
       $tags = Cache::mergeTags($tags, ['config:filter.format.plain_text']);
@@ -265,10 +255,6 @@ class CommentTest extends ResourceTestBase {
    * {@inheritdoc}
    */
   protected function getExpectedCacheContexts(array $sparse_fieldset = NULL) {
-    // @todo Remove this when JSON API requires Drupal 8.5 or newer.
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      return parent::getExpectedCacheContexts($sparse_fieldset);
-    }
     $contexts = parent::getExpectedCacheContexts($sparse_fieldset);
     if ($sparse_fieldset === NULL || in_array('comment_body', $sparse_fieldset)) {
       $contexts = Cache::mergeContexts($contexts, ['languages:language_interface', 'theme']);

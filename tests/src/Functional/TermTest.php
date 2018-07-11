@@ -58,10 +58,6 @@ class TermTest extends ResourceTestBase {
         break;
 
       case 'POST':
-        // @todo Remove this when JSON API requires Drupal 8.5 or newer.
-        if (floatval(\Drupal::VERSION) < 8.5) {
-          $this->grantPermissionsToTestedRole(['administer taxonomy']);
-        }
         $this->grantPermissionsToTestedRole(['create terms in camelids']);
         break;
 
@@ -222,7 +218,7 @@ class TermTest extends ResourceTestBase {
       ];
     }
 
-    $document = [
+    return [
       'jsonapi' => [
         'meta' => [
           'links' => [
@@ -274,11 +270,6 @@ class TermTest extends ResourceTestBase {
         ],
       ],
     ];
-    // @todo Remove this when JSON API requires Drupal 8.5 or newer.
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      unset($document['data']['attributes']['description']['processed']);
-    }
-    return $document;
   }
 
   /**
@@ -356,10 +347,6 @@ class TermTest extends ResourceTestBase {
         return "The 'access content' permission is required.";
 
       case 'POST':
-        // @todo Remove this when JSON API requires Drupal 8.5 or newer.
-        if (floatval(\Drupal::VERSION) < 8.5) {
-          return "The 'administer taxonomy' permission is required.";
-        }
         return "The following permissions are required: 'create terms in camelids' OR 'administer taxonomy'.";
 
       case 'PATCH':
@@ -414,11 +401,6 @@ class TermTest extends ResourceTestBase {
    * {@inheritdoc}
    */
   protected function getExpectedCacheTags(array $sparse_fieldset = NULL) {
-    // @todo Remove this when JSON API requires Drupal 8.5 or newer.
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      return parent::getExpectedCacheTags($sparse_fieldset);
-    }
-
     $tags = parent::getExpectedCacheTags($sparse_fieldset);
     if ($sparse_fieldset === NULL || in_array('description', $sparse_fieldset)) {
       $tags = Cache::mergeTags($tags, ['config:filter.format.plain_text', 'config:filter.settings']);
@@ -430,11 +412,6 @@ class TermTest extends ResourceTestBase {
    * {@inheritdoc}
    */
   protected function getExpectedCacheContexts(array $sparse_fieldset = NULL) {
-    // @todo Remove this when JSON API requires Drupal 8.5 or newer.
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      return parent::getExpectedCacheContexts($sparse_fieldset);
-    }
-
     $contexts = parent::getExpectedCacheContexts($sparse_fieldset);
     if ($sparse_fieldset === NULL || in_array('description', $sparse_fieldset)) {
       $contexts = Cache::mergeContexts($contexts, ['languages:language_interface', 'theme']);

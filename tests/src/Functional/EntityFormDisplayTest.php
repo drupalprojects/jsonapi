@@ -180,18 +180,6 @@ class EntityFormDisplayTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
-  public function testGetIndividual() {
-    // @todo Remove when JSON API requires Drupal 8.5 or newer.
-    // @see https://www.drupal.org/project/drupal/issues/2866666
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      $this->markTestSkipped('EntityFormDisplay entities had a dysfunctional access control handler until 8.5, this is necessary for this test coverage to work.');
-    }
-    return parent::testGetIndividual();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   protected function createAnotherEntity($key) {
     NodeType::create([
       'name' => 'Llamaids',

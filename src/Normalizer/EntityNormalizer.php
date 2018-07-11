@@ -198,13 +198,7 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
    */
   protected function getFields($entity, $bundle, ResourceType $resource_type) {
     $output = [];
-    // @todo Remove this when JSON API requires Drupal 8.5 or newer.
-    if (floatval(\Drupal::VERSION) >= 8.5) {
-      $fields = TypedDataInternalPropertiesHelper::getNonInternalProperties($entity->getTypedData());
-    }
-    else {
-      $fields = $entity->getFields();
-    }
+    $fields = TypedDataInternalPropertiesHelper::getNonInternalProperties($entity->getTypedData());
     // Filter the array based on the field names.
     $enabled_field_names = array_filter(
       array_keys($fields),

@@ -121,7 +121,7 @@ class FileTest extends ResourceTestBase {
    */
   protected function getExpectedDocument() {
     $self_url = Url::fromUri('base:/jsonapi/file/file/' . $this->entity->uuid())->setAbsolute()->toString(TRUE)->getGeneratedUrl();
-    $normalization = [
+    return [
       'jsonapi' => [
         'meta' => [
           'links' => [
@@ -168,12 +168,6 @@ class FileTest extends ResourceTestBase {
         ],
       ],
     ];
-    // @todo Remove this modification when JSON API requires Drupal 8.5 or newer, and do an early return above instead.
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      $normalization['data']['attributes']['uri'] = $normalization['data']['attributes']['uri']['url'];
-    }
-    return $normalization;
-
   }
 
   /**
@@ -210,18 +204,6 @@ class FileTest extends ResourceTestBase {
       return "Only the file owner can update or delete the file entity.";
     }
     return parent::getExpectedUnauthorizedAccessMessage($method);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function testGetIndividual() {
-    // @todo Remove when JSON API requires Drupal 8.5 or newer.
-    // @see https://www.drupal.org/project/drupal/issues/2866666
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      $this->markTestSkipped('File entities had a dysfunctional access control handler until 8.5, this is necessary for this test coverage to work.');
-    }
-    return parent::testGetIndividual();
   }
 
 }

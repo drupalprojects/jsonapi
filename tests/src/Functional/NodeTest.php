@@ -113,7 +113,7 @@ class NodeTest extends ResourceTestBase {
   protected function getExpectedDocument() {
     $author = User::load($this->entity->getOwnerId());
     $self_url = Url::fromUri('base:/jsonapi/node/camelids/' . $this->entity->uuid())->setAbsolute()->toString(TRUE)->getGeneratedUrl();
-    $normalization = [
+    return [
       'jsonapi' => [
         'meta' => [
           'links' => [
@@ -187,11 +187,6 @@ class NodeTest extends ResourceTestBase {
         ],
       ],
     ];
-    // @todo Remove this modification when JSON API requires Drupal 8.5 or newer, and do an early return above instead.
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      unset($normalization['data']['attributes']['revision_default']);
-    }
-    return $normalization;
   }
 
   /**

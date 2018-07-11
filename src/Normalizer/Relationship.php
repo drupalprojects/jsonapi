@@ -5,6 +5,7 @@ namespace Drupal\jsonapi\Normalizer;
 use Drupal\Core\Access\AccessibleInterface;
 use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Cache\CacheableDependencyInterface;
+use Drupal\Core\Cache\CacheableDependencyTrait;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Session\AccountInterface;

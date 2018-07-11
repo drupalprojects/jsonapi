@@ -258,25 +258,22 @@ abstract class ResourceTestBase extends BrowserTestBase {
       ])
       ->save();
 
-    // @todo Do this unconditionally when JSON API requires Drupal 8.5 or newer.
-    if (floatval(\Drupal::VERSION) >= 8.5) {
-      // Add multi-value field.
-      FieldStorageConfig::create([
-        'entity_type' => static::$entityTypeId,
-        'field_name' => 'field_rest_test_multivalue',
-        'type' => 'string',
-      ])
-        ->setCardinality(3)
-        ->save();
-      FieldConfig::create([
-        'entity_type' => static::$entityTypeId,
-        'field_name' => 'field_rest_test_multivalue',
-        'bundle' => $entity_bundle,
-      ])
-        ->setLabel('Test field: multi-value')
-        ->setTranslatable(FALSE)
-        ->save();
-    }
+    // Add multi-value field.
+    FieldStorageConfig::create([
+      'entity_type' => static::$entityTypeId,
+      'field_name' => 'field_rest_test_multivalue',
+      'type' => 'string',
+    ])
+      ->setCardinality(3)
+      ->save();
+    FieldConfig::create([
+      'entity_type' => static::$entityTypeId,
+      'field_name' => 'field_rest_test_multivalue',
+      'bundle' => $entity_bundle,
+    ])
+      ->setLabel('Test field: multi-value')
+      ->setTranslatable(FALSE)
+      ->save();
 
     \Drupal::service('jsonapi.resource_type.repository')->clearCachedDefinitions();
     \Drupal::service('router.builder')->rebuild();
@@ -290,10 +287,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
       // Set a default value on the fields.
       $entity->set('field_rest_test', ['value' => 'All the faith he had had had had no effect on the outcome of his life.']);
       $entity->set('field_jsonapi_test_entity_ref', ['user' => $account->id()]);
-      // @todo Do this unconditionally when JSON API requires Drupal 8.5 or newer.
-      if (floatval(\Drupal::VERSION) >= 8.5) {
-        $entity->set('field_rest_test_multivalue', [['value' => 'One'], ['value' => 'Two']]);
-      }
+      $entity->set('field_rest_test_multivalue', [['value' => 'One'], ['value' => 'Two']]);
       $entity->save();
     }
 
@@ -2290,11 +2284,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // request. Test this using the configurable field that we added, but which
     // is not sent in the PATCH request.
     $this->assertSame('All the faith he had had had had no effect on the outcome of his life.', $updated_entity->get('field_rest_test')->value);
-
-    // @todo Remove this when JSON API requires Drupal 8.5 or newer.
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      return;
-    }
 
     // Multi-value field: remove item 0. Then item 1 becomes item 0.
     $doc_multi_value_tests = $this->getPatchDocument();

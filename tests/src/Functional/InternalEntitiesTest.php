@@ -85,7 +85,6 @@ class InternalEntitiesTest extends BrowserTestBase {
    * Ensures that internal resources types aren't present in the entry point.
    */
   public function testEntryPoint() {
-    $this->skipIfIsInternalIsNotSupported();
     $document = $this->jsonapiGet('/jsonapi');
     $this->assertArrayNotHasKey(
       "{$this->internalEntity->getEntityTypeId()}--{$this->internalEntity->bundle()}",
@@ -98,7 +97,6 @@ class InternalEntitiesTest extends BrowserTestBase {
    * Ensures that internal resources types aren't present in the routes.
    */
   public function testRoutes() {
-    $this->skipIfIsInternalIsNotSupported();
     // This cannot be in a data provider because it needs values created by the
     // setUp method.
     $paths = [
@@ -119,7 +117,6 @@ class InternalEntitiesTest extends BrowserTestBase {
    * Asserts that internal entities are not included in compound documents.
    */
   public function testIncludes() {
-    $this->skipIfIsInternalIsNotSupported();
     $document = $this->getIndividual($this->referencingEntity, [
       'query' => ['include' => 'field_internal'],
     ]);
@@ -134,7 +131,6 @@ class InternalEntitiesTest extends BrowserTestBase {
    * Asserts that links to internal relationships aren't generated.
    */
   public function testLinks() {
-    $this->skipIfIsInternalIsNotSupported();
     $document = $this->getIndividual($this->referencingEntity);
     $this->assertArrayNotHasKey(
       'related',
@@ -188,15 +184,6 @@ class InternalEntitiesTest extends BrowserTestBase {
     $this->drupalLogin($this->testUser);
     $response = $this->drupalGet($path, $options, ['Accept' => 'application/vnd.api+json']);
     return Json::decode($response);
-  }
-
-  /**
-   * Only run tests when Drupal version is >= 8.5.
-   */
-  protected function skipIfIsInternalIsNotSupported() {
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      $this->markTestSkipped('The Drupal Core version must be >= 8.5');
-    }
   }
 
 }

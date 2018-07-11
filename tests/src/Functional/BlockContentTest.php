@@ -46,11 +46,6 @@ class BlockContentTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
-  protected static $uniqueFieldNames = ['url'];
-
-  /**
-   * {@inheritdoc}
-   */
   protected function setUpAuthorization($method) {
     $this->grantPermissionsToTestedRole(['administer blocks']);
   }
@@ -59,12 +54,6 @@ class BlockContentTest extends ResourceTestBase {
    * {@inheritdoc}
    */
   public function createEntity() {
-    // @todo Remove when JSON API requires Drupal 8.5 or newer.
-    // @see https://www.drupal.org/project/drupal/issues/2835845#comment-12265016
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      return;
-    }
-
     if (!BlockContentType::load('basic')) {
       $block_content_type = BlockContentType::create([
         'id' => 'basic',
@@ -197,54 +186,6 @@ class BlockContentTest extends ResourceTestBase {
       $contexts = Cache::mergeContexts($contexts, ['languages:language_interface', 'theme']);
     }
     return $contexts;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function testGetIndividual() {
-    // @todo Remove when JSON API requires Drupal 8.5 or newer.
-    // @see https://www.drupal.org/project/drupal/issues/2835845#comment-12265016
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      $this->markTestSkipped('BlockContent entities were made publishable in 8.5, this is necessary for this test coverage to work.');
-    }
-    return parent::testGetIndividual();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function testPostIndividual() {
-    // @todo Remove when JSON API requires Drupal 8.5 or newer.
-    // @see https://www.drupal.org/project/drupal/issues/2835845#comment-12265016
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      $this->markTestSkipped('BlockContent entities were made publishable in 8.5, this is necessary for this test coverage to work.');
-    }
-    return parent::testGetIndividual();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function testPatchIndividual() {
-    // @todo Remove when JSON API requires Drupal 8.5 or newer.
-    // @see https://www.drupal.org/project/drupal/issues/2835845#comment-12265016
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      $this->markTestSkipped('BlockContent entities were made publishable in 8.5, this is necessary for this test coverage to work.');
-    }
-    return parent::testPatchIndividual();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function testDeleteIndividual() {
-    // @todo Remove when JSON API requires Drupal 8.5 or newer.
-    // @see https://www.drupal.org/project/drupal/issues/2835845#comment-12265016
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      $this->markTestSkipped('BlockContent entities were made publishable in 8.5, this is necessary for this test coverage to work.');
-    }
-    return parent::testDeleteIndividual();
   }
 
   /**

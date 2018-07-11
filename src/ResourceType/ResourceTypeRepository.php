@@ -104,7 +104,7 @@ class ResourceTypeRepository implements ResourceTypeRepositoryInterface {
             $entity_type_id,
             $bundle,
             $entity_type->getClass(),
-            static::shouldBeInternalResourceType($entity_type),
+            $entity_type->isInternal(),
             static::isLocatableResourceType($entity_type),
             static::isMutableResourceType($entity_type)
           );
@@ -143,25 +143,6 @@ class ResourceTypeRepository implements ResourceTypeRepositoryInterface {
       }
     }
     return NULL;
-  }
-
-  /**
-   * Whether an entity type should be an internal resource type.
-   *
-   * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
-   *   The entity type to assess.
-   *
-   * @todo: remove when minimum supported core version is >= 8.5, update the
-   * caller to instead call EntityTypeInterface::isInternal().
-   *
-   * @return bool
-   *   TRUE if the entity type is internal, FALSE otherwise.
-   */
-  protected static function shouldBeInternalResourceType(EntityTypeInterface $entity_type) {
-    if (method_exists(EntityTypeInterface::class, 'isInternal')) {
-      return $entity_type->isInternal();
-    }
-    return $entity_type->id() === 'content_moderation_state';
   }
 
   /**

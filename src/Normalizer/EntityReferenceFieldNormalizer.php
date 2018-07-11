@@ -85,10 +85,7 @@ class EntityReferenceFieldNormalizer extends FieldNormalizer {
       // Prepare a list of additional properties stored by the field.
       $metadata = [];
       /** @var \Drupal\Core\TypedData\TypedDataInterface[] $properties */
-      // @todo Remove this when JSON API requires Drupal 8.5 or newer.
-      $properties = (floatval(\Drupal::VERSION) < 8.5)
-        ? $item->getProperties()
-        : TypedDataInternalPropertiesHelper::getNonInternalProperties($item);
+      $properties = TypedDataInternalPropertiesHelper::getNonInternalProperties($item);
       foreach ($properties as $property_key => $property) {
         if ($property_key !== $main_property) {
           $metadata[$property_key] = $this->serializer->normalize($property, $format, $context);

@@ -705,9 +705,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
 
     return [
       [
-        floatval(\Drupal::VERSION) < 8.5
-        ? $cacheable_metadata([])
-        : $cacheable_metadata(['contexts' => ['languages:language_interface']]),
+        $cacheable_metadata(['contexts' => ['languages:language_interface']]),
         ['node--article' => 'body'],
       ],
     ];

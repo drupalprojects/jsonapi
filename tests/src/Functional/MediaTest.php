@@ -55,28 +55,16 @@ class MediaTest extends ResourceTestBase {
         break;
 
       case 'POST':
-        // @todo Remove this modification when JSON API requires Drupal 8.5 or newer, and do an early return above instead.
-        if (floatval(\Drupal::VERSION) < 8.5) {
-          $this->grantPermissionsToTestedRole(['create media', 'access content']);
-        }
         $this->grantPermissionsToTestedRole(['create camelids media', 'access content']);
         break;
 
       case 'PATCH':
-        // @todo Remove this modification when JSON API requires Drupal 8.5 or newer, and do an early return above instead.
-        if (floatval(\Drupal::VERSION) < 8.5) {
-          $this->grantPermissionsToTestedRole(['update any media']);
-        }
         $this->grantPermissionsToTestedRole(['edit any camelids media']);
         // @todo Remove this in https://www.drupal.org/node/2824851.
         $this->grantPermissionsToTestedRole(['access content']);
         break;
 
       case 'DELETE':
-        // @todo Remove this modification when JSON API requires Drupal 8.5 or newer, and do an early return above instead.
-        if (floatval(\Drupal::VERSION) < 8.5) {
-          $this->grantPermissionsToTestedRole(['delete any media']);
-        }
         $this->grantPermissionsToTestedRole(['delete any camelids media']);
         break;
     }
@@ -121,11 +109,9 @@ class MediaTest extends ResourceTestBase {
     $post_file->save();
 
     // Create a "Llama" media item.
-    // @todo Remove this modification when JSON API requires Drupal 8.5 or newer, and do an early return above instead.
-    $file_field_name = floatval(\Drupal::VERSION) >= 8.5 ? 'field_media_file' : 'field_media_file_1';
     $media = Media::create([
       'bundle' => 'camelids',
-      $file_field_name => [
+      'field_media_file' => [
         'target_id' => $file->id(),
       ],
     ]);
@@ -148,7 +134,7 @@ class MediaTest extends ResourceTestBase {
     $thumbnail = File::load(3);
     $author = User::load($this->entity->getOwnerId());
     $self_url = Url::fromUri('base:/jsonapi/media/camelids/' . $this->entity->uuid())->setAbsolute()->toString(TRUE)->getGeneratedUrl();
-    $normalization = [
+    return [
       'jsonapi' => [
         'meta' => [
           'links' => [
@@ -245,15 +231,6 @@ class MediaTest extends ResourceTestBase {
         ],
       ],
     ];
-    // @todo Remove this modification when JSON API requires Drupal 8.5 or newer, and do an early return above instead.
-    if (floatval(\Drupal::VERSION) < 8.5) {
-      unset($normalization['data']['attributes']['revision_default']);
-      $normalization['data']['relationships']['field_media_file_1'] = $normalization['data']['relationships']['field_media_file'];
-      $normalization['data']['relationships']['field_media_file_1']['links']['related'] .= '_1';
-      $normalization['data']['relationships']['field_media_file_1']['links']['self'] .= '_1';
-      unset($normalization['data']['relationships']['field_media_file']);
-    }
-    return $normalization;
   }
 
   /**

@@ -3,8 +3,8 @@
 namespace Drupal\jsonapi\Normalizer\Value;
 
 use Drupal\Core\Cache\CacheableDependencyInterface;
+use Drupal\Core\Cache\CacheableDependencyTrait;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\jsonapi\Normalizer\CacheableDependencyTrait;
 
 /**
  * Helps normalize entities in compliance with the JSON API spec.

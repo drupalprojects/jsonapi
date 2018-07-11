@@ -43,10 +43,7 @@ class FieldItemNormalizer extends NormalizerBase implements DenormalizerInterfac
     $values = [];
     // We normalize each individual property, so each can do their own casting,
     // if needed.
-    // @todo Remove this when JSON API requires Drupal 8.5 or newer.
-    if (floatval(\Drupal::VERSION) >= 8.5) {
-      $field_item = TypedDataInternalPropertiesHelper::getNonInternalProperties($field_item);
-    }
+    $field_item = TypedDataInternalPropertiesHelper::getNonInternalProperties($field_item);
 
     // @todo Use the constant \Drupal\serialization\Normalizer\CacheableNormalizerInterface::SERIALIZATION_CONTEXT_CACHEABILITY instead of the 'cacheability' string when JSON API requires Drupal 8.5 or newer.
     $context['cacheability'] = new CacheableMetadata();

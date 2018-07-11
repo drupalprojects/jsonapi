@@ -3,7 +3,7 @@
 namespace Drupal\jsonapi\Normalizer\Value;
 
 use Drupal\Core\Access\AccessResultInterface;
-use Drupal\jsonapi\Normalizer\CacheableDependencyTrait;
+use Drupal\Core\Cache\CacheableDependencyTrait;
 
 /**
  * Normalizes null fields in accordance with the JSON API specification.
