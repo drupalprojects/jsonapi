@@ -465,8 +465,9 @@ trait ResourceResponseTestTrait {
    *   for testing related/relationship routes and includes.
    * @param string|null $detail
    *   (optional) Details for the JSON API error object.
-   * @param string|null $pointer
-   *   (optional) Document pointer for the JSON API error object.
+   * @param string|bool|null $pointer
+   *   (optional) Document pointer for the JSON API error object. FALSE to omit
+   *   the pointer.
    * @param string|null $id
    *   (optional) ID for the JSON API error object.
    *
@@ -493,7 +494,7 @@ trait ResourceResponseTestTrait {
     if (!is_null($id)) {
       $error['id'] = $id;
     }
-    if ($relationship_field_name || $pointer) {
+    if ($pointer || $pointer !== FALSE && $relationship_field_name) {
       $error['source']['pointer'] = ($pointer) ? $pointer : $relationship_field_name;
     }
     return (new ResourceResponse(['errors' => [$error]], 403))->addCacheableDependency($access);

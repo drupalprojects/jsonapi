@@ -3,6 +3,7 @@
 namespace Drupal\jsonapi\Routing;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\jsonapi\Access\RelationshipFieldAccess;
 use Drupal\jsonapi\Controller\EntryPoint;
 use Drupal\jsonapi\Normalizer\Relationship;
 use Drupal\jsonapi\ParamConverter\ResourceTypeConverter;
@@ -230,25 +231,32 @@ class Routes implements ContainerInjectionInterface {
       $routes->add(static::getRouteName($resource_type, 'individual.delete'), $individual_remove_route);
     }
 
-    // Get an individual resource's related resources.
-    $related_route = new Route("/{$path}/{{$entity_type_id}}/{related}");
-    $related_route->setMethods(['GET']);
-    // @todo: remove this when each related route is defined per relationship field and access is no longer checked by the controller in https://www.drupal.org/project/jsonapi/issues/2953346.
-    $related_route->setRequirement('_access', 'TRUE');
-    $routes->add(static::getRouteName($resource_type, 'related'), $related_route);
+    foreach ($resource_type->getRelatableResourceTypes() as $relationship_field_name => $target_resource_types) {
+      // Read, update, add, or remove an individual resources relationships to
+      // other resources.
+      $relationship_route = new Route("/{$path}/{{$entity_type_id}}/relationships/{$relationship_field_name}");
+      $relationship_route->setMethods($resource_type->isMutable()
+        ? ['GET', 'POST', 'PATCH', 'DELETE']
+        : ['GET']
+      );
+      $relationship_route->addDefaults(['_on_relationship' => TRUE]);
+      $relationship_route->addDefaults(['serialization_class' => Relationship::class]);
+      $relationship_route->addDefaults(['related' => $relationship_field_name]);
+      $relationship_route->setRequirement(RelationshipFieldAccess::ROUTE_REQUIREMENT_KEY, $relationship_field_name);
+      $relationship_route->setRequirement('_csrf_request_header_token', 'TRUE');
+      $routes->add(static::getRouteName($resource_type, "$relationship_field_name.relationship"), $relationship_route);
 
-    // Read, update, add, or remove an individual resources relationships to
-    // other resources.
-    $relationship_route = new Route("/{$path}/{{$entity_type_id}}/relationships/{related}");
-    $relationship_route->setMethods($resource_type->isMutable()
-      ? ['GET', 'POST', 'PATCH', 'DELETE']
-      : ['GET']
-    );
-    // @todo: remove the _on_relationship default in https://www.drupal.org/project/jsonapi/issues/2953346.
-    $relationship_route->addDefaults(['_on_relationship' => TRUE]);
-    $relationship_route->addDefaults(['serialization_class' => Relationship::class]);
-    $relationship_route->setRequirement('_csrf_request_header_token', 'TRUE');
-    $routes->add(static::getRouteName($resource_type, 'relationship'), $relationship_route);
+      // Only create routes for related routes that target at least one
+      // non-internal resource type.
+      if (static::hasNonInternalTargetResourceTypes($target_resource_types)) {
+        // Get an individual resource's related resources.
+        $related_route = new Route("/{$path}/{{$entity_type_id}}/{$relationship_field_name}");
+        $related_route->setMethods(['GET']);
+        $related_route->addDefaults(['related' => $relationship_field_name]);
+        $related_route->setRequirement(RelationshipFieldAccess::ROUTE_REQUIREMENT_KEY, $relationship_field_name);
+        $routes->add(static::getRouteName($resource_type, "$relationship_field_name.related"), $related_route);
+      }
+    }
 
     // Add entity parameter conversion to every route.
     $routes->addOptions(['parameters' => [$entity_type_id => ['type' => 'entity:' . $entity_type_id]]]);
@@ -306,6 +314,22 @@ class Routes implements ContainerInjectionInterface {
    */
   protected static function getRouteName(ResourceType $resource_type, $route_type) {
     return sprintf('jsonapi.%s.%s', $resource_type->getTypeName(), $route_type);
+  }
+
+  /**
+   * Determines if an array of resource types has any non-internal ones.
+   *
+   * @param \Drupal\jsonapi\ResourceType\ResourceType[] $resource_types
+   *   The resource types to check.
+   *
+   * @return bool
+   *   TRUE if there is at least one non-internal resource type in the given
+   *   array; FALSE otherwise.
+   */
+  protected static function hasNonInternalTargetResourceTypes(array $resource_types) {
+    return array_reduce($resource_types, function ($carry, ResourceType $target) {
+      return $carry || !$target->isInternal();
+    }, FALSE);
   }
 
   /**

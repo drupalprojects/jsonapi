@@ -1409,9 +1409,8 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $relationship_field_name = 'field_jsonapi_test_entity_ref';
     /* @var \Drupal\Core\Access\AccessResultReasonInterface $update_access */
     $update_access = static::entityAccess($resource, 'update', $this->account)
-      ->andIf(static::entityFieldAccess($resource, $relationship_field_name, 'update', $this->account));
-    $url = Url::fromRoute(sprintf("jsonapi.{$resource_identifier['type']}.relationship"), [
-      'related' => $relationship_field_name,
+      ->andIf(static::entityFieldAccess($resource, $relationship_field_name, 'edit', $this->account));
+    $url = Url::fromRoute(sprintf("jsonapi.{$resource_identifier['type']}.{$relationship_field_name}.relationship"), [
       $resource->getEntityTypeId() => $resource->uuid(),
     ]);
 
@@ -1565,13 +1564,13 @@ abstract class ResourceTestBase extends BrowserTestBase {
     else {
       $request_options[RequestOptions::BODY] = Json::encode(['data' => [$target_identifier]]);
       $response = $this->request('POST', $url, $request_options);
-      $message = 'The current user is not allowed to update this relationship.';
+      $message = 'The current user is not allowed to edit this relationship.';
       $message .= ($reason = $update_access->getReason()) ? ' ' . $reason : '';
-      $this->assertResourceErrorResponse(403, $message, $response, $relationship_field_name);
+      $this->assertResourceErrorResponse(403, $message, $response);
       $response = $this->request('PATCH', $url, $request_options);
-      $this->assertResourceErrorResponse(403, $message, $response, $relationship_field_name);
+      $this->assertResourceErrorResponse(403, $message, $response);
       $response = $this->request('DELETE', $url, $request_options);
-      $this->assertResourceErrorResponse(403, $message, $response, $relationship_field_name);
+      $this->assertResourceErrorResponse(403, $message, $response);
     }
 
     // Remove the test entities that were created.
@@ -1594,7 +1593,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $entity = $entity ?: $this->entity;
     $access = static::entityFieldAccess($entity, $relationship_field_name, 'view', $this->account);
     if (!$access->isAllowed()) {
-      return static::getAccessDeniedResponse($this->entity, $access, $relationship_field_name, 'The current user is not allowed to view this relationship.');
+      return static::getAccessDeniedResponse($this->entity, $access, $relationship_field_name, 'The current user is not allowed to view this relationship.', FALSE);
     }
     $expected_document = $this->getExpectedGetRelationshipDocument($relationship_field_name);
     $status_code = isset($expected_document['errors'][0]['status']) ? $expected_document['errors'][0]['status'] : 200;
@@ -1713,9 +1712,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
               ],
               'code' => 0,
               'id' => '/' . $base_resource_identifier['type'] . '/' . $base_resource_identifier['id'],
-              'source' => [
-                'pointer' => $relationship_field_name,
-              ],
             ],
           ],
         ], 403))->addCacheableDependency($access);
@@ -2751,7 +2747,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
    *   The AccessResult.
    */
   protected static function entityFieldAccess(EntityInterface $entity, $field_name, $operation, AccountInterface $account) {
-    $entity_access = static::entityAccess($entity, $operation, $account);
+    $entity_access = static::entityAccess($entity, $operation === 'edit' ? 'update' : 'view', $account);
     $field_access = $entity->{$field_name}->access($operation, $account, TRUE);
     return $entity_access->andIf($field_access);
   }

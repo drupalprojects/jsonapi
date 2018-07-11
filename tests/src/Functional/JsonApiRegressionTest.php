@@ -5,6 +5,7 @@ namespace Drupal\Tests\jsonapi\Functional;
 use Drupal\comment\Entity\Comment;
 use Drupal\comment\Plugin\Field\FieldType\CommentItemInterface;
 use Drupal\comment\Tests\CommentTestTrait;
+use Drupal\Component\Serialization\Json;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Url;
 use Drupal\node\Entity\Node;
@@ -71,8 +72,6 @@ class JsonApiRegressionTest extends JsonApiFunctionalTestBase {
     $this->addDefaultCommentField('node', 'article');
     $this->addDefaultCommentField('taxonomy_term', 'tags', 'comment', CommentItemInterface::OPEN, 'tcomment');
     $this->drupalCreateContentType(['type' => 'page']);
-    $this->rebuildAll();
-
     $this->createEntityReferenceField(
       'node',
       'page',
@@ -88,6 +87,7 @@ class JsonApiRegressionTest extends JsonApiFunctionalTestBase {
       ],
       FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED
     );
+    $this->rebuildAll();
 
     // Create data.
     $node = Node::create([
@@ -157,7 +157,7 @@ class JsonApiRegressionTest extends JsonApiFunctionalTestBase {
 
     // Test.
     $user = $this->drupalCreateUser(['bypass node access']);
-    $url = Url::fromRoute('jsonapi.node--page.relationship', ['node' => $node->uuid(), 'related' => 'field_test']);
+    $url = Url::fromRoute('jsonapi.node--page.field_test.relationship', ['node' => $node->uuid()]);
     $request_options = [
       RequestOptions::HEADERS => [
         'Content-Type' => 'application/vnd.api+json',

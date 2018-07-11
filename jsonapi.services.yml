@@ -113,6 +113,10 @@ services:
   jsonapi.field_resolver:
     class: Drupal\jsonapi\Context\FieldResolver
     arguments: ['@entity_type.manager', '@entity_field.manager', '@entity_type.bundle.info', '@jsonapi.resource_type.repository']
+  access_check.jsonapi.relationship_field_access:
+    class: Drupal\jsonapi\Access\RelationshipFieldAccess
+    tags:
+      - { name: access_check, applies_to: _jsonapi_relationship_field_access, needs_incoming_request: TRUE }
   paramconverter.jsonapi.entity_uuid:
     class: Drupal\jsonapi\ParamConverter\EntityUuidConverter
     tags:

@@ -66,9 +66,16 @@ class RoutesTest extends UnitTestCase {
     // Get the route collection and start making assertions.
     $routes = $this->routes['ok']->routes();
 
-    // Make sure that there are 7 routes for the non-internal resource and 1 for
-    // the entry point.
-    $this->assertEquals(8, $routes->count());
+    // - 2 collection routes; GET & POST for the non-internal resource type.
+    // - 3 individual routes; GET, PATCH & DELETE for the non-internal resource
+    //   type.
+    // - 2 related routes; GET for the non-internal resource type relationships
+    //   fields: external & both.
+    // - 3 relationship routes; All HTTP methods handled by the same route.
+    //   `relationship` routes are generated even for internal target resource
+    //   types (`related` routes are not).
+    // - 1 for the JSON API entry point.
+    $this->assertEquals(11, $routes->count());
 
     $iterator = $routes->getIterator();
     // Check the collection route.
@@ -142,8 +149,8 @@ class RoutesTest extends UnitTestCase {
 
     // Check the related route.
     /** @var \Symfony\Component\Routing\Route $route */
-    $route = $iterator->offsetGet('jsonapi.entity_type_1--bundle_1_1.related');
-    $this->assertSame('/jsonapi/entity_type_1/bundle_1_1/{entity_type_1}/{related}', $route->getPath());
+    $route = $iterator->offsetGet('jsonapi.entity_type_1--bundle_1_1.external.related');
+    $this->assertSame('/jsonapi/entity_type_1/bundle_1_1/{entity_type_1}/external', $route->getPath());
     $this->assertSame('entity_type_1--bundle_1_1', $route->getDefault(Routes::RESOURCE_TYPE_KEY));
     $this->assertEquals(['GET'], $route->getMethods());
     $this->assertSame(Routes::FRONT_CONTROLLER, $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
@@ -163,8 +170,8 @@ class RoutesTest extends UnitTestCase {
 
     // Check the relationships route.
     /** @var \Symfony\Component\Routing\Route $route */
-    $route = $iterator->offsetGet('jsonapi.entity_type_1--bundle_1_1.relationship');
-    $this->assertSame('/jsonapi/entity_type_1/bundle_1_1/{entity_type_1}/relationships/{related}', $route->getPath());
+    $route = $iterator->offsetGet('jsonapi.entity_type_1--bundle_1_1.both.relationship');
+    $this->assertSame('/jsonapi/entity_type_1/bundle_1_1/{entity_type_1}/relationships/both', $route->getPath());
     $this->assertSame('entity_type_1--bundle_1_1', $route->getDefault(Routes::RESOURCE_TYPE_KEY));
     $this->assertEquals(['GET', 'POST', 'PATCH', 'DELETE'], $route->getMethods());
     $this->assertSame(Routes::FRONT_CONTROLLER, $route->getDefault(RouteObjectInterface::CONTROLLER_NAME));
@@ -192,8 +199,10 @@ class RoutesTest extends UnitTestCase {
     return [
       ['jsonapi.entity_type_1--bundle_1_1.individual'],
       ['jsonapi.entity_type_1--bundle_1_1.collection'],
-      ['jsonapi.entity_type_1--bundle_1_1.related'],
-      ['jsonapi.entity_type_1--bundle_1_1.relationship'],
+      ['jsonapi.entity_type_1--bundle_1_1.external.related'],
+      ['jsonapi.entity_type_1--bundle_1_1.external.relationship'],
+      ['jsonapi.entity_type_1--bundle_1_1.both.related'],
+      ['jsonapi.entity_type_1--bundle_1_1.both.relationship'],
       ['jsonapi.resource_list'],
     ];
   }
@@ -215,8 +224,8 @@ class RoutesTest extends UnitTestCase {
       ['jsonapi.entity_type_2--bundle_2_1.individual'],
       ['jsonapi.entity_type_2--bundle_2_1.collection'],
       ['jsonapi.entity_type_2--bundle_2_1.collection.post'],
-      ['jsonapi.entity_type_2--bundle_2_1.related'],
-      ['jsonapi.entity_type_2--bundle_2_1.relationship'],
+      ['jsonapi.entity_type_2--bundle_2_1.internal.related'],
+      ['jsonapi.entity_type_2--bundle_2_1.internal.relationship'],
     ];
   }
 

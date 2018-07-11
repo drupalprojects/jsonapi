@@ -723,9 +723,8 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
         ],
       ],
     ];
-    $relationship_url = Url::fromRoute('jsonapi.node--article.relationship', [
+    $relationship_url = Url::fromRoute('jsonapi.node--article.field_tags.relationship', [
       'node' => $uuid,
-      'related' => 'field_tags',
     ]);
     $response = $this->request('POST', $relationship_url, [
       'body' => Json::encode($body),
@@ -773,7 +772,7 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
       'body' => Json::encode($body),
       'headers' => ['Content-Type' => 'application/vnd.api+json'],
     ]);
-    $this->assertEquals(403, $response->getStatusCode());
+    $this->assertEquals(401, $response->getStatusCode());
     $response = $this->request('DELETE', $relationship_url, [
       // Remove the existing relationship item.
       'body' => Json::encode($body),

@@ -25,7 +25,6 @@ use Drupal\user\RoleInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * @coversDefaultClass \Drupal\jsonapi\Controller\EntityResource
@@ -765,86 +764,6 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $this->assertSame('field_relationships', $field_list->getName());
     $this->assertEquals($kept_rels, $field_list->getValue());
     $this->assertEquals(204, $response->getStatusCode());
-  }
-
-  /**
-   * @covers ::getRelated
-   */
-  public function testGetRelatedInternal() {
-    $internal_resource_type = new ResourceType('node', 'article', NULL, TRUE);
-    $resource = $this->buildEntityResource('node', 'article', [
-      'field_relationships' => [$internal_resource_type],
-    ]);
-
-    $this->setExpectedException(NotFoundHttpException::class);
-    $resource->getRelationship($this->node, 'field_relationships', new Request());
-  }
-
-  /**
-   * @covers ::getRelationship
-   */
-  public function testGetRelationshipInternal() {
-    $internal_resource_type = new ResourceType('node', 'article', NULL, TRUE);
-    $resource = $this->buildEntityResource('node', 'article', [
-      'field_relationships' => [$internal_resource_type],
-    ]);
-
-    $this->setExpectedException(NotFoundHttpException::class);
-    $resource->getRelationship($this->node, 'field_relationships', new Request());
-  }
-
-  /**
-   * @covers ::createRelationship
-   */
-  public function testCreateRelationshipInternal() {
-    $internal_resource_type = new ResourceType('node', 'article', NULL, TRUE);
-    $resource = $this->buildEntityResource('node', 'article', [
-      'field_relationships' => [$internal_resource_type],
-    ]);
-
-    Role::load(Role::ANONYMOUS_ID)->grantPermission('edit any article content')->save();
-
-    $field_type_manager = $this->container->get('plugin.manager.field.field_type');
-    $list = $field_type_manager->createFieldItemList($this->node, 'field_relationships');
-
-    $this->setExpectedException(NotFoundHttpException::class);
-    $resource->createRelationship($this->node, 'field_relationships', $list, new Request());
-  }
-
-  /**
-   * @covers ::patchRelationship
-   */
-  public function testPatchRelationshipInternal() {
-    $internal_resource_type = new ResourceType('node', 'article', NULL, TRUE);
-    $resource = $this->buildEntityResource('node', 'article', [
-      'field_relationships' => [$internal_resource_type],
-    ]);
-
-    Role::load(Role::ANONYMOUS_ID)->grantPermission('edit any article content')->save();
-
-    $field_type_manager = $this->container->get('plugin.manager.field.field_type');
-    $list = $field_type_manager->createFieldItemList($this->node, 'field_relationships');
-
-    $this->setExpectedException(NotFoundHttpException::class);
-    $resource->patchRelationship($this->node, 'field_relationships', $list, new Request());
-  }
-
-  /**
-   * @covers ::deleteRelationship
-   */
-  public function testDeleteRelationshipInternal() {
-    $internal_resource_type = new ResourceType('node', 'article', NULL, TRUE);
-    $resource = $this->buildEntityResource('node', 'article', [
-      'field_relationships' => [$internal_resource_type],
-    ]);
-
-    Role::load(Role::ANONYMOUS_ID)->grantPermission('edit any article content')->save();
-
-    $field_type_manager = $this->container->get('plugin.manager.field.field_type');
-    $list = $field_type_manager->createFieldItemList($this->node, 'field_relationships');
-
-    $this->setExpectedException(NotFoundHttpException::class);
-    $resource->deleteRelationship($this->node, 'field_relationships', $list, new Request());
   }
 
   /**

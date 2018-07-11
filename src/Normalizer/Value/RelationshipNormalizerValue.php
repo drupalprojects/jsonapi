@@ -149,14 +149,15 @@ class RelationshipNormalizerValue extends FieldNormalizerValue {
    *   An array of links to be rasterized.
    */
   protected function getLinks($field_name) {
+    $relationship_field_name = $this->resourceType->getPublicName($field_name);
     $route_parameters = [
-      'related' => $this->resourceType->getPublicName($field_name),
+      'related' => $relationship_field_name,
     ];
     $links['self'] = $this->linkManager->getEntityLink(
       $this->hostEntityId,
       $this->resourceType,
       $route_parameters,
-      'relationship'
+      "$relationship_field_name.relationship"
     );
     $resource_types = $this->resourceType->getRelatableResourceTypesByField($field_name);
     if (static::hasNonInternalResourceType($resource_types)) {
@@ -164,7 +165,7 @@ class RelationshipNormalizerValue extends FieldNormalizerValue {
         $this->hostEntityId,
         $this->resourceType,
         $route_parameters,
-        'related'
+        "$relationship_field_name.related"
       );
     }
     return $links;

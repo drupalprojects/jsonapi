@@ -2,10 +2,8 @@
 
 namespace Drupal\Tests\jsonapi\Kernel\Controller;
 
-use Drupal\Core\Cache\CacheableJsonResponse;
 use Drupal\jsonapi\Controller\EntryPoint;
 use Drupal\Tests\jsonapi\Kernel\JsonapiKernelTestBase;
-use Drupal\user\Entity\User;
 
 /**
  * @coversDefaultClass \Drupal\jsonapi\Controller\EntryPoint
@@ -40,7 +38,7 @@ class EntryPointTest extends JsonapiKernelTestBase {
     $this->assertEquals(
       [
         'url.site',
-        'user.roles:authenticated'
+        'user.roles:authenticated',
       ],
       $processed_response->getCacheableMetadata()->getCacheContexts()
     );
