@@ -132,8 +132,6 @@ class FeedTest extends ResourceTestBase {
           'hash' => 'abcdefg',
           'etag' => 'hijklmn',
           'modified' => '1973-11-29T21:33:09+00:00',
-          // @todo uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932
-          /* 'modified' => $this->formatExpectedTimestampItemValues(123456789), */
           'langcode' => 'en',
         ],
       ],

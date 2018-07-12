@@ -1031,43 +1031,6 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $head_headers = $header_cleaner($head_headers);
     $this->assertSame($get_headers, $head_headers);
 
-    // @todo Uncomment this in https://www.drupal.org/project/jsonapi/issues/2929932.
-    // @codingStandardsIgnoreStart
-    /*
-    // BC: serialization_update_8401().
-    // Only run this for fieldable entities. It doesn't make sense for config
-    // entities as config values always use the raw values (as per the config
-    // schema), returned directly from the ConfigEntityNormalizer, which
-    // doesn't deal with fields individually.
-    if ($this->entity instanceof FieldableEntityInterface) {
-      // Test the BC settings for timestamp values.
-      $this->config('serialization.settings')->set('bc_timestamp_normalizer_unix', TRUE)->save(TRUE);
-      // Rebuild the container so new config is reflected in the addition of the
-      // TimestampItemNormalizer.
-      $this->rebuildAll();
-
-      $response = $this->request('GET', $url, $request_options);
-      $this->assertResourceResponse(200, FALSE, $response, $this->getExpectedCacheTags(), $this->getExpectedCacheContexts(), static::$auth ? FALSE : 'MISS', 'MISS');
-
-      // This ensures the BC layer for bc_timestamp_normalizer_unix works as
-      // expected. This method should be using
-      // ::formatExpectedTimestampValue() to generate the timestamp value. This
-      // will take into account the above config setting.
-      $expected = $this->getExpectedNormalizedEntity();
-      // Config entities are not affected.
-      // @see \Drupal\serialization\Normalizer\ConfigEntityNormalizer::normalize()
-      static::recursiveKsort($expected);
-      $actual = Json::decode((string) $response->getBody());
-      static::recursiveKsort($actual);
-      $this->assertSame($expected, $actual);
-
-      // Reset the config value and rebuild.
-      $this->config('serialization.settings')->set('bc_timestamp_normalizer_unix', FALSE)->save(TRUE);
-      $this->rebuildAll();
-    }
-    */
-    // @codingStandardsIgnoreEnd
-
     // Feature: Sparse fieldsets.
     $this->doTestSparseFieldSets($url, $request_options);
     // Feature: Included.
