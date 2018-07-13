@@ -14,6 +14,8 @@ use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
+use Drupal\Core\Render\RenderContext;
+use Drupal\Core\Render\RendererInterface;
 use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
 use Drupal\jsonapi\Exception\UnprocessableHttpEntityException;
 use Drupal\jsonapi\LabelOnlyEntity;
@@ -82,6 +84,13 @@ class EntityResource {
   protected $resourceTypeRepository;
 
   /**
+   * The renderer.
+   *
+   * @var \Drupal\Core\Render\RendererInterface
+   */
+  protected $renderer;
+
+  /**
    * Instantiates a EntityResource object.
    *
    * @param \Drupal\jsonapi\ResourceType\ResourceType $resource_type
@@ -96,14 +105,17 @@ class EntityResource {
    *   The link manager service.
    * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface $resource_type_repository
    *   The link manager service.
+   * @param \Drupal\Core\Render\RendererInterface $renderer
+   *   The renderer.
    */
-  public function __construct(ResourceType $resource_type, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $field_manager, FieldTypePluginManagerInterface $plugin_manager, LinkManager $link_manager, ResourceTypeRepositoryInterface $resource_type_repository) {
+  public function __construct(ResourceType $resource_type, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $field_manager, FieldTypePluginManagerInterface $plugin_manager, LinkManager $link_manager, ResourceTypeRepositoryInterface $resource_type_repository, RendererInterface $renderer) {
     $this->resourceType = $resource_type;
     $this->entityTypeManager = $entity_type_manager;
     $this->fieldManager = $field_manager;
     $this->pluginManager = $plugin_manager;
     $this->linkManager = $link_manager;
     $this->resourceTypeRepository = $resource_type_repository;
+    $this->renderer = $renderer;
   }
 
   /**
@@ -330,9 +342,22 @@ class EntityResource {
     $route_params = $request->attributes->get('_route_params');
     $params = isset($route_params['_json_api_params']) ? $route_params['_json_api_params'] : [];
     $query = $this->getCollectionQuery($entity_type_id, $params);
+    $query_cacheability = new CacheableMetadata();
 
     try {
-      $results = $query->execute();
+      // Execute the query in a render context, to catch bubbled cacheability.
+      // @see node_query_node_access_alter()
+      // @see https://www.drupal.org/project/drupal/issues/2557815
+      // @see https://www.drupal.org/project/drupal/issues/2794385
+      // @todo Remove this when the query sytems's return value is able to carry
+      // cacheability.
+      $context = new RenderContext();
+      $results = $this->renderer->executeInRenderContext($context, function () use ($query) {
+        return $query->execute();
+      });
+      if (!$context->isEmpty()) {
+        $query_cacheability->addCacheableDependency($context->pop());
+      }
     }
     catch (\LogicException $e) {
       // Ensure good DX when an entity query involves a config entity type.
@@ -372,6 +397,7 @@ class EntityResource {
 
     $response = $this->respondWithCollection($entity_collection, $entity_type_id);
 
+    $response->addCacheableDependency($query_cacheability);
     // Add cacheable metadata for the access result.
     $access_info = array_column($collection_data, 'access');
     array_walk($access_info, function ($access) use ($response) {
