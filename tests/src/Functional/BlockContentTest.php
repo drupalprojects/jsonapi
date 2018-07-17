@@ -83,7 +83,7 @@ class BlockContentTest extends ResourceTestBase {
    */
   protected function getExpectedDocument() {
     $self_url = Url::fromUri('base:/jsonapi/block_content/basic/' . $this->entity->uuid())->setAbsolute()->toString(TRUE)->getGeneratedUrl();
-    return [
+    $expected_document = [
       'jsonapi' => [
         'meta' => [
           'links' => [
@@ -141,6 +141,10 @@ class BlockContentTest extends ResourceTestBase {
         ],
       ],
     ];
+    if (floatval(\Drupal::VERSION) >= 8.7) {
+      $expected_document['data']['attributes']['reusable'] = TRUE;
+    }
+    return $expected_document;
   }
 
   /**
