@@ -122,6 +122,7 @@ class ResourceTypeRepository implements ResourceTypeRepositoryInterface {
    * {@inheritdoc}
    */
   public function get($entity_type_id, $bundle) {
+    assert(is_string($bundle) && !empty($bundle), 'A bundle ID is required. Bundleless entity types should pass the entity type ID again.');
     if (empty($entity_type_id)) {
       throw new PreconditionFailedHttpException('Server error. The current route is malformed.');
     }
