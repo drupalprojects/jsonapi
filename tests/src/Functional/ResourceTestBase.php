@@ -2020,6 +2020,10 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // API document that we send in a PATCH request, it is considered invalid.
     $parseable_invalid_request_body_3 = Json::encode(NestedArray::mergeDeep(['data' => ['attributes' => ['field_rest_test' => $this->entity->get('field_rest_test')->getValue()]]], $this->getPatchDocument()));
     $parseable_invalid_request_body_4 = Json::encode(NestedArray::mergeDeep(['data' => ['attributes' => ['field_nonexistent' => $this->randomString()]]], $this->getPatchDocument()));
+    // It is invalid to PATCH a relationship field under the attributes member.
+    if ($this->entity instanceof FieldableEntityInterface && $this->entity->hasField('field_jsonapi_test_entity_ref')) {
+      $parseable_invalid_request_body_5 = Json::encode(NestedArray::mergeDeep(['data' => ['attributes' => ['field_jsonapi_test_entity_ref' => ['target_id' => $this->randomString()]]]], $this->getPostDocument()));
+    }
 
     // The URL and Guzzle request options that will be used in this test. The
     // request options will be modified/expanded throughout this test:
@@ -2202,6 +2206,13 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // DX: 422 when request document contains non-existent field.
     $response = $this->request('PATCH', $url, $request_options);
     $this->assertResourceErrorResponse(422, sprintf("The attribute field_nonexistent does not exist on the %s resource type.", static::$resourceTypeName), $response);
+
+    // DX: 422 when updating a relationship field under attributes.
+    if (isset($parseable_invalid_request_body_5)) {
+      $request_options[RequestOptions::BODY] = $parseable_invalid_request_body_5;
+      $response = $this->request('PATCH', $url, $request_options);
+      $this->assertResourceErrorResponse(422, "The following relationship fields were provided as attributes: [ field_jsonapi_test_entity_ref ]", $response);
+    }
 
     // 200 for well-formed PATCH request that sends all fields (even including
     // read-only ones, but with unchanged values).

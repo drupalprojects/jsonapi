@@ -16,6 +16,7 @@ use Drupal\jsonapi\JsonApiResource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
@@ -75,8 +76,10 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
    * {@inheritdoc}
    */
   public function denormalize($data, $class, $format = NULL, array $context = []) {
+    $resource_type = $context['resource_type'];
+
     // Validate a few common errors in document formatting.
-    $this->validateRequestBody($data);
+    static::validateRequestBody($data, $resource_type);
 
     $normalized = [];
 
@@ -85,7 +88,6 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
     }
 
     if (!empty($data['data']['id'])) {
-      $resource_type = $this->resourceTypeRepository->getByTypeName($data['data']['type']);
       $uuid_key = $this->entityTypeManager->getDefinition($resource_type->getEntityTypeId())->getKey('uuid');
       $normalized[$uuid_key] = $data['data']['id'];
     }
@@ -256,7 +258,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
   /**
    * Performs mimimal validation of the document.
    */
-  protected static function validateRequestBody(array $document) {
+  protected static function validateRequestBody(array $document, ResourceType $resource_type) {
     // Ensure that the relationships key was not placed in the top level.
     if (isset($document['relationships']) && !empty($document['relationships'])) {
       throw new BadRequestHttpException("Found \"relationships\" within the document's top level. The \"relationships\" key must be within resource object.");
@@ -270,6 +272,15 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
       // This should be a 422 response, but the JSON API specification dictates
       // a 403 Forbidden response. We follow the specification.
       throw new EntityAccessDeniedHttpException(NULL, AccessResult::forbidden(), '/data/id', 'IDs should be properly generated and formatted UUIDs as described in RFC 4122.');
+    }
+    // Ensure that no relationship fields are being set via the attributes
+    // resource object member.
+    if (isset($document['data']['attributes'])) {
+      $received_attribute_field_names = array_keys($document['data']['attributes']);
+      $relationship_field_names = array_keys($resource_type->getRelatableResourceTypes());
+      if ($relationship_fields_sent_as_attributes = array_intersect($received_attribute_field_names, $relationship_field_names)) {
+        throw new UnprocessableEntityHttpException(sprintf("The following relationship fields were provided as attributes: [ %s ]", implode(', ', $relationship_fields_sent_as_attributes)));
+      }
     }
   }
 
