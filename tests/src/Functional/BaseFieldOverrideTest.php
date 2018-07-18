@@ -98,7 +98,6 @@ class BaseFieldOverrideTest extends ResourceTestBase {
           'entity_type' => 'node',
           'field_name' => 'promote',
           'field_type' => 'boolean',
-          'id' => 'node.camelids.promote',
           'label' => NULL,
           'langcode' => 'en',
           'required' => FALSE,
@@ -108,7 +107,7 @@ class BaseFieldOverrideTest extends ResourceTestBase {
           ],
           'status' => TRUE,
           'translatable' => TRUE,
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__id' => 'node.camelids.promote',
         ],
       ],
     ];

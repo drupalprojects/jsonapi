@@ -125,7 +125,6 @@ class RdfMappingTest extends ResourceTestBase {
               ],
             ],
           ],
-          'id' => 'node.camelids',
           'langcode' => 'en',
           'status' => TRUE,
           'targetEntityType' => 'node',
@@ -133,7 +132,7 @@ class RdfMappingTest extends ResourceTestBase {
             'sioc:Item',
             'foaf:Document',
           ],
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__id' => 'node.camelids',
         ],
       ],
     ];

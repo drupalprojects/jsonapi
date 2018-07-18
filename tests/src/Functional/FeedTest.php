@@ -119,8 +119,6 @@ class FeedTest extends ResourceTestBase {
           'self' => $self_url,
         ],
         'attributes' => [
-          'uuid' => $this->entity->uuid(),
-          'fid' => 1,
           'url' => 'http://example.com/rss.xml',
           'title' => 'Feed',
           'refresh' => 900,
@@ -133,6 +131,7 @@ class FeedTest extends ResourceTestBase {
           'etag' => 'hijklmn',
           'modified' => '1973-11-29T21:33:09+00:00',
           'langcode' => 'en',
+          'drupal_internal__fid' => 1,
         ],
       ],
     ];

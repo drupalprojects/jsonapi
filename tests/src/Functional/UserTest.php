@@ -140,8 +140,7 @@ class UserTest extends ResourceTestBase {
           'default_langcode' => TRUE,
           'langcode' => 'en',
           'name' => 'Llama',
-          'uid' => 3,
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__uid' => 3,
         ],
       ],
     ];

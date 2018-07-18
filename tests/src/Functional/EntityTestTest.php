@@ -113,13 +113,12 @@ class EntityTestTest extends ResourceTestBase {
           'self' => $self_url,
         ],
         'attributes' => [
-          'id' => 1,
           'created' => (new \DateTime())->setTimestamp($this->entity->get('created')->value)->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
           'field_test_text' => NULL,
           'langcode' => 'en',
           'name' => 'Llama',
-          'type' => 'entity_test',
-          'uuid' => $this->entity->uuid(),
+          'entity_test_type' => 'entity_test',
+          'drupal_internal__id' => 1,
         ],
         'relationships' => [
           'user_id' => [

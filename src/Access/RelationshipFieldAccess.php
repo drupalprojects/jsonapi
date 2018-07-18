@@ -7,6 +7,7 @@ use Drupal\Core\Access\AccessResultReasonInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Routing\Access\AccessInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Routing\Routes;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
@@ -43,10 +44,12 @@ class RelationshipFieldAccess implements AccessInterface {
     $field_operation = $request->isMethodCacheable() ? 'view' : 'edit';
     $entity_operation = $request->isMethodCacheable() ? 'view' : 'update';
     if ($resource_type = $request->get(Routes::RESOURCE_TYPE_KEY)) {
+      assert($resource_type instanceof ResourceType);
       $entity = $request->get($resource_type->getEntityTypeId());
-      if ($entity instanceof FieldableEntityInterface && $entity->hasField($relationship_field_name)) {
+      $internal_name = $resource_type->getInternalName($relationship_field_name);
+      if ($entity instanceof FieldableEntityInterface && $entity->hasField($internal_name)) {
         $entity_access = $entity->access($entity_operation, $account, TRUE);
-        $field_access = $entity->get($relationship_field_name)->access($field_operation, $account, TRUE);
+        $field_access = $entity->get($internal_name)->access($field_operation, $account, TRUE);
         $access_result = $entity_access->andIf($field_access);
         if (!$access_result->isAllowed()) {
           $reason = "The current user is not allowed to {$field_operation} this relationship.";

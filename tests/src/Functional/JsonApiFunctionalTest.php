@@ -74,7 +74,7 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $this->assertEquals('/node--article/' . $this->nodes[60]->uuid(), $single_output['errors'][0]['id']);
 
     // 6. Single relationship item.
-    $single_output = Json::decode($this->drupalGet('/jsonapi/node/article/' . $uuid . '/relationships/type'));
+    $single_output = Json::decode($this->drupalGet('/jsonapi/node/article/' . $uuid . '/relationships/node_type'));
     $this->assertSession()->statusCodeEquals(200);
     $this->assertArrayHasKey('type', $single_output['data']);
     $this->assertArrayNotHasKey('attributes', $single_output['data']);
@@ -101,7 +101,7 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     ]));
     $this->assertSession()->statusCodeEquals(200);
     $this->assertEquals('taxonomy_term--tags', $single_output['data'][0]['type']);
-    $this->assertArrayHasKey('tid', $single_output['data'][0]['attributes']);
+    $this->assertArrayNotHasKey('tid', $single_output['data'][0]['attributes']);
     $this->assertContains(
       '/taxonomy_term/tags/',
       $single_output['data'][0]['links']['self']
@@ -297,11 +297,18 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
         'sort' => 'field_sort1,field_sort2',
       ],
     ]));
-    $output_nids = array_map(function ($result) {
-      return $result['attributes']['nid'];
+    $output_uuids = array_map(function ($result) {
+      return $result['id'];
     }, $output['data']);
-    $this->assertCount(6, $output_nids);
-    $this->assertEquals([5, 4, 3, 2, 1, 10], $output_nids);
+    $this->assertCount(6, $output_uuids);
+    $this->assertSame([
+      Node::load(5)->uuid(),
+      Node::load(4)->uuid(),
+      Node::load(3)->uuid(),
+      Node::load(2)->uuid(),
+      Node::load(1)->uuid(),
+      Node::load(10)->uuid(),
+    ], $output_uuids);
     // 23. Test sort criteria on multiple fields: first ASC, second DESC.
     $output = Json::decode($this->drupalGet('/jsonapi/node/article', [
       'query' => [
@@ -309,11 +316,18 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
         'sort' => 'field_sort1,-field_sort2',
       ],
     ]));
-    $output_nids = array_map(function ($result) {
-      return $result['attributes']['nid'];
+    $output_uuids = array_map(function ($result) {
+      return $result['id'];
     }, $output['data']);
-    $this->assertCount(6, $output_nids);
-    $this->assertEquals([1, 2, 3, 4, 5, 6], $output_nids);
+    $this->assertCount(6, $output_uuids);
+    $this->assertSame([
+      Node::load(1)->uuid(),
+      Node::load(2)->uuid(),
+      Node::load(3)->uuid(),
+      Node::load(4)->uuid(),
+      Node::load(5)->uuid(),
+      Node::load(6)->uuid(),
+    ], $output_uuids);
     // 24. Test sort criteria on multiple fields: first DESC, second ASC.
     $output = Json::decode($this->drupalGet('/jsonapi/node/article', [
       'query' => [
@@ -321,12 +335,18 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
         'sort' => '-field_sort1,field_sort2',
       ],
     ]));
-    $output_nids = array_map(function ($result) {
-      return $result['attributes']['nid'];
+    $output_uuids = array_map(function ($result) {
+      return $result['id'];
     }, $output['data']);
-    $this->assertCount(5, $output_nids);
+    $this->assertCount(5, $output_uuids);
     $this->assertCount(1, $output['meta']['errors']);
-    $this->assertEquals([60, 59, 58, 57, 56], $output_nids);
+    $this->assertSame([
+      Node::load(60)->uuid(),
+      Node::load(59)->uuid(),
+      Node::load(58)->uuid(),
+      Node::load(57)->uuid(),
+      Node::load(56)->uuid(),
+    ], $output_uuids);
     // 25. Test sort criteria on multiple fields: both DESC.
     $output = Json::decode($this->drupalGet('/jsonapi/node/article', [
       'query' => [
@@ -334,12 +354,18 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
         'sort' => '-field_sort1,-field_sort2',
       ],
     ]));
-    $output_nids = array_map(function ($result) {
-      return $result['attributes']['nid'];
+    $output_uuids = array_map(function ($result) {
+      return $result['id'];
     }, $output['data']);
-    $this->assertCount(5, $output_nids);
+    $this->assertCount(5, $output_uuids);
     $this->assertCount(1, $output['meta']['errors']);
-    $this->assertEquals([56, 57, 58, 59, 60], $output_nids);
+    $this->assertSame([
+      Node::load(56)->uuid(),
+      Node::load(57)->uuid(),
+      Node::load(58)->uuid(),
+      Node::load(59)->uuid(),
+      Node::load(60)->uuid(),
+    ], $output_uuids);
     // 25. Test collection count.
     $this->container->get('module_installer')->install(['jsonapi_test_collection_count']);
     $collection_output = Json::decode($this->drupalGet('/jsonapi/node/article'));
@@ -527,8 +553,8 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     ]);
     $created_response = Json::decode($response->getBody()->__toString());
     $this->assertEquals(201, $response->getStatusCode());
-    $this->assertArrayHasKey('uuid', $created_response['data']['attributes']);
-    $uuid = $created_response['data']['attributes']['uuid'];
+    $this->assertArrayNotHasKey('uuid', $created_response['data']['attributes']);
+    $uuid = $created_response['data']['id'];
     $this->assertEquals(2, count($created_response['data']['relationships']['field_tags']['data']));
     $this->assertEquals($created_response['data']['links']['self'], $response->getHeader('Location')[0]);
 

@@ -136,7 +136,6 @@ class NodeTest extends ResourceTestBase {
           'changed' => (new \DateTime())->setTimestamp($this->entity->getChangedTime())->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
           'default_langcode' => TRUE,
           'langcode' => 'en',
-          'nid' => 1,
           'path' => [
             'alias' => '/llama',
             'pid' => 1,
@@ -150,18 +149,18 @@ class NodeTest extends ResourceTestBase {
           'status' => TRUE,
           'sticky' => FALSE,
           'title' => 'Llama',
-          'uuid' => $this->entity->uuid(),
           'vid' => 1,
+          'drupal_internal__nid' => 1,
         ],
         'relationships' => [
-          'type' => [
+          'node_type' => [
             'data' => [
               'id' => NodeType::load('camelids')->uuid(),
               'type' => 'node_type--node_type',
             ],
             'links' => [
-              'related' => $self_url . '/type',
-              'self' => $self_url . '/relationships/type',
+              'related' => $self_url . '/node_type',
+              'self' => $self_url . '/relationships/node_type',
             ],
           ],
           'uid' => [
@@ -332,7 +331,7 @@ class NodeTest extends ResourceTestBase {
    */
   protected static function getIncludePermissions() {
     return [
-      'uid.type' => ['administer users'],
+      'uid.node_type' => ['administer users'],
       'uid.roles' => ['administer permissions'],
     ];
   }

@@ -84,13 +84,12 @@ class ConfigurableLanguageTest extends ResourceTestBase {
         'attributes' => [
           'dependencies' => [],
           'direction' => 'ltr',
-          'id' => 'll',
           'label' => 'Llama Language',
           'langcode' => 'en',
           'locked' => FALSE,
           'status' => TRUE,
-          'uuid' => $this->entity->uuid(),
           'weight' => 0,
+          'drupal_internal__id' => 'll',
         ],
       ],
     ];

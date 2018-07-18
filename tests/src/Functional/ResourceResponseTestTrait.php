@@ -146,7 +146,8 @@ trait ResourceResponseTestTrait {
     $resource_data = array_reduce($include_paths, function ($data, $path) use ($request_options) {
       $field_names = explode('.', $path);
       $entity = $this->entity;
-      foreach ($field_names as $field_name) {
+      foreach ($field_names as $public_field_name) {
+        $field_name = $this->resourceType->getInternalName($public_field_name);
         $collected_responses = [];
         $field_access = static::entityFieldAccess($entity, $field_name, 'view', $this->account);
         if (!$field_access->isAllowed()) {
@@ -169,7 +170,7 @@ trait ResourceResponseTestTrait {
             break;
           }
         }
-        $psr_responses = $this->getResponses([static::getRelatedLink(static::toResourceIdentifier($entity), $field_name)], $request_options);
+        $psr_responses = $this->getResponses([static::getRelatedLink(static::toResourceIdentifier($entity), $public_field_name)], $request_options);
         $collected_responses[] = static::toCollectionResourceResponse(static::toResourceResponses($psr_responses), NULL, TRUE);
         $entity = $entity->{$field_name}->entity;
       }

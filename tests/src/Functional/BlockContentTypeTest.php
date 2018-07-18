@@ -83,13 +83,11 @@ class BlockContentTypeTest extends ResourceTestBase {
         'attributes' => [
           'dependencies' => [],
           'description' => 'Provides a competitive alternative to the "basic" type',
-          'id' => 'pascal',
           'label' => 'Pascal',
           'langcode' => 'en',
           'revision' => 0,
           'status' => TRUE,
-          'uuid' => $this->entity->uuid(),
-
+          'drupal_internal__id' => 'pascal',
         ],
       ],
     ];

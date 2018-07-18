@@ -208,11 +208,13 @@ class RelationshipNormalizer extends NormalizerBase implements DenormalizerInter
       $normalizer_items[] = $this->serializer->normalize($relationship_item, $format, $context);
     }
     $cardinality = $relationship->getCardinality();
+    assert($context['resource_type'] instanceof ResourceType);
+    $resource_type = $context['resource_type'];
     $link_context = [
       'host_entity_id' => $relationship->getHostEntity()->uuid(),
-      'field_name' => $relationship->getPropertyName(),
+      'field_name' => $resource_type->getPublicName($relationship->getPropertyName()),
       'link_manager' => $this->linkManager,
-      'resource_type' => $context['resource_type'],
+      'resource_type' => $resource_type,
     ];
     // If this is called, access to the Relationship field is allowed. The
     // cacheability of the access result is carried by the Relationship value

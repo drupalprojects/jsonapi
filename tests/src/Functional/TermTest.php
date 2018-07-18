@@ -251,9 +251,8 @@ class TermTest extends ResourceTestBase {
             'pid' => 1,
             'langcode' => 'en',
           ],
-          'tid' => 1,
-          'uuid' => $this->entity->uuid(),
           'weight' => 0,
+          'drupal_internal__tid' => 1,
         ],
         'relationships' => [
           'parent' => $expected_parent_normalization,

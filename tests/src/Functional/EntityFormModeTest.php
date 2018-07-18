@@ -86,12 +86,11 @@ class EntityFormModeTest extends ResourceTestBase {
               'user',
             ],
           ],
-          'id' => 'user.test',
           'label' => 'Test',
           'langcode' => 'en',
           'status' => TRUE,
           'targetEntityType' => 'user',
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__id' => 'user.test',
         ],
       ],
     ];

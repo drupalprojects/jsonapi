@@ -86,12 +86,11 @@ class MenuTest extends ResourceTestBase {
         'attributes' => [
           'dependencies' => [],
           'description' => 'Menu',
-          'id' => 'menu',
           'label' => 'Menu',
           'langcode' => 'en',
           'locked' => FALSE,
           'status' => TRUE,
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__id' => 'menu',
         ],
       ],
     ];

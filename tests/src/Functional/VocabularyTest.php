@@ -78,8 +78,6 @@ class VocabularyTest extends ResourceTestBase {
           'self' => $self_url,
         ],
         'attributes' => [
-          'uuid' => $this->entity->uuid(),
-          'vid' => 'llama',
           'langcode' => 'en',
           'status' => TRUE,
           'dependencies' => [],
@@ -87,6 +85,7 @@ class VocabularyTest extends ResourceTestBase {
           'description' => NULL,
           'hierarchy' => 0,
           'weight' => 0,
+          'drupal_internal__vid' => 'llama',
         ],
       ],
     ];

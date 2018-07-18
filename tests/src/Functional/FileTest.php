@@ -142,7 +142,6 @@ class FileTest extends ResourceTestBase {
         'attributes' => [
           'created' => (new \DateTime())->setTimestamp($this->entity->getCreatedTime())->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
           'changed' => (new \DateTime())->setTimestamp($this->entity->getChangedTime())->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
-          'fid' => 1,
           'filemime' => 'text/plain',
           'filename' => 'drupal.txt',
           'filesize' => (int) $this->entity->getSize(),
@@ -152,7 +151,7 @@ class FileTest extends ResourceTestBase {
             'url' => base_path() . $this->siteDirectory . '/files/drupal.txt',
             'value' => 'public://drupal.txt',
           ],
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__fid' => 1,
         ],
         'relationships' => [
           'uid' => [

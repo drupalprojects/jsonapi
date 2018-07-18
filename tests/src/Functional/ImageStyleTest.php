@@ -113,9 +113,8 @@ class ImageStyleTest extends ResourceTestBase {
           ],
           'label' => 'Camelids',
           'langcode' => 'en',
-          'name' => 'camelids',
           'status' => TRUE,
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__name' => 'camelids',
         ],
       ],
     ];

@@ -85,7 +85,6 @@ class ContactFormTest extends ResourceTestBase {
         ],
         'attributes' => [
           'dependencies' => [],
-          'id' => 'llama',
           'label' => 'Llama',
           'langcode' => 'en',
           'message' => 'Let us know what you think about llamas',
@@ -96,8 +95,8 @@ class ContactFormTest extends ResourceTestBase {
           'redirect' => NULL,
           'reply' => 'Llamas are indeed awesome!',
           'status' => TRUE,
-          'uuid' => $this->entity->uuid(),
           'weight' => 0,
+          'drupal_internal__id' => 'llama',
         ],
       ],
     ];

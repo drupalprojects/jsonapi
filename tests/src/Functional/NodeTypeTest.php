@@ -90,8 +90,7 @@ class NodeTypeTest extends ResourceTestBase {
           'new_revision' => TRUE,
           'preview_mode' => 1,
           'status' => TRUE,
-          'type' => 'camelids',
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__type' => 'camelids',
         ],
       ],
     ];

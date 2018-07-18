@@ -119,7 +119,6 @@ class EditorTest extends ResourceTestBase {
             ],
           ],
           'editor' => 'ckeditor',
-          'format' => 'llama',
           'image_upload' => [
             'status' => FALSE,
             'scheme' => 'public',
@@ -179,7 +178,7 @@ class EditorTest extends ResourceTestBase {
             ],
           ],
           'status' => TRUE,
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__format' => 'llama',
         ],
       ],
     ];

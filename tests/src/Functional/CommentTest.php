@@ -150,7 +150,6 @@ class CommentTest extends ResourceTestBase {
           'self' => $self_url,
         ],
         'attributes' => [
-          'cid' => 1,
           'created' => '1973-11-29T21:33:09+00:00',
           'changed' => (new \DateTime())->setTimestamp($this->entity->getChangedTime())->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
           'comment_body' => [
@@ -167,7 +166,7 @@ class CommentTest extends ResourceTestBase {
           'status' => TRUE,
           'subject' => 'Llama',
           'thread' => '01/',
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__cid' => 1,
         ],
         'relationships' => [
           'uid' => [

@@ -103,7 +103,6 @@ class ResponsiveImageStyleTest extends ResourceTestBase {
             ],
           ],
           'fallback_image_style' => 'fallback',
-          'id' => 'camelids',
           'image_style_mappings' => [
             0 => [
               'breakpoint_id' => 'test_breakpoint',
@@ -127,7 +126,7 @@ class ResponsiveImageStyleTest extends ResourceTestBase {
           'label' => 'Camelids',
           'langcode' => 'en',
           'status' => TRUE,
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__id' => 'camelids',
         ],
       ],
     ];

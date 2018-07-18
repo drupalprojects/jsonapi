@@ -89,7 +89,6 @@ class RestResourceConfigTest extends ResourceTestBase {
           'self' => $self_url,
         ],
         'attributes' => [
-          'uuid' => $this->entity->uuid(),
           'langcode' => 'en',
           'status' => TRUE,
           'dependencies' => [
@@ -99,7 +98,6 @@ class RestResourceConfigTest extends ResourceTestBase {
               'user',
             ],
           ],
-          'id' => 'llama',
           'plugin_id' => 'dblog',
           'granularity' => 'method',
           'configuration' => [
@@ -112,6 +110,7 @@ class RestResourceConfigTest extends ResourceTestBase {
               ],
             ],
           ],
+          'drupal_internal__id' => 'llama',
         ],
       ],
     ];

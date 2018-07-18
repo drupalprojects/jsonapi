@@ -101,7 +101,6 @@ class BlockTest extends ResourceTestBase {
           'self' => $self_url,
         ],
         'attributes' => [
-          'id' => 'llama',
           'weight' => NULL,
           'langcode' => 'en',
           'status' => TRUE,
@@ -121,7 +120,7 @@ class BlockTest extends ResourceTestBase {
             'label_display' => 'visible',
           ],
           'visibility' => [],
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__id' => 'llama',
         ],
       ],
     ];

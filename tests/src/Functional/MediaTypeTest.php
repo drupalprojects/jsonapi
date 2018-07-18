@@ -85,7 +85,6 @@ class MediaTypeTest extends ResourceTestBase {
           'dependencies' => [],
           'description' => 'Camelids are large, strictly herbivorous animals with slender necks and long legs.',
           'field_map' => [],
-          'id' => 'camelids',
           'label' => NULL,
           'langcode' => 'en',
           'new_revision' => FALSE,
@@ -95,7 +94,7 @@ class MediaTypeTest extends ResourceTestBase {
             'source_field' => '',
           ],
           'status' => TRUE,
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__id' => 'camelids',
         ],
       ],
     ];

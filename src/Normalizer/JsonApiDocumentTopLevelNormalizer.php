@@ -226,7 +226,7 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
     // primary resource type of individual and relationship routes and is
     // determined by the relationship field name.
     $related = $request->get('_on_relationship') ? FALSE : $request->get('related');
-    $public_includes = array_map(function ($include) use ($resource_type, $related) {
+    $internal_includes = array_map(function ($include) use ($resource_type, $related) {
       $trimmed = trim($include);
       // If the request is a related route, prefix the path with the related
       // field name so that the path can be resolved from the base resource
@@ -237,13 +237,13 @@ class JsonApiDocumentTopLevelNormalizer extends NormalizerBase implements Denorm
       }, FieldResolver::resolveInternalIncludePath($resource_type, $path_parts));
     }, $includes);
     // Flatten the resolved possible include paths.
-    $public_includes = array_reduce($public_includes, 'array_merge', []);
+    $internal_includes = array_reduce($internal_includes, 'array_merge', []);
     // Build the expanded context.
     $context = [
       'account' => NULL,
       'sparse_fieldset' => NULL,
       'resource_type' => NULL,
-      'include' => $public_includes,
+      'include' => $internal_includes,
       'expanded' => TRUE,
     ];
     if ($request->query->get('fields')) {

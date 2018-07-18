@@ -72,6 +72,15 @@ abstract class ResourceTestBase extends BrowserTestBase {
   protected static $resourceTypeName = NULL;
 
   /**
+   * The JSON API resource type for the tested entity type plus bundle.
+   *
+   * Necessary for looking up public (alias) or internal (actual) field names.
+   *
+   * @var \Drupal\jsonapi\ResourceType\ResourceType
+   */
+  protected $resourceType;
+
+  /**
    * The fields that are protected against modification during PATCH requests.
    *
    * @var string[]
@@ -197,6 +206,8 @@ abstract class ResourceTestBase extends BrowserTestBase {
     // Create an entity.
     $this->entityStorage = $this->container->get('entity_type.manager')->getStorage(static::$entityTypeId);
     $this->entity = $this->setUpFields($this->createEntity(), $this->account);
+
+    $this->resourceType = $this->container->get('jsonapi.resource_type.repository')->getByTypeName(static::$resourceTypeName);
   }
 
   /**
@@ -1554,7 +1565,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
    */
   protected function getExpectedGetRelationshipResponse($relationship_field_name, EntityInterface $entity = NULL) {
     $entity = $entity ?: $this->entity;
-    $access = static::entityFieldAccess($entity, $relationship_field_name, 'view', $this->account);
+    $access = static::entityFieldAccess($entity, $this->resourceType->getInternalName($relationship_field_name), 'view', $this->account);
     if (!$access->isAllowed()) {
       return static::getAccessDeniedResponse($this->entity, $access, $relationship_field_name, 'The current user is not allowed to view this relationship.', FALSE);
     }
@@ -1613,8 +1624,9 @@ abstract class ResourceTestBase extends BrowserTestBase {
    */
   protected function getExpectedGetRelationshipDocumentData($relationship_field_name, EntityInterface $entity = NULL) {
     $entity = $entity ?: $this->entity;
+    $internal_field_name = $this->resourceType->getInternalName($relationship_field_name);
     /* @var \Drupal\Core\Field\FieldItemListInterface $field */
-    $field = $entity->{$relationship_field_name};
+    $field = $entity->{$internal_field_name};
     $is_multiple = $field->getFieldDefinition()->getFieldStorageDefinition()->getCardinality() !== 1;
     if ($field->isEmpty()) {
       return $is_multiple ? [] : NULL;
@@ -1658,7 +1670,8 @@ abstract class ResourceTestBase extends BrowserTestBase {
     $base_resource_identifier = static::toResourceIdentifier($entity);
     $expected_related_responses = [];
     foreach ($relationship_field_names as $relationship_field_name) {
-      $access = static::entityFieldAccess($entity, $relationship_field_name, 'view', $this->account);
+      $internal_name = $this->resourceType->getInternalName($relationship_field_name);
+      $access = static::entityFieldAccess($entity, $internal_name, 'view', $this->account);
       if (!$access->isAllowed()) {
         $detail = 'The current user is not allowed to view this relationship.';
         if ($access instanceof AccessResultReasonInterface && ($reason = $access->getReason())) {
@@ -2648,7 +2661,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
   }
 
   /**
-   * Gets a list of relationship field names for the resource type under test.
+   * Gets a list of public relationship names for the resource type under test.
    *
    * @param \Drupal\Core\Entity\EntityInterface|null $entity
    *   (optional) The entity for which to get relationship field names.
@@ -2665,7 +2678,7 @@ abstract class ResourceTestBase extends BrowserTestBase {
     return array_reduce($fields, function ($field_names, $field) {
       /* @var \Drupal\Core\Field\FieldItemListInterface $field */
       if (static::isReferenceFieldDefinition($field->getFieldDefinition())) {
-        $field_names[] = $field->getName();
+        $field_names[] = $this->resourceType->getPublicName($field->getName());
       }
       return $field_names;
     }, []);
@@ -2744,7 +2757,8 @@ abstract class ResourceTestBase extends BrowserTestBase {
         /* $paths = []; */
         foreach ($relationship_field_names as $field_name) {
           $next = ($path) ? "$path.$field_name" : $field_name;
-          if ($target_entity = $entity->{$field_name}->entity) {
+          $internal_field_name = $this->resourceType->getInternalName($field_name);
+          if ($target_entity = $entity->{$internal_field_name}->entity) {
             $deep = $get_nested_relationship_field_names($target_entity, $depth - 1, $next);
             $paths = array_merge($paths, $deep);
           }

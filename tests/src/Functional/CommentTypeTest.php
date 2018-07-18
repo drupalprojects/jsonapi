@@ -84,12 +84,11 @@ class CommentTypeTest extends ResourceTestBase {
         'attributes' => [
           'dependencies' => [],
           'description' => 'Camelids are large, strictly herbivorous animals with slender necks and long legs.',
-          'id' => 'camelids',
           'label' => 'Camelids',
           'langcode' => 'en',
           'status' => TRUE,
           'target_entity_type_id' => 'node',
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__id' => 'camelids',
         ],
       ],
     ];

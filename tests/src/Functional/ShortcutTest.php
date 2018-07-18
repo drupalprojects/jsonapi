@@ -88,8 +88,6 @@ class ShortcutTest extends ResourceTestBase {
           'self' => $self_url,
         ],
         'attributes' => [
-          'uuid' => $this->entity->uuid(),
-          'id' => (int) $this->entity->id(),
           'title' => 'Comments',
           'link' => [
             'uri' => 'internal:/user/logout',
@@ -99,6 +97,7 @@ class ShortcutTest extends ResourceTestBase {
           'langcode' => 'en',
           'default_langcode' => TRUE,
           'weight' => -20,
+          'drupal_internal__id' => (int) $this->entity->id(),
         ],
         'relationships' => [
           'shortcut_set' => [

@@ -91,11 +91,10 @@ class WorkflowTest extends ResourceTestBase {
               'workflow_type_test',
             ],
           ],
-          'id' => 'rest_workflow',
           'label' => 'REST Worklow',
           'langcode' => 'en',
           'status' => TRUE,
-          'type' => 'workflow_type_complex_test',
+          'workflow_type' => 'workflow_type_complex_test',
           'type_settings' => [
             'states' => [
               'draft' => [
@@ -111,7 +110,7 @@ class WorkflowTest extends ResourceTestBase {
             'transitions' => [],
             'example_setting' => 'foo',
           ],
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__id' => 'rest_workflow',
         ],
       ],
     ];

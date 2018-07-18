@@ -90,7 +90,6 @@ class MenuLinkContentTest extends ResourceTestBase {
         ],
         'attributes' => [
           'bundle' => 'menu_link_content',
-          'id' => 1,
           'link' => [
             'uri' => 'https://nl.wikipedia.org/wiki/Llama',
             'title' => NULL,
@@ -107,8 +106,8 @@ class MenuLinkContentTest extends ResourceTestBase {
           'parent' => NULL,
           'rediscover' => FALSE,
           'title' => 'Llama Gabilondo',
-          'uuid' => $this->entity->uuid(),
           'weight' => 0,
+          'drupal_internal__id' => 1,
         ],
       ],
     ];

@@ -208,7 +208,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     list($request, $resource_type) = $this->generateProphecies('node', 'article');
     $request->query = new ParameterBag([
       'fields' => [
-        'node--article' => 'title,type,uid,field_tags,field_image',
+        'node--article' => 'title,node_type,uid,field_tags,field_image',
         'user--user' => 'name',
       ],
       'include' => $include,
@@ -241,7 +241,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         'self' => 'dummy_entity_link',
         'related' => 'dummy_entity_link',
       ],
-    ], $normalized['data']['relationships']['type']);
+    ], $normalized['data']['relationships']['node_type']);
     $this->assertTrue(!isset($normalized['data']['attributes']['created']));
     $this->assertEquals([
       'alt' => 'test alt',
@@ -268,7 +268,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $this->assertSame($this->term1->uuid(), $normalized['included'][1]['id']);
     $this->assertSame('taxonomy_term--tags', $normalized['included'][1]['type']);
     $this->assertSame($this->term1->label(), $normalized['included'][1]['attributes']['name']);
-    $this->assertCount(8, $normalized['included'][1]['attributes']);
+    $this->assertCount(7, $normalized['included'][1]['attributes']);
     $this->assertTrue(!isset($normalized['included'][1]['attributes']['created']));
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
@@ -341,7 +341,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $document_wrapper->getData()->willReturn($this->node);
     $request->query = new ParameterBag([
       'fields' => [
-        'node--article' => 'title,type,uid,field_tags',
+        'node--article' => 'title,node_type,uid,field_tags',
         'user--user' => 'name',
       ],
       'include' => 'uid,field_tags',
@@ -359,13 +359,13 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
       );
     $normalized = $jsonapi_doc_object->rasterizeValue();
     $this->assertStringMatchesFormat($this->node->uuid(), $normalized['data']['id']);
-    $this->assertEquals($this->node->type->entity->uuid(), $normalized['data']['relationships']['type']['data']['id']);
+    $this->assertEquals($this->node->type->entity->uuid(), $normalized['data']['relationships']['node_type']['data']['id']);
     $this->assertEquals($this->user->uuid(), $normalized['data']['relationships']['uid']['data']['id']);
     $this->assertFalse(empty($normalized['included'][0]['id']));
     $this->assertTrue(empty($normalized['meta']['errors']));
     $this->assertEquals($this->user->uuid(), $normalized['included'][0]['id']);
     $this->assertCount(1, $normalized['included'][0]['attributes']);
-    $this->assertCount(8, $normalized['included'][1]['attributes']);
+    $this->assertCount(7, $normalized['included'][1]['attributes']);
     // Make sure that the cache tags for the includes and the requested entities
     // are bubbling as expected.
     $this->assertArraySubset(
@@ -383,7 +383,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $document_wrapper->getData()->willReturn($this->node);
     $request->query = new ParameterBag([
       'fields' => [
-        'node--article' => 'title,type,uid',
+        'node--article' => 'title,node_type,uid',
         'user--user' => 'name',
       ],
       'include' => 'uid',
@@ -418,7 +418,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
     $document_wrapper->getData()->willReturn($this->nodeType);
     $request->query = new ParameterBag([
       'fields' => [
-        'node_type--node_type' => 'uuid,display_submitted',
+        'node_type--node_type' => 'description,display_submitted',
       ],
       'include' => NULL,
     ]);
@@ -430,9 +430,7 @@ class JsonApiDocumentTopLevelNormalizerTest extends JsonapiKernelTestBase {
         'resource_type' => $resource_type,
       ]);
     $normalized = $jsonapi_doc_object->rasterizeValue();
-    $this->assertTrue(empty($normalized['data']['attributes']['type']));
-    $this->assertTrue(!empty($normalized['data']['attributes']['uuid']));
-    $this->assertSame($normalized['data']['attributes']['display_submitted'], TRUE);
+    $this->assertSame(['description', 'display_submitted'], array_keys($normalized['data']['attributes']));
     $this->assertSame($normalized['data']['id'], NodeType::load('article')->uuid());
     $this->assertSame($normalized['data']['type'], 'node_type--node_type');
     // Make sure that the cache tags for the includes and the requested entities

@@ -100,12 +100,11 @@ class FilterFormatTest extends ResourceTestBase {
               ],
             ],
           ],
-          'format' => 'pablo',
           'langcode' => 'es',
           'name' => 'Pablo Piccasso',
           'status' => TRUE,
-          'uuid' => $this->entity->uuid(),
           'weight' => 0,
+          'drupal_internal__format' => 'pablo',
         ],
       ],
     ];

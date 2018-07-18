@@ -87,13 +87,12 @@ class DateFormatTest extends ResourceTestBase {
         ],
         'attributes' => [
           'dependencies' => [],
-          'id' => 'llama',
           'label' => 'Llama',
           'langcode' => 'en',
           'locked' => FALSE,
           'pattern' => 'F d, Y',
           'status' => TRUE,
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__id' => 'llama',
         ],
       ],
     ];

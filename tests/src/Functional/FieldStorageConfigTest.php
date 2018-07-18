@@ -87,7 +87,6 @@ class FieldStorageConfigTest extends ResourceTestBase {
           ],
           'entity_type' => 'node',
           'field_name' => 'true_llama',
-          'id' => 'node.true_llama',
           'indexes' => [],
           'langcode' => 'en',
           'locked' => FALSE,
@@ -96,8 +95,8 @@ class FieldStorageConfigTest extends ResourceTestBase {
           'settings' => [],
           'status' => TRUE,
           'translatable' => TRUE,
-          'type' => 'boolean',
-          'uuid' => $this->entity->uuid(),
+          'field_storage_config_type' => 'boolean',
+          'drupal_internal__id' => 'node.true_llama',
         ],
       ],
     ];

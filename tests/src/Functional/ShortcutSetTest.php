@@ -90,12 +90,11 @@ class ShortcutSetTest extends ResourceTestBase {
           'self' => $self_url,
         ],
         'attributes' => [
-          'id' => 'llama_set',
-          'uuid' => $this->entity->uuid(),
           'label' => 'Llama Set',
           'status' => TRUE,
           'langcode' => 'en',
           'dependencies' => [],
+          'drupal_internal__id' => 'llama_set',
         ],
       ],
     ];

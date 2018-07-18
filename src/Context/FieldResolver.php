@@ -155,10 +155,11 @@ class FieldResolver {
     if (empty($path_parts)) {
       throw new BadRequestHttpException('Empty include path.');
     }
-    $internal_field_name = $resource_type->getInternalName($path_parts[0]);
-    $relatable_resource_types = $resource_type->getRelatableResourceTypesByField($internal_field_name);
+    $public_field_name = $path_parts[0];
+    $internal_field_name = $resource_type->getInternalName($public_field_name);
+    $relatable_resource_types = $resource_type->getRelatableResourceTypesByField($public_field_name);
     if (empty($relatable_resource_types)) {
-      $message = "`$internal_field_name` is not a valid relationship field name.";
+      $message = "`$public_field_name` is not a valid relationship field name.";
       if (!empty(($possible = implode(', ', array_keys($resource_type->getRelatableResourceTypes()))))) {
         $message .= " Possible values: $possible.";
       }

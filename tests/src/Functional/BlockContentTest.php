@@ -102,7 +102,6 @@ class BlockContentTest extends ResourceTestBase {
           'self' => $self_url,
         ],
         'attributes' => [
-          'id' => 1,
           'body' => [
             'value' => 'The name "llama" was adopted by European settlers from native Peruvians.',
             'format' => 'plain_text',
@@ -118,17 +117,17 @@ class BlockContentTest extends ResourceTestBase {
           'status' => FALSE,
           'langcode' => 'en',
           'default_langcode' => TRUE,
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__id' => 1,
         ],
         'relationships' => [
-          'type' => [
+          'block_content_type' => [
             'data' => [
               'id' => BlockContentType::load('basic')->uuid(),
               'type' => 'block_content_type--block_content_type',
             ],
             'links' => [
-              'related' => $self_url . '/type',
-              'self' => $self_url . '/relationships/type',
+              'related' => $self_url . '/block_content_type',
+              'self' => $self_url . '/relationships/block_content_type',
             ],
           ],
           'revision_user' => [

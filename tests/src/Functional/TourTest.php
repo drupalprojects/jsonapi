@@ -98,7 +98,6 @@ class TourTest extends ResourceTestBase {
         ],
         'attributes' => [
           'dependencies' => [],
-          'id' => 'tour-llama',
           'label' => 'Llama tour',
           'langcode' => 'en',
           'module' => 'tour',
@@ -120,7 +119,7 @@ class TourTest extends ResourceTestBase {
               ],
             ],
           ],
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__id' => 'tour-llama',
         ],
       ],
     ];

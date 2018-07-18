@@ -153,7 +153,6 @@ class MediaTest extends ResourceTestBase {
           'self' => $self_url,
         ],
         'attributes' => [
-          'mid' => 1,
           'vid' => 1,
           'langcode' => 'en',
           'name' => 'Llama',
@@ -165,7 +164,7 @@ class MediaTest extends ResourceTestBase {
           'revision_log_message' => NULL,
           // @todo Attempt to remove this in https://www.drupal.org/project/drupal/issues/2933518.
           'revision_translation_affected' => TRUE,
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__mid' => 1,
         ],
         'relationships' => [
           'field_media_file' => [

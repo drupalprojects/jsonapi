@@ -78,8 +78,6 @@ class ConfigTestTest extends ResourceTestBase {
           'self' => $self_url,
         ],
         'attributes' => [
-          'uuid' => $this->entity->uuid(),
-          'id' => 'llama',
           'weight' => 0,
           'langcode' => 'en',
           'status' => TRUE,
@@ -89,6 +87,7 @@ class ConfigTestTest extends ResourceTestBase {
           'size' => NULL,
           'size_value' => NULL,
           'protected_property' => NULL,
+          'drupal_internal__id' => 'llama',
         ],
       ],
     ];

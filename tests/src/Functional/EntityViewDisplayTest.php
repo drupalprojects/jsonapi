@@ -105,12 +105,11 @@ class EntityViewDisplayTest extends ResourceTestBase {
             ],
           ],
           'hidden' => [],
-          'id' => 'node.camelids.default',
           'langcode' => 'en',
           'mode' => 'default',
           'status' => TRUE,
           'targetEntityType' => 'node',
-          'uuid' => $this->entity->uuid(),
+          'drupal_internal__id' => 'node.camelids.default',
         ],
       ],
     ];

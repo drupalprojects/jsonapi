@@ -264,13 +264,21 @@ class EntityNormalizer extends NormalizerBase implements DenormalizerInterface {
 
     $field_map = $this->fieldManager->getFieldMap()[$resource_type->getEntityTypeId()];
 
+    $entity_type_id = $resource_type->getEntityTypeId();
+    $entity_type_definition = $this->entityTypeManager->getDefinition($entity_type_id);
+    $bundle_key = $entity_type_definition->getKey('bundle');
+    $uuid_key = $entity_type_definition->getKey('uuid');
+
     // Translate the public fields into the entity fields.
     foreach ($data as $public_field_name => $field_value) {
-      // Skip any disabled field.
-      if (!$resource_type->isFieldEnabled($public_field_name)) {
+      $internal_name = $resource_type->getInternalName($public_field_name);
+
+      // Skip any disabled field, except the always required bundle key and
+      // required-in-case-of-PATCHing uuid key.
+      // @see \Drupal\jsonapi\ResourceType\ResourceTypeRepository::getFieldMapping()
+      if (!$resource_type->isFieldEnabled($internal_name) && $bundle_key !== $internal_name && $uuid_key !== $internal_name) {
         continue;
       }
-      $internal_name = $resource_type->getInternalName($public_field_name);
 
       if (!isset($field_map[$internal_name]) || !in_array($resource_type->getBundle(), $field_map[$internal_name]['bundles'], TRUE)) {
         throw new UnprocessableEntityHttpException(sprintf(
