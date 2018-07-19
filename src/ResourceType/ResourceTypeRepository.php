@@ -4,6 +4,7 @@ namespace Drupal\jsonapi\ResourceType;
 
 use Drupal\Component\Assertion\Inspector;
 use Drupal\Core\Config\Entity\ConfigEntityTypeInterface;
+use Drupal\Core\Config\Schema\SchemaIncompleteException;
 use Drupal\Core\Entity\ContentEntityNullStorage;
 use Drupal\Core\Entity\ContentEntityTypeInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -233,14 +234,17 @@ class ResourceTypeRepository implements ResourceTypeRepositoryInterface {
       return array_keys($field_definitions);
     }
     elseif ($entity_type instanceof ConfigEntityTypeInterface) {
-      // @todo Uncomment the first line, remove everything else once https://www.drupal.org/project/drupal/issues/2483407 lands.
-      // return array_keys($entity_type->getPropertiesToExport());
-      $export_properties = $entity_type->getPropertiesToExport();
-      if ($export_properties !== NULL) {
-        return array_keys($export_properties);
+      $base_properties = ['id', 'type', 'uuid', '_core'];
+      try {
+        // @todo Remove this conditional expression when Drupal core supported version is >= 8.6.
+        // @see https://www.drupal.org/project/drupal/issues/2986901.
+        $export_properties = $entity_type->getPropertiesToExport() ?: $base_properties;
       }
-      else {
-        return ['id', 'type', 'uuid', '_core'];
+      catch (SchemaIncompleteException $e) {
+        $export_properties = $base_properties;
+      }
+      finally {
+        return $export_properties;
       }
     }
     else {
