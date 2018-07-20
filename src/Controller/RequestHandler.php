@@ -9,6 +9,7 @@ use Drupal\Core\Render\RendererInterface;
 use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
+use Drupal\jsonapi\Routing\Routes;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -116,7 +117,7 @@ class RequestHandler {
 
     // Determine the request parameters that should be passed to the resource
     // plugin.
-    $parameters = [];
+    $parameters = ['resource_type' => $resource_type];
 
     $entity_type_id = $resource_type->getEntityTypeId();
     if ($entity = $request->get($entity_type_id)) {
@@ -129,7 +130,7 @@ class RequestHandler {
 
     // Invoke the operation on the resource plugin.
     $action = $this->action($request, $resource_type);
-    $resource = $this->resourceFactory($resource_type);
+    $resource = $this->resourceFactory();
 
     // Only add the unserialized data if there is something there.
     $extra_parameters = $unserialized ? [$unserialized, $request] : [$request];
@@ -237,15 +238,11 @@ class RequestHandler {
   /**
    * Get the resource.
    *
-   * @param \Drupal\jsonapi\ResourceType\ResourceType $resource_type
-   *   The JSON API resource type for the current request.
-   *
    * @return \Drupal\jsonapi\Controller\EntityResource
    *   The instantiated resource.
    */
-  protected function resourceFactory(ResourceType $resource_type) {
+  protected function resourceFactory() {
     $resource = new EntityResource(
-      $resource_type,
       $this->entityTypeManager,
       $this->fieldManager,
       $this->fieldTypeManager,
