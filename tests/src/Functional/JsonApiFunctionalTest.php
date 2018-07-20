@@ -66,12 +66,17 @@ class JsonApiFunctionalTest extends JsonApiFunctionalTestBase {
     $this->assertArrayHasKey('type', $single_output['data']);
     $this->assertEquals($this->nodes[0]->getTitle(), $single_output['data']['attributes']['title']);
 
-    // 5.1 Single article with access denied.
+    // 5.1 Single article with access denied because unauthenticated.
+    Json::decode($this->drupalGet('/jsonapi/node/article/' . $this->nodes[60]->uuid()));
+    $this->assertSession()->statusCodeEquals(401);
+
+    // 5.1 Single article with access denied while authenticated.
+    $this->drupalLogin($this->userCanViewProfiles);
     $single_output = Json::decode($this->drupalGet('/jsonapi/node/article/' . $this->nodes[60]->uuid()));
     $this->assertSession()->statusCodeEquals(403);
-
     $this->assertEquals('/data', $single_output['errors'][0]['source']['pointer']);
     $this->assertEquals('/node--article/' . $this->nodes[60]->uuid(), $single_output['errors'][0]['id']);
+    $this->drupalLogout();
 
     // 6. Single relationship item.
     $single_output = Json::decode($this->drupalGet('/jsonapi/node/article/' . $uuid . '/relationships/node_type'));

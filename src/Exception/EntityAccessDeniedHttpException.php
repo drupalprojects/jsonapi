@@ -4,16 +4,17 @@ namespace Drupal\jsonapi\Exception;
 
 use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Access\AccessResultReasonInterface;
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Entity\EntityInterface;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use Drupal\Core\Http\Exception\CacheableAccessDeniedHttpException;
 
 /**
  * Enhances the access denied exception with information about the entity.
  *
  * @internal
  */
-class EntityAccessDeniedHttpException extends HttpException {
+class EntityAccessDeniedHttpException extends CacheableAccessDeniedHttpException {
 
   use DependencySerializationTrait;
 
@@ -39,19 +40,16 @@ class EntityAccessDeniedHttpException extends HttpException {
    *   The access result.
    * @param string $pointer
    *   (optional) The pointer.
-   * @param string $messsage
+   * @param string $message
    *   (Optional) The display to display.
    * @param \Exception|null $previous
    *   The previous exception.
-   * @param array $headers
-   *   The headers.
    * @param int $code
    *   The code.
    */
-  public function __construct($entity, AccessResultInterface $entity_access, $pointer, $messsage = 'The current user is not allowed to GET the selected resource.', \Exception $previous = NULL, array $headers = [], $code = 0) {
+  public function __construct($entity, AccessResultInterface $entity_access, $pointer, $message = 'The current user is not allowed to GET the selected resource.', \Exception $previous = NULL, $code = 0) {
     assert(is_null($entity) || $entity instanceof EntityInterface);
-    parent::__construct(403, $messsage, $previous, $headers, $code);
-
+    parent::__construct(CacheableMetadata::createFromObject($entity_access), $message, $previous, $code);
     $error = [
       'entity' => $entity,
       'pointer' => $pointer,

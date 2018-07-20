@@ -212,9 +212,9 @@ class EntityResource {
    */
   public function createIndividual(EntityInterface $entity, Request $request) {
     if ($entity instanceof FieldableEntityInterface) {
-      // Only check 'edit' permissions for fields that were actually submitted by
-      // the user. Field access makes no difference between 'create' and 'update',
-      // so the 'edit' operation is used here.
+      // Only check 'edit' permissions for fields that were actually submitted
+      // by the user. Field access makes no distinction between 'create' and
+      // 'update', so the 'edit' operation is used here.
       $document = Json::decode($request->getContent());
       if (isset($document['data']['attributes'])) {
         $received_attributes = array_keys($document['data']['attributes']);
