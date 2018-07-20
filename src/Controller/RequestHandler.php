@@ -2,14 +2,7 @@
 
 namespace Drupal\jsonapi\Controller;
 
-use Drupal\Core\Entity\EntityFieldManagerInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Field\FieldTypePluginManagerInterface;
-use Drupal\Core\Render\RendererInterface;
-use Drupal\jsonapi\LinkManager\LinkManager;
 use Drupal\jsonapi\ResourceType\ResourceType;
-use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
-use Drupal\jsonapi\Routing\Routes;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -32,73 +25,21 @@ class RequestHandler {
   protected $serializer;
 
   /**
-   * The JSON API resource type repository.
+   * The JSON API entity resource controller.
    *
-   * @var \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface
+   * @var \Drupal\jsonapi\Controller\EntityResource
    */
-  protected $resourceTypeRepository;
-
-  /**
-   * The entity type manager.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected $entityTypeManager;
-
-  /**
-   * The field manager.
-   *
-   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
-   */
-  protected $fieldManager;
-
-  /**
-   * The field type manager.
-   *
-   * @var \Drupal\Core\Field\FieldTypePluginManagerInterface
-   */
-  protected $fieldTypeManager;
-
-  /**
-   * The JSON API link manager.
-   *
-   * @var \Drupal\jsonapi\LinkManager\LinkManager
-   */
-  protected $linkManager;
-
-  /**
-   * The renderer.
-   *
-   * @var \Drupal\Core\Render\RendererInterface
-   */
-  protected $renderer;
+  protected $entityResource;
 
   /**
    * Creates a new RequestHandler instance.
    *
    * @param \Symfony\Component\Serializer\SerializerInterface $serializer
    *   The JSON API serializer.
-   * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface $resource_type_repository
-   *   The resource type repository.
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
-   *   The entity type manager.
-   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager
-   *   The entity field manager.
-   * @param \Drupal\Core\Field\FieldTypePluginManagerInterface $field_type_manager
-   *   The field type manager.
-   * @param \Drupal\jsonapi\LinkManager\LinkManager $link_manager
-   *   The JSON API link manager.
-   * @param \Drupal\Core\Render\RendererInterface $renderer
-   *   The renderer.
    */
-  public function __construct(SerializerInterface $serializer, ResourceTypeRepositoryInterface $resource_type_repository, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $field_manager, FieldTypePluginManagerInterface $field_type_manager, LinkManager $link_manager, RendererInterface $renderer) {
+  public function __construct(SerializerInterface $serializer, EntityResource $entity_resource) {
     $this->serializer = $serializer;
-    $this->resourceTypeRepository = $resource_type_repository;
-    $this->entityTypeManager = $entity_type_manager;
-    $this->fieldManager = $field_manager;
-    $this->fieldTypeManager = $field_type_manager;
-    $this->linkManager = $link_manager;
-    $this->renderer = $renderer;
+    $this->entityResource = $entity_resource;
   }
 
   /**
@@ -130,12 +71,11 @@ class RequestHandler {
 
     // Invoke the operation on the resource plugin.
     $action = $this->action($request, $resource_type);
-    $resource = $this->resourceFactory();
 
     // Only add the unserialized data if there is something there.
     $extra_parameters = $unserialized ? [$unserialized, $request] : [$request];
 
-    return call_user_func_array([$resource, $action], array_merge($parameters, $extra_parameters));
+    return call_user_func_array([$this->entityResource, $action], array_merge($parameters, $extra_parameters));
   }
 
   /**
@@ -233,24 +173,6 @@ class RequestHandler {
       case 'delete':
         return ($on_relationship) ? 'deleteRelationship' : 'deleteIndividual';
     }
-  }
-
-  /**
-   * Get the resource.
-   *
-   * @return \Drupal\jsonapi\Controller\EntityResource
-   *   The instantiated resource.
-   */
-  protected function resourceFactory() {
-    $resource = new EntityResource(
-      $this->entityTypeManager,
-      $this->fieldManager,
-      $this->fieldTypeManager,
-      $this->linkManager,
-      $this->resourceTypeRepository,
-      $this->renderer
-    );
-    return $resource;
   }
 
 }

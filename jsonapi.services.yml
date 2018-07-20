@@ -150,11 +150,16 @@ services:
     class: \Drupal\jsonapi\Controller\RequestHandler
     arguments:
       - '@jsonapi.serializer_do_not_use_removal_imminent'
-      - '@jsonapi.resource_type.repository'
+      - '@jsonapi.entity_resource'
+  jsonapi.entity_resource:
+    class: \Drupal\jsonapi\Controller\EntityResource
+    public: false
+    arguments:
       - '@entity_type.manager'
       - '@entity_field.manager'
       - '@plugin.manager.field.field_type'
       - '@jsonapi.link_manager'
+      - '@jsonapi.resource_type.repository'
       - '@renderer'
 
   # Event subscribers.
