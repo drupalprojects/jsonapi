@@ -125,8 +125,6 @@ class EntityResource {
    *   The loaded entity.
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
-   * @param int $response_code
-   *   The response code. Defaults to 200.
    *
    * @return \Drupal\jsonapi\ResourceResponse
    *   The response.
@@ -134,20 +132,12 @@ class EntityResource {
    * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
    *   Thrown when access to the entity is not allowed.
    */
-  public function getIndividual(EntityInterface $entity, Request $request, $response_code = 200) {
-    $entity_access = $entity->access('view', NULL, TRUE);
-    if (!$entity_access->isAllowed()) {
-      $entity_label_access = $entity->access('view label', NULL, TRUE);
-      if (!$entity_label_access->isAllowed()) {
-        throw new EntityAccessDeniedHttpException($entity, $entity_access, '/data', 'The current user is not allowed to GET the selected resource.');
-      }
-      $entity = new LabelOnlyEntity($entity);
+  public function getIndividual(EntityInterface $entity, Request $request) {
+    $entity = static::getAccessCheckedEntity($entity);
+    if ($entity instanceof EntityAccessDeniedHttpException) {
+      throw $entity;
     }
-    $response = $this->buildWrappedResponse($entity, $response_code);
-    $response->addCacheableDependency($entity_access);
-    if (isset($entity_label_access)) {
-      $response->addCacheableDependency($entity_label_access);
-    }
+    $response = $this->buildWrappedResponse($entity);
     return $response;
   }
 
@@ -383,7 +373,7 @@ class EntityResource {
     // Each item of the collection data contains an array with 'entity' and
     // 'access' elements.
     $collection_data = $this->loadEntitiesWithAccess($storage, $results);
-    $entity_collection = new EntityCollection(array_column($collection_data, 'entity'));
+    $entity_collection = new EntityCollection($collection_data);
     $entity_collection->setHasNextPage($has_next_page);
 
     // Calculate all the results and pass them to the EntityCollectionInterface.
@@ -398,11 +388,6 @@ class EntityResource {
     $response = $this->respondWithCollection($entity_collection, $entity_type_id);
 
     $response->addCacheableDependency($query_cacheability);
-    // Add cacheable metadata for the access result.
-    $access_info = array_column($collection_data, 'access');
-    array_walk($access_info, function ($access) use ($response) {
-      $response->addCacheableDependency($access);
-    });
 
     return $response;
   }
@@ -450,16 +435,12 @@ class EntityResource {
       }
     );
     foreach ($referenced_entities as $referenced_entity) {
-      $collection_data[$referenced_entity->id()] = static::getEntityAndAccess($referenced_entity);
+      $collection_data[$referenced_entity->id()] = static::getAccessCheckedEntity($referenced_entity);
       $cacheable_metadata->addCacheableDependency($referenced_entity);
     }
-    $entity_collection = new EntityCollection(array_column($collection_data, 'entity'));
+    $entity_collection = new EntityCollection($collection_data);
     $response = $this->buildWrappedResponse($entity_collection);
 
-    $access_info = array_column($collection_data, 'access');
-    array_walk($access_info, function ($access) use ($response) {
-      $response->addCacheableDependency($access);
-    });
     // $response does not contain the entity list cache tag. We add the
     // cacheable metadata for the finite list of entities in the relationship.
     $response->addCacheableDependency($cacheable_metadata);
@@ -828,6 +809,9 @@ class EntityResource {
     $list_tag = $this->entityTypeManager->getDefinition($entity_type_id)
       ->getListCacheTags();
     $response->getCacheableMetadata()->addCacheTags($list_tag);
+    foreach ($entity_collection as $entity) {
+      $response->addCacheableDependency($entity);
+    }
     return $response;
   }
 
@@ -921,16 +905,14 @@ class EntityResource {
    *   Array of entity IDs.
    *
    * @return array
-   *   An array keyed by entity ID containing the keys:
-   *     - entity: the loaded entity or an access exception.
-   *     - access: the access object.
+   *   An array of loaded entities and/or an access exceptions.
    */
   protected function loadEntitiesWithAccess(EntityStorageInterface $storage, array $ids) {
     $output = [];
     foreach ($storage->loadMultiple($ids) as $entity) {
-      $output[$entity->id()] = static::getEntityAndAccess($entity);
+      $output[$entity->id()] = static::getAccessCheckedEntity($entity);
     }
-    return $output;
+    return array_values($output);
   }
 
   /**
@@ -939,37 +921,30 @@ class EntityResource {
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity to test access for.
    *
-   * @return array
-   *   An array containing the keys:
-   *     - entity: the loaded entity or an access exception.
-   *     - access: the access object.
-   *
-   * @throws \Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
-   *   Thrown when the current user is not allowed to GET the selected resource.
+   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\jsonapi\LabelOnlyEntity|\Drupal\jsonapi\Exception\EntityAccessDeniedHttpException
+   *   The loaded entity, a label only version of that entity or an
+   *   EntityAccessDeniedHttpException object if neither is accessible. All
+   *   three possible return values carry the access result cacheability.
    */
-  public static function getEntityAndAccess(EntityInterface $entity) {
+  public static function getAccessCheckedEntity(EntityInterface $entity) {
     /** @var \Drupal\Core\Entity\EntityRepositoryInterface $entity_repository */
     $entity_repository = \Drupal::service('entity.repository');
     $entity = $entity_repository->getTranslationFromContext($entity, NULL, ['operation' => 'entity_upcast']);
     $access = $entity->access('view', NULL, TRUE);
-    // Accumulate the cacheability metadata for the access.
-    $output = [
-      'access' => $access,
-      'entity' => $entity,
-    ];
+    $entity->addCacheableDependency($access);
     if (!$access->isAllowed()) {
       $label_access = $entity->access('view label', NULL, TRUE);
-      $output['access'] = $label_access->addCacheableDependency($output['access']);
+      $entity->addCacheableDependency($label_access);
       if ($label_access->isAllowed()) {
-        $output['entity'] = new LabelOnlyEntity($entity);
+        return new LabelOnlyEntity($entity);
       }
       else {
         // Pass an exception to the list of things to normalize.
-        $output['entity'] = new EntityAccessDeniedHttpException($entity, $access, '/data', 'The current user is not allowed to GET the selected resource.');
+        return new EntityAccessDeniedHttpException($entity, $access->orIf($label_access), '/data', 'The current user is not allowed to GET the selected resource.');
       }
     }
 
-    return $output;
+    return $entity;
   }
 
   /**

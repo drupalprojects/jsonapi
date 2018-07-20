@@ -238,7 +238,11 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response->getResponseData());
     $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
     $this->assertCount(1, $response->getResponseData()->getData());
-    $this->assertEquals(['config:node_type_list'], $response->getCacheableMetadata()->getCacheTags());
+    $expected_cache_tags = [
+      'config:node.type.article',
+      'config:node_type_list',
+    ];
+    $this->assertSame($expected_cache_tags, $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -275,7 +279,12 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $this->assertInstanceOf(EntityCollection::class, $response->getResponseData()->getData());
     $this->assertCount(2, $response->getResponseData()->getData());
     $this->assertEquals($response->getResponseData()->getData()->toArray()[0]->id(), 'lorem');
-    $this->assertEquals(['config:node_type_list'], $response->getCacheableMetadata()->getCacheTags());
+    $expected_cache_tags = [
+      'config:node.type.article',
+      'config:node.type.lorem',
+      'config:node_type_list',
+    ];
+    $this->assertSame($expected_cache_tags, $response->getCacheableMetadata()->getCacheTags());
   }
 
   /**
@@ -358,10 +367,8 @@ class EntityResourceTest extends JsonapiKernelTestBase {
     $this->assertInstanceOf(User::class, $response->getResponseData()
       ->getData());
     $this->assertEquals(1, $response->getResponseData()->getData()->id());
-    $this->assertEquals(
-      ['node:1', 'user:1'],
-      $response->getCacheableMetadata()->getCacheTags()
-    );
+    $this->assertSame(['user:1'], $response->getResponseData()->getData()->getCacheTags());
+    $this->assertEquals(['node:1'], $response->getCacheableMetadata()->getCacheTags());
     // to-many relationship.
     $response = $entity_resource->getRelated($this->node4, 'field_relationships', new Request());
     $this->assertInstanceOf(JsonApiDocumentTopLevel::class, $response
@@ -373,6 +380,7 @@ class EntityResourceTest extends JsonapiKernelTestBase {
       ['node:1', 'node:2', 'node:3', 'node:4'],
       $response->getCacheableMetadata()->getCacheTags()
     );
+    $this->assertSame(['user.permissions'], $response->getCacheableMetadata()->getCacheContexts());
   }
 
   /**

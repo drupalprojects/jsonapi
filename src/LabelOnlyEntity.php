@@ -2,6 +2,8 @@
 
 namespace Drupal\jsonapi;
 
+use Drupal\Core\Cache\CacheableDependencyInterface;
+use Drupal\Core\Cache\CacheableDependencyTrait;
 use Drupal\Core\Entity\EntityInterface;
 
 /**
@@ -9,7 +11,9 @@ use Drupal\Core\Entity\EntityInterface;
  *
  * @internal
  */
-class LabelOnlyEntity {
+class LabelOnlyEntity implements CacheableDependencyInterface {
+
+  use CacheableDependencyTrait;
 
   /**
    * Constructs a LabelOnlyEntity value object.
@@ -19,6 +23,7 @@ class LabelOnlyEntity {
    */
   public function __construct(EntityInterface $entity) {
     $this->entity = $entity;
+    $this->setCacheability($entity);
   }
 
   /**
